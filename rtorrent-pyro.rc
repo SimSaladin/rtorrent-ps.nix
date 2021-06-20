@@ -1,0 +1,15 @@
+#############################################################################
+# Standard PyroScope rTorrent Configuration
+#
+# To include THIS file into your main "~/.rtorrent.rc", add these commands to it:
+#   method.insert = pyro.extended, value|const, 0
+#   method.insert = pyro.bin_dir, string|const,
+#   import = {{ this }}
+#
+# And read https://pyrocore.readthedocs.io/en/latest/setup.html#rtorrent-pyro-rc
+#
+# Set "pyro.extended" to 1 to activate rTorrent-PS features, but ONLY if
+# you actually run that patched version of rTorrent!
+#
+
+import = @out@/share/pyroscope/rtorrent.d/.import.rc
