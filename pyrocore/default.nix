@@ -1,10 +1,17 @@
 { fetchFromGitHub
+, installShellFiles
 , buildPythonPackage
 , python
-, ProxyTypes
-, pyrobase
 , setuptools
+, six
+, callPackage
 }:
+
+let
+  ProxyTypes = callPackage ./ProxyTypes.nix { inherit buildPythonPackage; };
+
+  pyrobase = callPackage ./pyrobase.nix { inherit buildPythonPackage six; };
+in
 buildPythonPackage rec {
   pname = "pyrocore";
   version = "0.6.1";
@@ -16,16 +23,22 @@ buildPythonPackage rec {
     sha256 = "0k79d4gkvi7k6pn0xid3qq8vhr5fm4gqqq2c68816q9x143cn75v";
   };
 
+  nativeBuildInputs = [ installShellFiles ];
   propagatedBuildInputs = [ setuptools ProxyTypes pyrobase ];
 
   postInstall = ''
     ln -nfs ${python}/bin/python $out/bin/python-pyrocore
 
+    # TODO other commands; same file
+    installShellCompletion --bash --cmd rtcontrol $src/src/pyrocore/data/config/bash-completion
+
     mkdir -p $out/share/pyroscope
 
-    cp -r $src/src/pyrocore/data/config/* $out/share/pyroscope
     cp -r $src/src/scripts $out/share/pyroscope/scripts
     cp -r $src/docs/examples $out/share/pyroscope/examples
+
+    cp -r $src/src/pyrocore/data/config/{color-schemes,rtorrent.d,templates} $out/share/pyroscope
+    cp $src/src/pyrocore/data/config/*.{ini,py} $out/share/pyroscope
   '';
 
   postFixup = ''

@@ -1,0 +1,10 @@
+# This file regularly executes standard directory watches. If you use `pyrotorque`,
+# you should disable the schedule.
+#
+# `pyro.category.add` is defined by ‘pyrocore’.
+#
+# Then restart rTorrent.
+
+pyro.category.add = hdtv
+
+schedule2 = watch_dirs, 121, 10, ((import, "@confdir@/watch-dirs.rc.include"))

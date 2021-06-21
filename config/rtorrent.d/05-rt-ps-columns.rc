@@ -1,0 +1,18 @@
+# rTorrent-PS Extended Canvas Configuration
+#
+# You can also disable specific columns, by calling 'ui.column.hide'
+# with just the index, *after* this include in your main config, like so:
+#
+#   ui.column.hide = 42
+#
+
+# Provide dummy multi-methods for plain rTorrent
+branch=(not, (pyro.extended)), ((method.insert, ui.column.render, multi|rlookup|static))
+
+# Define default columns for older rTorrent-PS builds
+branch=(and, (pyro.extended), (not, (system.has, canvas_v2))), \
+    ((import, "@confdir@/05-rt-ps-columns.rc.include" ))
+
+# Define custom columns for rTorrent-PS 1.1+ builds
+branch=(system.has, "import.return="), \
+    ((import, "@confdir@/05-rt-ps-columns-v2.rc.include" ))

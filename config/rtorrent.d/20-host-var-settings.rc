@@ -1,0 +1,10 @@
+# General settings
+
+pieces.memory.max.set = 1200M
+network.xmlrpc.size_limit.set = 16M
+
+throttle.global_up.max_rate.set_kb = 115000
+throttle.global_down.max_rate.set_kb = 115000
+
+system.umask.set = 0027
+keys.layout.set = dvorak
