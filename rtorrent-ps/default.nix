@@ -1,5 +1,6 @@
 { fetchFromGitHub, stdenvNoCC, makeWrapper, runCommand
 , rtorrent, pyrocore
+, python
 , RT_HOME
 }:
 let
@@ -24,10 +25,18 @@ let
 
     # pyroscope
     mkdir -p $out/pyroscope
+    # include defaults
+    cp -r ${pyrocore}/share/pyroscope/color-schemes $out/pyroscope/
+    # nix customizations
     substitute ${../config.ini} $out/pyroscope/config.ini \
       --subst-var-by pyroscope ${pyrocore}/share/pyroscope \
       --subst-var-by rtorrent_rc $out/rtorrent.rc
   '';
+
+  pyrocoreEnv = python.buildEnv.override {
+    extraLibs = [ pyrocore ]; # python.withPackages (ps: with ps; [ pyrocore ]);
+    ignoreCollisions = true;
+  };
 in
 
 stdenvNoCC.mkDerivation {
@@ -56,5 +65,9 @@ stdenvNoCC.mkDerivation {
       makeWrapper "$f" $out/bin/$(basename "$f") \
         --set PYRO_CONFIG_DIR ${rtorrent-configs}/pyroscope
     done
+
+    makeWrapper ${pyrocoreEnv}/bin/python $out/bin/python-pyrocore \
+        --set PYRO_CONFIG_DIR ${rtorrent-configs}/pyroscope
+
   '';
 }

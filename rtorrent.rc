@@ -26,6 +26,9 @@ schedule2 = scgi_permission, 0, 0, "execute.nothrow=chmod,\"g+w,o=\",@scgi_socke
 # INCLUDE: rtorrent.d
 import = @confdir@/.import.rc
 
+# INCLUDE: default theme
+try_import = @pyroscope@/share/pyroscope/color-schemes/default-16.rc
+
 # INCLUDE: Local settings (optional)
 try_import = (cat,(cfg.basedir),"_rtlocal.rc")
 

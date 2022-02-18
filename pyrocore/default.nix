@@ -27,8 +27,6 @@ buildPythonPackage rec {
   propagatedBuildInputs = [ setuptools ProxyTypes pyrobase ];
 
   postInstall = ''
-    ln -nfs ${python}/bin/python $out/bin/python-pyrocore
-
     # TODO other commands; same file
     installShellCompletion --bash --cmd rtcontrol $src/src/pyrocore/data/config/bash-completion
 
