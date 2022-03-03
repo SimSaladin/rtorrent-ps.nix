@@ -3,12 +3,13 @@
 # rTorrent startup script
 #
 
-export RT_HOME=@RT_HOME@
-export RT_SOCKET=@RT_SOCKET@
+export RT_HOME=${RT_HOME:?}
+export RT_SOCKET=${RT_SOCKET:?}
+export RT_INITRC=${RT_INITRC:?}
 
 RT_OPTS=( )
 RT_OPTS+=( -D -I )  # comment this to get deprecated commands
-RT_OPTS+=( -n -o "import=@RTORRENT_RC@" )
+RT_OPTS+=( -n -o "import=$RT_INITRC" )
 
 fail() {
     echo "ERROR:" "$@"

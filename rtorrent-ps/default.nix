@@ -6,22 +6,38 @@
 , pyrocore
 , python
 , rtorrent-configs
-}:
+, RT_HOME ? null
+, RT_SOCKET ? null # "${RT_HOME}/.scgi_local"
+, RT_INITRC ? null # rtorrent-configs.rtorrentRc
+}@args:
+
 let
   pyrocoreEnv = python.buildEnv.override {
     extraLibs = [ pyrocore ];
     ignoreCollisions = true;
   };
+
+  RT_HOME =
+    if !builtins.isNull args.RT_HOME then args.RT_HOME
+    else if builtins.getEnv "HOME" != "" then builtins.getEnv "HOME" + "/.rtorrent"
+    else
+      throw ''
+        Could not figure out a suitable value for RT_HOME. Pass it as an
+        argument or build with --impure.
+      '';
+
+  rtSocket = if builtins.isNull RT_SOCKET then "${RT_HOME}/.scgi_local" else RT_SOCKET;
+
+  cfg = rtorrent-configs.override { inherit rtSocket; };
 in
 
-# - bin/rtorrent-ps (start script)
-# - ${pyrocore}/bin/* (utility programs)
-# - python-pyrocore (python interpreter)
+assert !builtins.isNull (builtins.match "/.+" RT_HOME);
 
 stdenvNoCC.mkDerivation {
   name = "rtorrent-ps";
   version = "PS-1.1-67-g244a4e9"; # git describe --long --tags
 
+  # XXX are we really using this source here??
   src = fetchFromGitHub {
     owner = "pyroscope";
     repo = "rtorrent-ps";
@@ -31,20 +47,13 @@ stdenvNoCC.mkDerivation {
 
   nativeBuildInputs = [ makeWrapper ];
 
-  inherit (rtorrent-configs) RT_HOME RT_SOCKET;
-  RTORRENT_RC = "${rtorrent-configs}/rtorrent.rc";
-  PYRO_CONFIG_DIR = "${rtorrent-configs}/pyroscope";
+  inherit RT_HOME;
+  RT_SOCKET = rtSocket;
+  RT_INITRC = if builtins.isNull RT_INITRC then cfg.rtorrentRc else RT_INITRC;
+  PYRO_CONFIG_DIR = "${cfg.pyroConfigs}";
 
   installPhase = ''
     mkdir -p $out/{etc,bin,share/bash-completion}
-
-    # Create bin/rtorrent-ps
-    substitute ${./start.sh} $out/bin/rtorrent-ps \
-      --subst-var RT_HOME \
-      --subst-var RT_SOCKET \
-      --subst-var RTORRENT_RC \
-      --subst-var-by rtorrent ${rtorrent}/bin/rtorrent
-    chmod 0755 $out/bin/rtorrent-ps
 
     # Create bin/rtorrent-<ver>
     makeWrapper ${rtorrent}/bin/rtorrent $out/bin/rtorrent-${rtorrent.version}
@@ -54,13 +63,25 @@ stdenvNoCC.mkDerivation {
       makeWrapper "$f" $out/bin/$(basename "$f") \
         --set PYRO_CONFIG_DIR "$PYRO_CONFIG_DIR"
     done
-    ln -s ${pyrocore}/share/bash-completion/* $out/share/bash-completion/
 
     # Create bin/python-pyrocore
     makeWrapper ${pyrocoreEnv}/bin/python $out/bin/python-pyrocore \
         --set PYRO_CONFIG_DIR "$PYRO_CONFIG_DIR"
 
+    # Create bin/rtorrent-ps
+    makeWrapper ${cfg.startScript} $out/bin/rtorrent-ps \
+      --prefix PATH : "$out/bin" \
+      --set RT_HOME "$RT_HOME" \
+      --set RT_SOCKET "$RT_SOCKET" \
+      --set RT_INITRC "$RT_INITRC" \
+      --set PYRO_CONFIG_DIR "$PYRO_CONFIG_DIR"
+
+    # Add shell completion
+    ln -s ${pyrocore}/share/bash-completion/* $out/share/bash-completion/
+
     # Create links to config files
-    ln -st $out/etc ${rtorrent-configs}/*
+    ln -s ${cfg.rtorrentRc} $out/etc/rtorrent.rc
+    ln -s ${cfg.rtConfigs} $out/etc/rtorrent.d
+    ln -s ${cfg.pyroConfigs} $out/etc/pyroscope
   '';
 }

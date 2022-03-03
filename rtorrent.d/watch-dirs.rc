@@ -3,7 +3,7 @@
 
 # Standard watch directories
 schedule2 = watch_dirs, 121, 10,\
-  ((import, "@confdir@/watch-dirs.rc.include"))
+  ((import, "@out@/watch-dirs.rc.include"))
 
 # Reload watch directory configuration automatically
 schedule2 = watch_user_config, 0, 30,\
