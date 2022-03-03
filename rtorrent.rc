@@ -17,8 +17,9 @@ method.insert = pyro.bin_dir, const|string, @pyrocore@/bin/
 ## branch=(pyro.extended), ((ui.bind_key.verbose.set, 0))
 
 # Since "network.scgi.open_local" is parsed by "rtcontrol", this must be a literal value,
-# and also not moved out of the main configuration file!
-network.scgi.open_local = "@RT_SOCKET@"
+# and also not moved out of the main configuration file! And no quoting the
+# value!
+network.scgi.open_local = @RT_SOCKET@
 
 # SCHEDULE: Make SCGI socket group-writable and secure
 schedule2 = scgi_permission, 0, 0, ((execute.nothrow,chmod,"g+w,o=","@RT_SOCKET@"))
