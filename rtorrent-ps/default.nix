@@ -1,4 +1,5 @@
 { fetchFromGitHub
+, writeScriptBin
 , stdenvNoCC
 , makeWrapper
 , runCommand
@@ -29,13 +30,15 @@ let
   rtSocket = if builtins.isNull RT_SOCKET then "${rtHome}/.scgi_local" else RT_SOCKET;
 
   cfg = rtorrent-configs.override { inherit rtSocket; };
+
+  rtorrent-magnet = writeScriptBin "rtorrent-magnet" "${../rtorrent-magnet}";
 in
 
 stdenvNoCC.mkDerivation {
   name = "rtorrent-ps";
   version = "PS-1.1-67-g244a4e9"; # git describe --long --tags
 
-  # XXX are we really using this source here??
+  # NOTE: the source is referenced by the "rtorrent" derivation
   src = fetchFromGitHub {
     owner = "pyroscope";
     repo = "rtorrent-ps";
@@ -51,10 +54,15 @@ stdenvNoCC.mkDerivation {
   PYRO_CONFIG_DIR = "${cfg.pyroConfigs}";
 
   installPhase = ''
-    mkdir -p $out/{etc,bin,share/bash-completion}
+    mkdir -p $out/{etc,bin}
+    mkdir -p $out/share/{bash-completion,applications}
 
     # Create bin/rtorrent-<ver>
     makeWrapper ${rtorrent}/bin/rtorrent $out/bin/rtorrent-${rtorrent.version}
+
+    # Create rtorrent-magnet
+    ln -s ${rtorrent-magnet}/bin/* $out/bin/
+    install -Dm645 ${../rtorrent-magnet.desktop} $out/share/applications/
 
     # Create pyroscope executables
     for f in ${pyrocore}/bin/*; do

@@ -23,5 +23,8 @@ in {
     home.packages = [
       (pkgs.rtorrent-ps.override { RT_HOME = cfg.baseDir; })
     ];
+
+    # To set as default
+    #xdg.mimeApps.defaultApplications."x-schema-handler/magnet" = [ "rtorrent-magnet.desktop" ];
   };
 }
