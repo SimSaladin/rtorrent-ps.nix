@@ -3,7 +3,7 @@
 }:
 
 let
-  overlay = import ./overlay.nix { inherit RT_HOME; };
+  overlay = import ./overlay.nix { };
 in
 
-(nixpkgs.extend overlay).rtorrent-ps
+(nixpkgs.extend overlay).rtorrent-ps.override { inherit RT_HOME; }

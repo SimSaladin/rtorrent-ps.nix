@@ -9,7 +9,7 @@
 , RT_HOME ? null
 , RT_SOCKET ? null # "${RT_HOME}/.scgi_local"
 , RT_INITRC ? null # rtorrent-configs.rtorrentRc
-}@args:
+}:
 
 let
   pyrocoreEnv = python.buildEnv.override {
@@ -17,8 +17,8 @@ let
     ignoreCollisions = true;
   };
 
-  RT_HOME =
-    if !builtins.isNull args.RT_HOME then args.RT_HOME
+  rtHome =
+    if !builtins.isNull RT_HOME then RT_HOME
     else if builtins.getEnv "HOME" != "" then builtins.getEnv "HOME" + "/.rtorrent"
     else
       throw ''
@@ -26,12 +26,10 @@ let
         argument or build with --impure.
       '';
 
-  rtSocket = if builtins.isNull RT_SOCKET then "${RT_HOME}/.scgi_local" else RT_SOCKET;
+  rtSocket = if builtins.isNull RT_SOCKET then "${rtHome}/.scgi_local" else RT_SOCKET;
 
   cfg = rtorrent-configs.override { inherit rtSocket; };
 in
-
-assert !builtins.isNull (builtins.match "/.+" RT_HOME);
 
 stdenvNoCC.mkDerivation {
   name = "rtorrent-ps";
@@ -47,7 +45,7 @@ stdenvNoCC.mkDerivation {
 
   nativeBuildInputs = [ makeWrapper ];
 
-  inherit RT_HOME;
+  RT_HOME = rtHome;
   RT_SOCKET = rtSocket;
   RT_INITRC = if builtins.isNull RT_INITRC then cfg.rtorrentRc else RT_INITRC;
   PYRO_CONFIG_DIR = "${cfg.pyroConfigs}";

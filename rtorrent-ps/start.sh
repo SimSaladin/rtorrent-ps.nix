@@ -7,6 +7,8 @@ export RT_HOME=${RT_HOME:?}
 export RT_SOCKET=${RT_SOCKET:?}
 export RT_INITRC=${RT_INITRC:?}
 
+RT_NOFILE=${RT_NOFILE:-30000}
+
 RT_OPTS=( )
 RT_OPTS+=( -D -I )  # comment this to get deprecated commands
 RT_OPTS+=( -n -o "import=$RT_INITRC" )
@@ -18,7 +20,7 @@ fail() {
 
 export LANG=en_US.UTF-8
 umask 0027
-ulimit -n 75000 || fail "Failed to raise open files limit (-n) of process"
+ulimit -n "$RT_NOFILE" || fail "Failed to raise open files limit (-n) of process"
 
 cd "$RT_HOME" || fail "RT_HOME $RT_HOME directory does not exist!"
 
