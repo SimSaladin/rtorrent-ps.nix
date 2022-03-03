@@ -5,7 +5,6 @@
 , rtorrent
 , pyrocore
 , python
-, RT_HOME
 , rtorrent-configs
 }:
 let
@@ -32,8 +31,7 @@ stdenvNoCC.mkDerivation {
 
   nativeBuildInputs = [ makeWrapper ];
 
-  inherit RT_HOME;
-  RT_SOCKET = "${RT_HOME}/.scgi_local";
+  inherit (rtorrent-configs) RT_HOME RT_SOCKET;
   RTORRENT_RC = "${rtorrent-configs}/rtorrent.rc";
   PYRO_CONFIG_DIR = "${rtorrent-configs}/pyroscope";
 

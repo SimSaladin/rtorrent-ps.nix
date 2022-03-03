@@ -14,15 +14,14 @@
 # The main config file is: ${rtorrent-configs}/rtorrent.rc
 
 final: prev: {
+
+  # NOTE: needs RT_HOME to bake the scgi socket into the configs
   rtorrent-configs = final.callPackage ./rtorrent-configs.nix {
-    # NOTE: needs RT_HOME to bake the scgi socket into the configs
     inherit RT_HOME;
   };
 
-  rtorrent-ps = final.callPackage ./rtorrent-ps {
-    # NOTE: uses RT_HOME to bake it into the start script
-    inherit RT_HOME;
-  };
+  # NOTE: uses RT_HOME to bake it into the start script
+  rtorrent-ps = final.callPackage ./rtorrent-ps { };
 
   libtorrent = final.callPackage ./libtorrent { };
 
