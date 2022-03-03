@@ -7,6 +7,4 @@ schedule2 = watch_dirs, 121, 10,\
 
 # Reload watch directory configuration automatically
 schedule2 = watch_user_config, 0, 30,\
-  ((branch, (os.path.exists, (cat, (cfg.basedir), "watch-dirs.rc")),\
-    "try_import=(cat, (cfg.basedir), "watch-dirs.rc")"\
-  ))
+  ((try_import_existing, (cat, (cfg.basedir), "watch-dirs.rc")))
