@@ -1,16 +1,20 @@
-{ nixpkgs ? import <nixpkgs> {}
-, RT_HOME ? "${builtins.getEnv "HOME"}/.rtorrent"
-}:
-
-with nixpkgs;
+{ nixpkgs ? import <nixpkgs> { }
+, RT_HOME ? null
+}@args:
 
 let
-  packages = rec {
-    rtorrent-ps = callPackage ./rtorrent-ps { inherit rtorrent pyrocore RT_HOME; };
-    libtorrent = callPackage ./libtorrent { inherit rtorrent-ps; };
-    rtorrent = callPackage ./rtorrent { inherit libtorrent rtorrent-ps; };
-    pyrocore = callPackage ./pyrocore { inherit (python2Packages) buildPythonPackage setuptools six; };
-  };
-in {
-  inherit (packages) rtorrent-ps;
-}
+  RT_HOME =
+    if !builtins.isNull args.RT_HOME then args.RT_HOME
+    else if builtins.getEnv "HOME" != "" then builtins.getEnv "HOME" + "/.rtorrent"
+    else
+      throw ''
+        Could not figure out a suitable value for RT_HOME. Pass it as an
+        argument or build with --impure.
+      '';
+
+  overlay = import ./overlay.nix { inherit RT_HOME; };
+in
+
+assert !builtins.isNull (builtins.match "/.+" RT_HOME);
+
+(nixpkgs.extend overlay).rtorrent-ps

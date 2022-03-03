@@ -1,4 +1,5 @@
-{ fetchzip, buildPythonPackage
+{ fetchzip
+, buildPythonPackage
 , six
 }:
 buildPythonPackage rec {

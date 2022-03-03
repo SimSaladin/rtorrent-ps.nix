@@ -10,10 +10,14 @@
 }:
 let
   pyrocoreEnv = python.buildEnv.override {
-    extraLibs = [ pyrocore ]; # python.withPackages (ps: with ps; [ pyrocore ]);
+    extraLibs = [ pyrocore ];
     ignoreCollisions = true;
   };
 in
+
+# - bin/rtorrent-ps (start script)
+# - ${pyrocore}/bin/* (utility programs)
+# - python-pyrocore (python interpreter)
 
 stdenvNoCC.mkDerivation {
   name = "rtorrent-ps";
@@ -28,22 +32,37 @@ stdenvNoCC.mkDerivation {
 
   nativeBuildInputs = [ makeWrapper ];
 
-  installPhase = ''
-    mkdir -p $out/bin
+  inherit RT_HOME;
+  RT_SOCKET = "${RT_HOME}/.scgi_local";
+  RTORRENT_RC = "${rtorrent-configs}/rtorrent.rc";
+  PYRO_CONFIG_DIR = "${rtorrent-configs}/pyroscope";
 
+  installPhase = ''
+    mkdir -p $out/{etc,bin,share/bash-completion}
+
+    # Create bin/rtorrent-ps
     substitute ${./start.sh} $out/bin/rtorrent-ps \
-      --subst-var-by basedir ${RT_HOME} \
-      --subst-var-by rtorrent ${rtorrent} \
-      --subst-var-by rtorrent_rc ${rtorrent-configs}/rtorrent.rc
+      --subst-var RT_HOME \
+      --subst-var RT_SOCKET \
+      --subst-var RTORRENT_RC \
+      --subst-var-by rtorrent ${rtorrent}/bin/rtorrent
     chmod 0755 $out/bin/rtorrent-ps
 
+    # Create bin/rtorrent-<ver>
+    makeWrapper ${rtorrent}/bin/rtorrent $out/bin/rtorrent-${rtorrent.version}
+
+    # Create pyroscope executables
     for f in ${pyrocore}/bin/*; do
       makeWrapper "$f" $out/bin/$(basename "$f") \
-        --set PYRO_CONFIG_DIR ${rtorrent-configs}/pyroscope
+        --set PYRO_CONFIG_DIR "$PYRO_CONFIG_DIR"
     done
+    ln -s ${pyrocore}/share/bash-completion/* $out/share/bash-completion/
 
+    # Create bin/python-pyrocore
     makeWrapper ${pyrocoreEnv}/bin/python $out/bin/python-pyrocore \
-        --set PYRO_CONFIG_DIR ${rtorrent-configs}/pyroscope
+        --set PYRO_CONFIG_DIR "$PYRO_CONFIG_DIR"
 
+    # Create links to config files
+    ln -st $out/etc ${rtorrent-configs}/*
   '';
 }

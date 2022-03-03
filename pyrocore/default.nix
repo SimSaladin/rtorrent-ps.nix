@@ -1,17 +1,12 @@
 { fetchFromGitHub
 , installShellFiles
 , buildPythonPackage
-, python
 , setuptools
 , six
-, callPackage
+, ProxyTypes
+, pyrobase
 }:
 
-let
-  ProxyTypes = callPackage ./ProxyTypes.nix { inherit buildPythonPackage; };
-
-  pyrobase = callPackage ./pyrobase.nix { inherit buildPythonPackage six; };
-in
 buildPythonPackage rec {
   pname = "pyrocore";
   version = "0.6.1";
@@ -40,9 +35,10 @@ buildPythonPackage rec {
   '';
 
   postFixup = ''
-    $out/bin/pyroadmin -q --create-import "$out/share/pyroscope/rtorrent.d/*.rc"
-    substitute ${./rtorrent-pyro.rc} $out/share/pyroscope/rtorrent-pyro.rc \
-      --subst-var out
+    export pyroscope=$out/share/pyroscope
+    $out/bin/pyroadmin -q --create-import "$pyroscope/rtorrent.d/*.rc"
+    substitute ${./rtorrent-pyro.rc} $pyroscope/rtorrent-pyro.rc \
+      --subst-var pyroscope
   '';
 
   doCheck = false;

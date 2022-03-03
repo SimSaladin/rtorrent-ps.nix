@@ -11,23 +11,23 @@ method.insert = pyro.extended, const|value, (system.has, rtorrent-ps)
 
 # Set "pyro.bin_dir" to the "bin" directory where you installed the pyrocore tools!
 # Make sure you end it with a "/"; if this is left empty, then the shell's path is searched.
-method.insert = pyro.bin_dir, const|string, @pyroscope@/bin/
+method.insert = pyro.bin_dir, const|string, @pyrocore@/bin/
 
 # Set this to '0' to prevent logging of existing key bindings being replaced
 ## branch=(pyro.extended), ((ui.bind_key.verbose.set, 0))
 
 # Since "network.scgi.open_local" is parsed by "rtcontrol", this must be a literal value,
 # and also not moved out of the main configuration file!
-network.scgi.open_local = @scgi_socket@
+network.scgi.open_local = "@RT_SOCKET@"
 
 # SCHEDULE: Make SCGI socket group-writable and secure
-schedule2 = scgi_permission, 0, 0, "execute.nothrow=chmod,\"g+w,o=\",@scgi_socket@"
+schedule2 = scgi_permission, 0, 0, ((execute.nothrow,chmod,"g+w,o=","@RT_SOCKET@"))
 
 # INCLUDE: rtorrent.d
 import = @confdir@/.import.rc
 
 # INCLUDE: default theme
-try_import = @pyroscope@/share/pyroscope/color-schemes/default-16.rc
+try_import = @pyroscope@/color-schemes/default-16.rc
 
 # INCLUDE: Local settings (optional)
 try_import = (cat,(cfg.basedir),"_rtlocal.rc")

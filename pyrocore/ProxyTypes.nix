@@ -1,4 +1,5 @@
-{ fetchzip, buildPythonPackage
+{ fetchzip
+, buildPythonPackage
 }:
 buildPythonPackage rec {
   pname = "ProxyTypes";

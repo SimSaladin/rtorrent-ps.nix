@@ -6,13 +6,14 @@
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let
-        overlay = import ./overlay.nix;
+        overlay = import ./overlay.nix { };
 
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ overlay ];
         };
-      in {
+      in
+      {
         packages = {
           inherit (pkgs) rtorrent-ps;
         };
