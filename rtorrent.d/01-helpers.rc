@@ -1,0 +1,6 @@
+# Misc. custom helper methods
+
+# os.path.exists = <path> >> bool (0 or 1)
+#   Check if <<path>> exists.
+method.insert = os.path.exists, simple,\
+  "string.equals = (execute.capture, sh, -c, \"test -e \\\"$1\\\";echo -n $?\", -, $argument.0=), 0"
