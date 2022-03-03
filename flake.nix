@@ -21,8 +21,11 @@
         }) //
     {
       inherit overlay;
-      nixosConfigurations.rtorrent = {
-        # TODO
-      };
+
+      #nixosModules.rtorrent-ps = import ./nixos;
+      #nixosModule = self.nixosModules.home-manager;
+
+      homeModules.rtorrent-ps = import ./hm;
+      homeModule = self.homeModules.rtorrent-ps;
     };
 }
