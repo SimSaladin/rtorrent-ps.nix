@@ -17,15 +17,12 @@ fail() {
 
 export LANG=en_US.UTF-8
 umask 0027
+ulimit -n 75000 || fail "Failed to raise open files limit (-n) of process"
 
 cd "$RT_HOME" || fail "RT_HOME $RT_HOME directory does not exist!"
 
 test -S "$RT_SOCKET" && lsof "$RT_SOCKET" >/dev/null && { echo "rTorrent already running"; exit 1; }
 test ! -e "$RT_SOCKET" || rm "$RT_SOCKET"
-
-# Performa a mount check
-test -f "$RT_HOME/work/.mounted" -a -f "$RT_HOME/done/.mounted" \
-    || fail "Data drive(s) not mounted!"
 
 if [ "$TERM" = "${TERM%-256color}" ]; then
     export TERM="$TERM-256color"
