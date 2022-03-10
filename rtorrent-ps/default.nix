@@ -3,9 +3,9 @@
 , stdenvNoCC
 , makeWrapper
 , runCommand
+, python
 , rtorrent
 , pyrocore
-, python
 , rtorrent-configs
 , RT_HOME ? null
 , RT_SOCKET ? null # "${RT_HOME}/.scgi_local"
