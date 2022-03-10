@@ -16,7 +16,10 @@
           };
         in
         {
-          packages = { inherit (pkgs) rtorrent-ps; };
+          packages = {
+            inherit (pkgs) rtorrent-ps libtorrent rtorrent pyrocore
+              pyrobase;
+          };
           defaultPackage = self.packages.${system}.rtorrent-ps;
         }) //
     {
