@@ -22,6 +22,7 @@ ulimit -n "$RT_NOFILE" || fail "Failed to raise open files limit (-n) of process
 
 cd "$RT_HOME" || fail "RT_HOME ($RT_HOME) directory does not exist or is not accessible"
 
+# TODO the lsof check fails with network namespaces
 test -S "$RT_SOCKET" && lsof -w -- "$RT_SOCKET" >/dev/null && { echo "rTorrent already running"; exit 1; }
 test ! -e "$RT_SOCKET" || rm "$RT_SOCKET"
 
@@ -32,7 +33,7 @@ fi
 _at_exit() {
     test -z "$TMUX" || tmux set-w automatic-rename on >/dev/null
     stty sane
-    test ! -e "$RT_SOCKET" || rm "$RT_SOCKET"
+    #test ! -e "$RT_SOCKET" || rm "$RT_SOCKET"
 }
 trap _at_exit INT TERM EXIT
 test -z "$TMUX" || tmux 'rename-w' 'rT-PS'
