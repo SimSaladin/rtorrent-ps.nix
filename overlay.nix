@@ -1,14 +1,10 @@
-{ ... }:
+{ nixpkgs2111, ... }:
 
-# NOTE:
-# Variable PYRO_CONFIG_DIR=${rtorrent-configs}/pyroscope
-# is baked into each executable's environment. It's needed to locate the scgi
-# socket:
-#
-#   1. Read key "rtorrent_rc" from "config.ini" in $PYRO_CONFIG_DIR to locate
-#      the main rtorrent configuration file.
-#   2. Parse "network.scgi.open_local = <file>" from the rtorrent.rc file.
-#      This must be a literal value which points to the socket file.
+let
+  # Pin python packages to stable (python 2 support is very broken in
+  # unstable currently)
+  python2Packages = nixpkgs2111.python2Packages;
+in
 
 final: prev: {
   inherit (final.callPackage ./libtorrent { })
@@ -29,24 +25,18 @@ final: prev: {
   #rtDebug = final.enableDebugging (final.rtorrent_0_9_7.override { withDebug = true; });
 
   rtorrent-ps = final.callPackage ./rtorrent-ps { };
+  rtorrent-ps_0_9_6 = final.rtorrent-ps;
   rtorrent-ps_0_9_7 = final.rtorrent-ps.override {
     rtorrent = final.rtorrent_0_9_7;
   };
 
   rtorrent-configs = final.callPackage ./config { };
 
-  pyrocore = final.callPackage ./pyrocore {
-    inherit (final.python2Packages) buildPythonPackage setuptools six;
-    prompt_toolkit = final.prompt_toolkit_2;
-  };
+  pyrocore = final.callPackage ./pyrocore { inherit (python2Packages) buildPythonPackage setuptools six requests prompt_toolkit tempita; };
 
-  pyrobase = final.callPackage ./pyrobase.nix {
-    inherit (final.python2Packages) buildPythonPackage six;
-  };
+  pyrobase = final.callPackage ./pyrobase.nix { inherit (python2Packages) buildPythonPackage six tempita; };
 
-  ProxyTypes = final.callPackage ./ProxyTypes.nix { inherit (final.python2Packages) buildPythonPackage; };
-
-  prompt_toolkit_2 = final.callPackage ./prompt_toolkit_2.nix { inherit (final.python2Packages) buildPythonPackage six wcwidth; };
+  ProxyTypes = final.callPackage ./ProxyTypes.nix { inherit (python2Packages) buildPythonPackage; };
 
   rtorrentLib.createImport = src: attrs: final.runCommand "create-import" attrs
   ''

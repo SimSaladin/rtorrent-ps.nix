@@ -1,11 +1,13 @@
 { fetchFromGitHub
 , installShellFiles
 , buildPythonPackage
+, ProxyTypes
+, prompt_toolkit # required by rtxmlrpc REPL
+, pyrobase
+, requests
 , setuptools
 , six
-, ProxyTypes
-, pyrobase
-, prompt_toolkit # required by rtxmlrpc REPL
+, tempita
 }:
 
 buildPythonPackage rec {
@@ -25,7 +27,14 @@ buildPythonPackage rec {
   ];
 
   nativeBuildInputs = [ installShellFiles ];
-  propagatedBuildInputs = [ setuptools ProxyTypes pyrobase prompt_toolkit ];
+  propagatedBuildInputs = [
+    ProxyTypes
+    prompt_toolkit
+    pyrobase
+    requests
+    setuptools
+    tempita
+  ];
 
   postInstall = ''
     installShellCompletion --bash --cmd rtcontrol $src/src/pyrocore/data/config/bash-completion
