@@ -93,4 +93,32 @@ rec {
       ./better_command_insert_error.patch # TODO add to other versions too
     ];
   };
+
+  # has ipv6 support
+  rtorrent_master = mkRtorrent {
+    version = "0.9.8-24-g1e40014";
+    rev = "1e400144828c937cb3a8cbd05191db9d95ee1676";
+    sha256 = "sha256-627aTFVbdeUgf/YRWMao01qcN/85lONTv+IC2hFF3z8=";
+    libtorrent = pkgs.libtorrent_master;
+    RT_VERSION = "0.9.8";
+    patches = [
+      ./ps-close_lowdisk_normal_all.patch
+      ./ps-dl-ui-find_0.9.8.patch
+      "${ps.src}/patches/ps-import.return_all.patch"
+      "${ps.src}/patches/ps-info-pane-is-default_all.patch"
+      "${ps.src}/patches/ps-info-pane-xb-sizes_all.patch"
+      ./ps-issue-515_all.patch
+      "${ps.src}/patches/ps-item-stats-human-sizes_all.patch"
+      "${ps.src}/patches/ps-log_messages_all.patch"
+      "${ps.src}/patches/ps-object_std-map-serialization_all.patch"
+      "${ps.src}/patches/ps-silent-catch_all.patch"
+      "${ps.src}/patches/ps-ui_pyroscope_all.patch"
+      "${ps.src}/patches/pyroscope.patch"
+      ./ui_pyroscope_0.9.8.patch
+      ./pyroscope_cxxstd.patch
+      ./better_command_insert_error.patch # TODO add to other versions too
+    ];
+    enableIPv6 = true;
+    automake = pkgs.automake111x;
+  };
 }

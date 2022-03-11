@@ -22,6 +22,7 @@ final: prev: {
     rtorrent_0_9_6
     rtorrent_0_9_7
     rtorrent_0_9_8
+    rtorrent_master
     ;
 
   rtorrent = final.rtorrent_0_9_6;

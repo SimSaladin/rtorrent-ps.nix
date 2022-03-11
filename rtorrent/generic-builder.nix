@@ -4,7 +4,9 @@
 , pkg-config
 , libtool
 , autoconf
+, autoconf-archive
 , automake
+, autoreconfHook
 , cppunit
 , ncurses
 , libsigcxx
@@ -13,8 +15,10 @@
 , openssl
 , xmlrpc_c
 , version
+, rev ? "v${version}"
 , sha256
 , libtorrent
+, RT_VERSION ? version
 , patches ? [ ]
 , withDebug ? false
 , enableIPv6 ? false # true
@@ -30,8 +34,7 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "rakshasa";
     repo = "rtorrent";
-    rev = "v${attrs.version}";
-    inherit sha256;
+    inherit rev sha256;
   };
 
   inherit patches;
@@ -46,22 +49,27 @@ stdenv.mkDerivation rec {
     ]} $sourceRoot/src
   '';
 
-  nativeBuildInputs = [ pkg-config ];
-  buildInputs = [
-    libtool
-    autoconf
-    automake
-    cppunit
-    libtorrent
-    ncurses
-    libsigcxx
-    curl
-    zlib
-    openssl
-    xmlrpc_c
+  nativeBuildInputs = [
+    autoconf-archive
+    #autoreconfHook
+    autoconf # XXX use autoreconfHook?
+    automake # XXX use autoreconfHook?
+    pkg-config
   ];
 
-  RT_VERSION = attrs.version;
+  buildInputs = [
+    cppunit
+    curl
+    libsigcxx
+    libtool
+    libtorrent
+    ncurses
+    openssl
+    xmlrpc_c
+    zlib
+  ];
+
+  inherit RT_VERSION;
 
   postPatch = ''
     # Version handling
@@ -72,7 +80,16 @@ stdenv.mkDerivation rec {
   '';
 
   preConfigure = ''
-    ./autogen.sh
+    if [[ -x ./autogen.sh ]]; then
+      ./autogen.sh
+    else
+      export ACLOCAL_PATH=$ACLOCAL_PATH:$PWD/scripts
+      aclocal --force
+      libtoolize --automake --copy --force
+      autoheader
+      automake --add-missing
+      autoconf
+    fi
   '';
 
   configureFlags = [
@@ -89,6 +106,6 @@ stdenv.mkDerivation rec {
     mv doc/old/rtorrent.1 $out/share/man/man1/rtorrent.1
     mv doc/rtorrent.rc $out/share/doc/rtorrent/rtorrent.rc
   '' + lib.optionalString withDebug ''
-    cp -r ../src $out/
+    ln -s $src "$out/share/rtorrent-${version}"
   '';
 }
