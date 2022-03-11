@@ -27,7 +27,7 @@ final: prev: {
 
   rtorrent = final.rtorrent_0_9_6;
 
-  rtDebug = final.enableDebugging (final.rtorrent_0_9_7.override { dontStrip = true; });
+  #rtDebug = final.enableDebugging (final.rtorrent_0_9_7.override { withDebug = true; });
 
   rtorrent-ps = final.callPackage ./rtorrent-ps { };
   rtorrent-ps_0_9_7 = final.rtorrent-ps.override {
@@ -40,9 +40,16 @@ final: prev: {
     rtorrent = final.rtorrent_0_9_7;
   };
 
-  pyrocore = final.callPackage ./pyrocore { inherit (final.python2Packages) buildPythonPackage setuptools six; };
+  pyrocore = final.callPackage ./pyrocore {
+    inherit (final.python2Packages) buildPythonPackage setuptools six;
+    prompt_toolkit = final.prompt_toolkit_2;
+  };
 
-  pyrobase = final.callPackage ./pyrobase.nix { inherit (final.python2Packages) buildPythonPackage six; };
+  pyrobase = final.callPackage ./pyrobase.nix {
+    inherit (final.python2Packages) buildPythonPackage six;
+  };
 
   ProxyTypes = final.callPackage ./ProxyTypes.nix { inherit (final.python2Packages) buildPythonPackage; };
+
+  prompt_toolkit_2 = final.callPackage ./prompt_toolkit_2.nix { inherit (final.python2Packages) buildPythonPackage six wcwidth; };
 }

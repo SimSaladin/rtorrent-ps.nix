@@ -3,6 +3,7 @@
 # rTorrent startup script
 #
 
+export LANG=en_US.UTF-8
 export RT_HOME=${RT_HOME:?}
 export RT_SOCKET=${RT_SOCKET:?}
 export RT_INITRC=${RT_INITRC:?}
@@ -18,13 +19,12 @@ fail() {
     exit 1
 }
 
-export LANG=en_US.UTF-8
 umask 0027
 ulimit -n "$RT_NOFILE" || fail "Failed to raise open files limit (-n) of process"
 
-cd "$RT_HOME" || fail "RT_HOME $RT_HOME directory does not exist!"
+cd "$RT_HOME" || fail "RT_HOME ($RT_HOME) directory does not exist or is not accessible"
 
-test -S "$RT_SOCKET" && lsof "$RT_SOCKET" >/dev/null && { echo "rTorrent already running"; exit 1; }
+test -S "$RT_SOCKET" && lsof -w -- "$RT_SOCKET" >/dev/null && { echo "rTorrent already running"; exit 1; }
 test ! -e "$RT_SOCKET" || rm "$RT_SOCKET"
 
 if [ "$TERM" = "${TERM%-256color}" ]; then

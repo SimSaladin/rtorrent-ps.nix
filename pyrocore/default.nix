@@ -5,6 +5,7 @@
 , six
 , ProxyTypes
 , pyrobase
+, prompt_toolkit # required by rtxmlrpc REPL
 }:
 
 buildPythonPackage rec {
@@ -18,8 +19,13 @@ buildPythonPackage rec {
     sha256 = "0k79d4gkvi7k6pn0xid3qq8vhr5fm4gqqq2c68816q9x143cn75v";
   };
 
+  patches = [
+    ./read_config_values_from_env.patch
+    ./fix_prompt_toolkit_import.patch
+  ];
+
   nativeBuildInputs = [ installShellFiles ];
-  propagatedBuildInputs = [ setuptools ProxyTypes pyrobase ];
+  propagatedBuildInputs = [ setuptools ProxyTypes pyrobase prompt_toolkit ];
 
   postInstall = ''
     # TODO other commands; same file

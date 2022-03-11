@@ -32,19 +32,15 @@ let
   cfg = rtorrent-configs.override { inherit rtSocket; };
 
   rtorrent-magnet = writeScriptBin "rtorrent-magnet" "${../rtorrent-magnet}";
+
+  ps = (import ../rtorrent-ps-src.nix { inherit fetchFromGitHub; }).default;
 in
 
 stdenvNoCC.mkDerivation {
   name = "rtorrent-ps";
-  version = "PS-1.1-67-g244a4e9"; # git describe --long --tags
 
   # NOTE: the source is referenced by the "rtorrent" derivation
-  src = fetchFromGitHub {
-    owner = "pyroscope";
-    repo = "rtorrent-ps";
-    rev = "244a4e9fe7e5ed5f21095c4b18a21b06dbc717e0"; # PS-1.1-66-gbac90aa
-    sha256 = "1pbh18f0vhzndinrwj931lggdn0lngp7i2admsj9chpw6acs3v42";
-  };
+  inherit (ps) version src;
 
   nativeBuildInputs = [ makeWrapper ];
 

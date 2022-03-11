@@ -1,0 +1,29 @@
+diff --git i/src/pyrocore/scripts/base.py w/src/pyrocore/scripts/base.py
+index 7e4e97a..605c4a4 100644
+--- i/src/pyrocore/scripts/base.py
++++ w/src/pyrocore/scripts/base.py
+@@ -40,7 +40,7 @@ class ScriptBase(object):
+     """ Base class for command line interfaces.
+     """
+     # logging configuration
+-    LOGGING_CFG = "~/.pyroscope/logging.%s.ini"
++    LOGGING_CFG = os.environ.get('PYRO_CONFIG_DIR', "~/.pyroscope") + "/logging.%s.ini"
+ 
+     # log level for user-visible standard logging
+     STD_LOG_LEVEL = logging.INFO
+diff --git i/src/pyrocore/torrent/rtorrent.py w/src/pyrocore/torrent/rtorrent.py
+index 927aede..9460e50 100644
+--- i/src/pyrocore/torrent/rtorrent.py
++++ w/src/pyrocore/torrent/rtorrent.py
+@@ -596,6 +596,11 @@ class RtorrentEngine(engine.TorrentEngine):
+         if namespace.scgi_url:
+             return  # already have the connection to rTorrent
+ 
++        # Get socket from env
++        if os.environ.get('RT_SOCKET', None):
++            namespace.scgi_url = "scgi://" + os.path.expanduser(os.environ.get('RT_SOCKET', None))
++            return
++
+         # Get and check config file name
+         if not rcfile:
+             rcfile = getattr(config, "rtorrent_rc", None)

@@ -1,0 +1,13 @@
+diff --git i/src/pyrocore/scripts/rtxmlrpc.py w/src/pyrocore/scripts/rtxmlrpc.py
+index 8811254..2bf2b3f 100644
+--- i/src/pyrocore/scripts/rtxmlrpc.py
++++ w/src/pyrocore/scripts/rtxmlrpc.py
+@@ -184,7 +184,7 @@ class RtorrentXmlRpc(ScriptBaseWithConfig):
+         from prompt_toolkit import prompt
+         from prompt_toolkit.history import FileHistory
+         from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+-        from prompt_toolkit.contrib.completers import WordCompleter
++        from prompt_toolkit.completion import WordCompleter
+ 
+         self.options.quiet = False
+         proxy = self.open()
