@@ -1,42 +1,42 @@
-{ fetchFromGitHub
-, writeScriptBin
+{ lib
+, fetchFromGitHub
 , stdenvNoCC
 , makeWrapper
-, runCommand
+, substituteAll
 , python
 , rtorrent
 , pyrocore
 , rtorrent-configs
-, RT_HOME ? null
-, RT_SOCKET ? null # "${RT_HOME}/.scgi_local"
-, RT_INITRC ? null # rtorrent-configs.rtorrentRc
+, RT_HOME ? "$HOME/.rtorrent"
+, RT_SOCKET ? "$RT_HOME/.scgi_local"
+, RT_INITRC ? rtorrent-configs.rtorrentRc
 }:
 
 let
+  ps = (import ../rtorrent-ps-src.nix { inherit fetchFromGitHub; }).default;
+
+  cfg = rtorrent-configs;
+
   pyrocoreEnv = python.buildEnv.override {
     extraLibs = [ pyrocore ];
     ignoreCollisions = true;
   };
 
-  rtHome =
-    if !builtins.isNull RT_HOME then RT_HOME
-    else if builtins.getEnv "HOME" != "" then builtins.getEnv "HOME" + "/.rtorrent"
-    else
-      throw ''
-        Could not figure out a suitable value for RT_HOME. Pass it as an
-        argument or build with --impure.
-      '';
+  # Note: to use this script, set environment variables:
+  #   RT_HOME RT_SOCKET RT_INITRC
+  startScript = substituteAll {
+    src = ./start.sh;
+    rtorrent = "${rtorrent}/bin/rtorrent";
+    postInstall = "chmod 0755 $out";
+  };
 
-  rtSocket = if builtins.isNull RT_SOCKET then "${rtHome}/.scgi_local" else RT_SOCKET;
-
-  cfg = rtorrent-configs.override { inherit rtSocket; };
-
-  rtorrent-magnet = writeScriptBin "rtorrent-magnet" "${../rtorrent-magnet}";
-
-  ps = (import ../rtorrent-ps-src.nix { inherit fetchFromGitHub; }).default;
+  rtorrent-magnet = substituteAll {
+    src = ../rtorrent-magnet;
+    postInstall = "chmod 0755 $out";
+  };
 in
 
-stdenvNoCC.mkDerivation {
+stdenvNoCC.mkDerivation rec {
   name = "rtorrent-ps";
 
   # NOTE: the source is referenced by the "rtorrent" derivation
@@ -44,44 +44,34 @@ stdenvNoCC.mkDerivation {
 
   nativeBuildInputs = [ makeWrapper ];
 
-  RT_HOME = rtHome;
-  RT_SOCKET = rtSocket;
-  RT_INITRC = if builtins.isNull RT_INITRC then cfg.rtorrentRc else RT_INITRC;
-  PYRO_CONFIG_DIR = "${cfg.pyroConfigs}";
+  makeWrapperArgs = lib.concatStringsSep " " [
+    "--prefix PATH : $out/bin"
+    "--set-default RT_INITRC \"${RT_INITRC}\""
+    "--run 'export RT_HOME=\${RT_HOME-${RT_HOME}}'"
+    "--run 'export RT_SOCKET=\${RT_SOCKET-${RT_SOCKET}}'"
+    "--set-default PYRO_CONFIG_DIR ${cfg.pyroConfigs}"
+  ];
 
   installPhase = ''
     mkdir -p $out/{etc,bin}
-    mkdir -p $out/share/{bash-completion,applications}
+    mkdir -p $out/share/{bash-completion/completions,applications}
 
-    # Create bin/rtorrent-<ver>
+    makeWrapper ${startScript} $out/bin/rtorrent-ps ${makeWrapperArgs}
+    makeWrapper ${pyrocoreEnv}/bin/python $out/bin/python-pyrocore ${makeWrapperArgs}
+    makeWrapper ${rtorrent-magnet} $out/bin/rtorrent-magnet ${makeWrapperArgs}
     makeWrapper ${rtorrent}/bin/rtorrent $out/bin/rtorrent-${rtorrent.version}
 
-    # Create rtorrent-magnet
-    ln -s ${rtorrent-magnet}/bin/* $out/bin/
+    # pyrocore
+    for f in ${pyrocore}/bin/*; do
+      makeWrapper "$f" $out/bin/$(basename "$f") ${makeWrapperArgs}
+    done
+    ln -st $out/share/bash-completion/completions ${pyrocore}/share/bash-completion/completions/*
+    ln -st $out/share ${pyrocore}/share/pyroscope
+
+    # .desktop
     install -Dm645 ${../rtorrent-magnet.desktop} $out/share/applications/
 
-    # Create pyroscope executables
-    for f in ${pyrocore}/bin/*; do
-      makeWrapper "$f" $out/bin/$(basename "$f") \
-        --set PYRO_CONFIG_DIR "$PYRO_CONFIG_DIR"
-    done
-
-    # Create bin/python-pyrocore
-    makeWrapper ${pyrocoreEnv}/bin/python $out/bin/python-pyrocore \
-        --set PYRO_CONFIG_DIR "$PYRO_CONFIG_DIR"
-
-    # Create bin/rtorrent-ps
-    makeWrapper ${cfg.startScript} $out/bin/rtorrent-ps \
-      --prefix PATH : "$out/bin" \
-      --set RT_HOME "$RT_HOME" \
-      --set RT_SOCKET "$RT_SOCKET" \
-      --set RT_INITRC "$RT_INITRC" \
-      --set PYRO_CONFIG_DIR "$PYRO_CONFIG_DIR"
-
-    # Add shell completion
-    ln -s ${pyrocore}/share/bash-completion/* $out/share/bash-completion/
-
-    # Create links to config files
+    # configs
     ln -s ${cfg.rtorrentRc} $out/etc/rtorrent.rc
     ln -s ${cfg.rtConfigs} $out/etc/rtorrent.d
     ln -s ${cfg.pyroConfigs} $out/etc/pyroscope

@@ -52,4 +52,13 @@ final: prev: {
   ProxyTypes = final.callPackage ./ProxyTypes.nix { inherit (final.python2Packages) buildPythonPackage; };
 
   prompt_toolkit_2 = final.callPackage ./prompt_toolkit_2.nix { inherit (final.python2Packages) buildPythonPackage six wcwidth; };
+
+  rtorrentLib.createImport = src: attrs: final.runCommand "create-import" attrs
+  ''
+    mkdir -p $out
+    for f in ${src}/*; do
+      substituteAll "$f" $out/"$(basename "$f")"
+    done
+    ${final.pyrocore}/bin/pyroadmin -q --create-import "$out/*.rc"
+  '';
 }

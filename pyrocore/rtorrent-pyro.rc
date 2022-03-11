@@ -12,4 +12,4 @@
 # you actually run that patched version of rTorrent!
 #
 
-import = @pyroscope@/rtorrent.d/.import.rc
+import = @rtorrent_d@/.import.rc

@@ -28,23 +28,24 @@ buildPythonPackage rec {
   propagatedBuildInputs = [ setuptools ProxyTypes pyrobase prompt_toolkit ];
 
   postInstall = ''
-    # TODO other commands; same file
     installShellCompletion --bash --cmd rtcontrol $src/src/pyrocore/data/config/bash-completion
+    for f in rtxmlrpc pyroadmin chtor lstor hashcheck mktor rtevent rtmv; do
+      ln -s rtcontrol.bash $out/share/bash-completion/completions/$f.bash
+    done
 
     mkdir -p $out/share/pyroscope
-
-    cp -r $src/src/scripts $out/share/pyroscope/scripts
-    cp -r $src/docs/examples $out/share/pyroscope/examples
-
-    cp -r $src/src/pyrocore/data/config/{color-schemes,rtorrent.d,templates} $out/share/pyroscope
-    cp $src/src/pyrocore/data/config/*.{ini,py} $out/share/pyroscope
+    cp -rt $out/share/pyroscope \
+      $src/docs/examples \
+      $src/src/scripts \
+      $src/src/pyrocore/data/config/{color-schemes,rtorrent.d,templates} \
+      $src/src/pyrocore/data/config/*.{ini,py}
   '';
 
   postFixup = ''
-    export pyroscope=$out/share/pyroscope
-    $out/bin/pyroadmin -q --create-import "$pyroscope/rtorrent.d/*.rc"
-    substitute ${./rtorrent-pyro.rc} $pyroscope/rtorrent-pyro.rc \
-      --subst-var pyroscope
+    export rtorrent_d=$out/share/pyroscope/rtorrent.d
+    $out/bin/pyroadmin -q --create-import "$rtorrent_d/*.rc"
+    substitute ${./rtorrent-pyro.rc} $out/share/pyroscope/rtorrent-pyro.rc \
+      --subst-var rtorrent_d
   '';
 
   doCheck = false;

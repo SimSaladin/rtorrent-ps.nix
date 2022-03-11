@@ -4,8 +4,8 @@ set -euo pipefail
 
 if [[ "$1" =~ xt=urn:btih:([^&/]+) ]]; then
 	watch=$(rtxmlrpc method.get=,cfg.watch)
-	echo "d10:magnet-uri${#1}:${1}e" > "$watch/meta-${BASH_REMATCH[1]}.torrent"
+	echo "d10:magnet-uri${#1}:${1}e" > "$watch/start/meta-${BASH_REMATCH[1]}.torrent"
 else
 	echo "\"$1\" does not look like a magnet link, ignoring" >&2
 	exit
-
+fi
