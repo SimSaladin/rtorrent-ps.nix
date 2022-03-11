@@ -26,19 +26,14 @@ final: prev: {
     ;
 
   rtorrent = final.rtorrent_0_9_6;
-
   #rtDebug = final.enableDebugging (final.rtorrent_0_9_7.override { withDebug = true; });
 
   rtorrent-ps = final.callPackage ./rtorrent-ps { };
   rtorrent-ps_0_9_7 = final.rtorrent-ps.override {
     rtorrent = final.rtorrent_0_9_7;
-    rtorrent-configs = final.rtorrent-configs_0_9_7;
   };
 
   rtorrent-configs = final.callPackage ./config { };
-  rtorrent-configs_0_9_7 = final.rtorrent-configs.override {
-    rtorrent = final.rtorrent_0_9_7;
-  };
 
   pyrocore = final.callPackage ./pyrocore {
     inherit (final.python2Packages) buildPythonPackage setuptools six;
