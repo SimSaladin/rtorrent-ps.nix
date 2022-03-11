@@ -16,22 +16,9 @@
         in
         {
           packages = {
-            inherit (pkgs)
-            libtorrent
-            libtorrent_0_13_6
-            libtorrent_0_13_7
-            libtorrent_0_13_8
-            rtorrent
-            rtorrent_0_9_6
-            rtorrent_0_9_7
-            rtorrent_0_9_8
-            rtorrent-ps
-            rtorrent-ps_0_9_7
-            rtorrent-ps_0_9_8
-            pyrocore
-            pyrobase;
+            inherit (pkgs) rtorrent-ps pyrocore;
           };
-          defaultPackage = self.packages.${system}.rtorrent-ps;
+          defaultPackage = self.packages.${system}.rtorrent-ps.stable;
         }) //
     {
       overlay = import ./overlay.nix { nixpkgs2111 = import nixpkgs2111 { }; };

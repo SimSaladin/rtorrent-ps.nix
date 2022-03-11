@@ -3,21 +3,19 @@
 # rTorrent startup script
 #
 
-export LANG=en_US.UTF-8
 export RT_HOME=${RT_HOME:?}
 export RT_SOCKET=${RT_SOCKET:?}
-export RT_INITRC=${RT_INITRC:?}
-
+RT_INITRC=${RT_INITRC:?}
+RT_BIN=${RT_BIN-rtorrent}
+RT_OPTS=( -D -I -n -o "import=$RT_INITRC" )
 RT_NOFILE=${RT_NOFILE:-30000}
-
-RT_OPTS=( )
-RT_OPTS+=( -D -I )  # comment this to get deprecated commands
-RT_OPTS+=( -n -o "import=$RT_INITRC" )
 
 fail() {
     echo "ERROR:" "$@"
     exit 1
 }
+
+export LANG=en_US.UTF-8
 
 umask 0027
 ulimit -n "$RT_NOFILE" || fail "Failed to raise open files limit (-n) of process"
@@ -42,4 +40,5 @@ test -z "$TMUX" || tmux 'rename-w' 'rT-PS'
 # Make sure necessary directories exist
 mkdir -p "$RT_HOME"/{.session,work,watch/{start,load},log}
 
-exec @rtorrent@ "${RT_OPTS[@]}" "$@"
+# Note: not exec'ing so that the shell trap is run when rtorrent exits
+"$RT_BIN" "${RT_OPTS[@]}" "$@"

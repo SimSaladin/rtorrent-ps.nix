@@ -1,6 +1,7 @@
 { lib
 , fetchFromGitHub
 , stdenvNoCC
+, runCommandNoCC
 , makeWrapper
 , substituteAll
 , python
@@ -26,26 +27,31 @@ let
   #   RT_HOME RT_SOCKET RT_INITRC
   startScript = substituteAll {
     src = ./start.sh;
-    rtorrent = "${rtorrent}/bin/rtorrent";
-    postInstall = "chmod 0755 $out";
+    postInstall = ''
+      chmod 0755 $out
+      patchShebangs $out
+    '';
   };
 
   rtorrent-magnet = substituteAll {
     src = ../rtorrent-magnet;
-    postInstall = "chmod 0755 $out";
+    postInstall = ''
+      chmod 0755 $out
+      patchShebangs $out
+    '';
   };
 in
 
 stdenvNoCC.mkDerivation rec {
   name = "rtorrent-ps";
 
-  # NOTE: the source is referenced by the "rtorrent" derivation
   inherit (ps) version src;
 
   nativeBuildInputs = [ makeWrapper ];
 
   makeWrapperArgs = lib.concatStringsSep " " [
     "--prefix PATH : $out/bin"
+    "--set-default RT_BIN ${rtorrent}/bin/rtorrent"
     "--set-default RT_INITRC \"${RT_INITRC}\""
     "--run 'export RT_HOME=\${RT_HOME-${RT_HOME}}'"
     "--run 'export RT_SOCKET=\${RT_SOCKET-${RT_SOCKET}}'"
@@ -68,8 +74,7 @@ stdenvNoCC.mkDerivation rec {
     ln -st $out/share/bash-completion/completions ${pyrocore}/share/bash-completion/completions/*
     ln -st $out/share ${pyrocore}/share/pyroscope
 
-    # .desktop
-    install -Dm645 ${../rtorrent-magnet.desktop} $out/share/applications/
+    patchShebangs $out/bin
 
     # configs
     ln -s ${cfg.rtorrentRc} $out/etc/rtorrent.rc
