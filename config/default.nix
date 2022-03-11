@@ -39,7 +39,7 @@ rec {
   # Note: to use this script, set environment variables:
   #   RT_HOME RT_SOCKET RT_INITRC
   startScript = substituteAll {
-    src = ./rtorrent-ps/start.sh;
+    src = ./start.sh;
     rtorrent = "${rtorrent}/bin/rtorrent";
     postInstall = "chmod 0755 $out";
   };

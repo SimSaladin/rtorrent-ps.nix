@@ -35,7 +35,7 @@ final: prev: {
     rtorrent-configs = final.rtorrent-configs_0_9_7;
   };
 
-  rtorrent-configs = final.callPackage ./rtorrent-configs.nix { };
+  rtorrent-configs = final.callPackage ./config { };
   rtorrent-configs_0_9_7 = final.rtorrent-configs.override {
     rtorrent = final.rtorrent_0_9_7;
   };
