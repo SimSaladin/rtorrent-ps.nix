@@ -42,19 +42,8 @@ buildPythonPackage rec {
       ln -s rtcontrol.bash $out/share/bash-completion/completions/$f.bash
     done
 
-    mkdir -p $out/share/pyroscope
-    cp -rt $out/share/pyroscope \
-      $src/docs/examples \
-      $src/src/scripts \
-      $src/src/pyrocore/data/config/{color-schemes,rtorrent.d,templates} \
-      $src/src/pyrocore/data/config/*.{ini,py}
-  '';
-
-  postFixup = ''
-    export rtorrent_d=$out/share/pyroscope/rtorrent.d
-    $out/bin/pyroadmin -q --create-import "$rtorrent_d/*.rc"
-    substitute ${./rtorrent-pyro.rc} $out/share/pyroscope/rtorrent-pyro.rc \
-      --subst-var rtorrent_d
+    mkdir -p $out/share/doc/pyroscope
+    cp -rt $out/share/doc/pyroscope $src/docs/examples $src/src/scripts
   '';
 
   doCheck = false;

@@ -1,0 +1,2862 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "RTORRENT-PS" "1" "Mar 11, 2022" "1.2" "rtorrent-ps"
+.SH NAME
+rtorrent-ps \- rtorrent-ps Documentation
+.sp
+\fI\%rTorrent\-PS\fP is an extended \fI\%rTorrent\fP \fIdistribution\fP with UI enhancements, colorization,
+some added features, and a comprehensive standard configuration.
+.INDENT 0.0
+.INDENT 2.5
+[image: Extended Canvas Screenshot]
+[image]
+.UNINDENT
+.UNINDENT
+.sp
+See overview for a more detailed description and a feature overview,
+and the \fI\%rTorrent Handbook\fP for general information regarding \fIrTorrent\fP,
+its configuration, and XMLRPC commands.
+The latter includes custom command extensions from \fIrTorrent\-PS\fP\&.
+.sp
+\fI\%GitHub Issues\fP
+\fBCommunity Contacts and Solving Problems\fP[image]
+.sp
+To get in contact and share your experiences with other users of \fI\%PyroScope\fP,
+join the \fI\%rtorrent\-community\fP channel \fI\%rtorrent\-ps\fP on Gitter.
+.sp
+This is also the way to resolve any problems with or questions about your configuration
+and software installation.
+\fIAlways\fP look into the trouble\-shooting as a first measure,
+which is often the fastest way to get back to a working system.
+That guide also explains how to efficiently report your problem when you cannot fix it yourself.
+.SH OVERVIEW
+.sp
+\fIrTorrent\-PS\fP is a \fI\%rTorrent\fP \fIdistribution\fP (\fInot\fP a fork of it),
+in form of a set of patches that \fBimprove the user experience and stability\fP
+of official \fBrTorrent\fP releases, and \fBreleases new features more frequently\fP\&.
+The \fI\%Feature Overview\fP below lists the major improvements and extensions.
+Also see the \fI\%changelog\fP for a timeline of applied changes,
+especially those since the last \fI\%official release\fP\&.
+.INDENT 0.0
+.INDENT 2.5
+[image: Extended Canvas Screenshot]
+[image]
+.UNINDENT
+.UNINDENT
+.sp
+Note that \fIrTorrent\-PS\fP is \fInot\fP the same as the \fIPyroScope\fP
+\fI\%command line utilities\fP (\fIpyrocore\fP),
+and doesn\(aqt depend on them; the same is true the other way \(aqround.
+It\(aqs just that both unsurprisingly have synergies if used together,
+and some features \fIdo\fP only work when both are present.
+[image]
+.sp
+To get in contact and share your experiences with other users of \fI\%PyroScope\fP,
+join the \fI\%rtorrent\-community\fP channel \fI\%rtorrent\-ps\fP on Gitter.
+.sp
+This is also the way to resolve any problems with or questions about your configuration
+and software installation.
+\fIAlways\fP look into the trouble\-shooting as a first measure,
+which is often the fastest way to get back to a working system.
+That guide also explains how to efficiently report your problem when you cannot fix it yourself.
+.SS Feature Overview
+.sp
+The main changes compared to vanilla \fI\%rTorrent\fP are these:
+.INDENT 0.0
+.IP \(bu 2
+\fBself\-contained installation\fP into any location of your choosing, including
+your home directory, offering the ability to \fBrun several versions at once\fP
+(in different client instances).
+.IP \(bu 2
+\fBrpath\-linked\fP to the major dependencies, so you can upgrade those
+independently from your OS distribution\(aqs versions.
+.IP \(bu 2
+\fBextended command set\fP:
+.INDENT 2.0
+.IP \(bu 2
+sort views by more than one value, and set the sort direction for
+each of these.
+.IP \(bu 2
+(re\-)bind keys in the downloads display to any command, e.g. change the
+built\-in views.
+.IP \(bu 2
+record and display network traffic.
+.IP \(bu 2
+… and many more, see commands for details.
+.UNINDENT
+.IP \(bu 2
+interface additions:
+.INDENT 2.0
+.IP \(bu 2
+easily \fBcustomizable colors\fP\&.
+.IP \(bu 2
+\fBcollapsed 1\-line item display\fP with a condensed information presentation.
+.IP \(bu 2
+almost \fBfully customizable downloads display\fP (selection of columns & adding new ones).
+.IP \(bu 2
+\fBnetwork bandwidth graph\fP\&.
+.IP \(bu 2
+\fBdisplaying the tracker domain\fP for each item.
+.IP \(bu 2
+some more minor modifications to the download list view.
+.UNINDENT
+.UNINDENT
+.sp
+To get those features, you just need to either follow the build instructions, or
+download and install a package from Bintray — assuming one is available
+for your platform. See the install on how to get your machine set up.
+.SS Supported Platforms
+.sp
+The tested and officially supported platforms are \fIDebian\fP and any Debian\-related Linux distro, specifically \fIUbuntu\fP\&.
+\fIArch Linux\fP is supported via contributors, and \fIFedora 26\fP has some limited support
+– anything else vanilla rTorrent runs on will likely work too,
+but in the end \fIyou\fP have to fix any problems that might occur.
+If you want better support for your platform, provide a \fIworking\fP derivative of
+\fBDockerfile.Debian\fP and necessary modifications to \fBbuild.sh\fP via a PR.
+.sp
+DebianInstallFromSource provides instructions to set up a working \fIrTorrent\-PS\fP instance
+in combination with \fBpyrocore\fP, on Debian and most Debian\-derived distros
+— i.e. a manual way to do parts of what
+\fI\%pimp\-my\-box\fP does
+automatically for you.
+Another option for automatic setup of a similar system is the one by
+\fI\%chros73\fP\&.
+.sp
+To help out other users, you can add your own content with configuration tricks and the like to the
+\fI\%project\(aqs wiki\fP,
+and show to the world you\(aqre awesome.
+.SS Launching a Demo in Docker
+.sp
+To try out \fIrTorrent\-PS\fP without any headaches, and \fIif you have Docker 17.06+ installed\fP, you can use
+the \fI\%launch\-rt\-ps\-demo.sh\fP script to run an \fIephemeral\fP instance in a container, like this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+git clone \(dqhttps://github.com/pyroscope/rtorrent\-ps.git\(dq ~/src/rtorrent\-ps
+~/src/rtorrent\-ps/docker/launch\-rt\-ps\-demo.sh
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Detach from the process using \fBCtrl\-P Ctrl\-Q\fP,
+and call \fBreset\fP to reset your terminal.
+.sp
+Reattach with \fBdocker attach rt\-ps\-demo\fP,
+then enter \fBCtrl\-A r\fP to refresh the \fBtmux\fP screen.
+.sp
+If you want to do that directly via SSH from a remote machine,
+call \fBssh \-t YOU@HOST \(dqdocker attach rt\-ps\-demo\(dq\fP
+and then refresh with \fBCtrl\-A r\fP\&.
+.sp
+Another use for such a container instance, besides taking a first look,
+is trying out experimental configurations, without any impact on your main installation.
+.sp
+Incidentally, that script is also a condensed version of the DebianInstallFromSource instructions,
+and can be used as a blue\-print for your own \fBDockerfile\fP\&.
+.SH INSTALLATION GUIDE
+.sp
+Note that this cannot be a Linux shell 101, so if the terminology and commands that follow
+are new for you, refer to the usual sources like
+\fI\%The Debian Administrator\(aqs Handbook\fP, \fI\%The Linux Command Line\fP, and
+\fI\%The Art of Command Line\fP to get yourself acquainted.
+.SS General Installation Options
+.sp
+See \fI\%Build from Source\fP on using the provided \fBbuild.sh\fP script,
+which will install \fIrTorrent\-PS\fP into \fB~/.local/rtorrent/‹version›\fP\&.
+.sp
+The stable rTorrent version \fB0.9.6\fP is built by default, but 0.9.4
+is also supported (but not tested anymore). And not all patches are
+applied equally, depending on whether they\(aqre needed, or applicable at all.
+.sp
+After installation, make sure to read through the setup chapter
+in order to get the display\-related changes set up correctly,
+since on many machines this requires some special configuration of your terminal.
+.sp
+Also take note of the
+\fI\%pimp\-my\-box\fP project that
+does it all (almost) automatically for Debian\-type systems (and is the
+preferred way to install on those systems). The automation is done using
+\fI\%Ansible\fP, which implies you can easily
+admin several systems with it, and also maintain them – so it\(aqs not a
+one\-shot installation bash script creating a setup that can never be
+changed again.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+If you also install the \fI\%PyroScope command line
+utilities\fP, do not forget to
+activate the extended features available together with \fIrTorrent\-PS\fP, as
+mentioned in the \fI\%Configuration Guide\fP\&.
+Starting with \fIversion 1.1\fP, that activation is automatic.
+.UNINDENT
+.UNINDENT
+.SS OS\-Specific Installation Options
+.SS Installation Using Debian Packages
+.sp
+For a limited set of Debian\-derived platforms, there are packages
+available that contain pre\-compiled binaries (and only those, no
+configuration or init scripts). You can download and install such a
+package from \fI\%Bintray\fP —
+assuming one is available for your platform. The packages install the
+\fIrTorrent\-PS\fP binary including some libraries into \fB/opt/rtorrent\fP\&.
+.sp
+Example on \fIUbuntu Xenial\fP:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+version=\(dq0.9.6\-PS\-1.1~xenial_amd64\(dq
+bintray=\(dqhttps://bintray.com/artifact/download/pyroscope\(dq
+cd /tmp
+curl \-Lko rt\-ps.deb \(dq$bintray/rtorrent\-ps/rtorrent\-ps_$version.deb\(dq
+dpkg \-i rt\-ps.deb
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+After installation, you must provide a configuration file
+(typically located in \fB~/.rtorrent.rc\fP or \fB~/rtorrent/rtorrent.rc\fP).
+To start \fIrTorrent\-PS\fP, always use the provided \fI\%start script\fP,
+which takes care of some technical details like settings
+the current working directory correctly.
+It also looks for the \fIrTorrent\fP binary at well\-known places,
+including the \fB/opt\fP path the DEB package contains.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+You can safely install the package and test it
+out in parallel to an existing installation, just use the absolute path
+\fB/opt/rtorrent/bin/rtorrent\fP to start \fIrTorrent\fP\&.
+Your (session) data is in no way affected,
+as long as you normally run a \fI0.9.x\fP version.
+.UNINDENT
+.UNINDENT
+.SS Installation on Arch Linux
+.sp
+There are now two options contributed by \fI\%xsmile\fP
+for installing on \fIArch\fP via \fBpacman\fP\&.
+.INDENT 0.0
+.IP 1. 3
+The \fBpkg2pacman\fP command of build\-sh creates a package similar to the
+\fIDebian\fP one, embedding a tested version combination of dependencies.
+See build\-pkg2deb for general instructions on building that
+variant, and use \fBpkg2pacman\fP instead of \fBpkg2deb\fP\&.
+.sp
+Or you make your life easier and just use \fB\&./build.sh docker_arch\fP
+to build a pacman package, see build\-docker_deb for more.
+.IP 2. 3
+The \fI“Arch User Repository”\fP (AUR) PKGBUILDs maintained by @xsmile.
+These use a standard \fIArch\fP build process, but include the usual \fIrTorrent\-PS\fP
+patches.
+.sp
+There is one package for \fBlibtorrent\-ps\fP, and one for \fBrtorrent\-ps\fP,
+and both \fItake their dependencies from the normal OS packages\fP:
+.INDENT 3.0
+.IP \(bu 2
+\fI\%https://aur.archlinux.org/packages/libtorrent\-ps/\fP
+.IP \(bu 2
+\fI\%https://aur.archlinux.org/packages/rtorrent\-ps/\fP
+.UNINDENT
+.UNINDENT
+.sp
+Before building binaries or packages yourself,
+install these packages on top of the \fBbase\fP and \fBbase\-devel\fP groups
+(\fBlist is user\-provided, report any problems\fP):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+pacman \-S \e
+    lsb\-release subversion git time lsof tmux wget \e
+    python2\-setuptools python2\-virtualenv python2 python2\-cffi \e
+    cppunit libxml2 libxslt
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+There is also the
+\fI\%rtorrent\-pyro\-git\fP
+AUR package.
+It is \fInot\fP the same as you get from using \fBbuild.sh\fP,
+and not recommended anymore by \fIthis\fP project, given the new options above.
+.sp
+If you have problems with building or installing any of these packages,
+contact \fItheir maintainer\fP\&.
+.SS Homebrew Tap for Mac OSX
+.sp
+See the
+\fI\%homebrew\-rtorrent\-ps\fP
+repository for instructions to build \fIrTorrent\-PS\fP and related
+dependencies on Mac OSX.
+.sp
+\fBRight now, it is not maintained by anyone.\fP
+.SS Manual Turn\-Key System Setup
+.SS Introduction
+.sp
+The following shows installation instructions for a working \fIrTorrent\fP
+instance in combination with \fIPyroScope\fP \fBfrom scratch\fP, on \fIDebian\fP and
+most Debian\-derived distros. Note that the \fI\%pimp\-my\-box\fP project does
+all this automatically for you, and is the tested and maintained way of
+installation — this page is just a reference of the core installation steps
+(if you run into problems, join the \fBfreenode\fP IRC channel for help).
+.sp
+While the package names and the use of \fBapt\-get\fP are somewhat
+dependent on \fIDebian\fP, the \fI\%Preparatory Steps\fP commands which are executed
+under \fBroot\fP are similar for other distributions, and the compilation
+instructions should work as\-is on practically any Linux and (F)BSD.
+These instructions are explicitly known to work on \fIDebian Jessie + Stretch\fP, and
+\fIUbuntu Xenial + Bionic\fP\&.
+.sp
+The whole procedure takes 15 – 20 minutes,
+including full compilation from source.
+Subtract about 5 minutes if you install \fIrTorrent\fP via a package.
+This on a quad\-core 3.3 GHz Xeon CPU with 32 GiB RAM,
+and assuming you are familiar with the procedure,
+or just blindly paste the command blocks that follow.
+Add plenty of reading time when doing your first setup,
+and it\(aqs still under an hour.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+If you don\(aqt understand a word of what follows,
+hit \fI\%The Debian Administrator\(aqs Handbook\fP so then you do.
+.UNINDENT
+.UNINDENT
+.sp
+Non\-packaged software is installed exclusively into your normal user
+account (home directory), i.e. this description works OK for non\-root users as long as
+the required packages are installed before\-hand. The default install
+location is \fB~/.local/rtorrent/«version»\fP, which means you can easily
+delete any installed software, and also run several versions
+concurrently.
+.sp
+For shared multi\-user setups, this works fine also — compile and install
+to \fB/opt/rtorrent\fP using \fB\&./build.sh install\fP, then provide access
+to all users by calling \fBchmod \-R go+rX /opt/rtorrent\fP\&. Perform the
+steps from \fI\%PyroScope Installation\fP onwards for each user repeatedly, so
+they get their own instance.
+.sp
+\fBIMPORTANT:\fP
+.INDENT 0.0
+.INDENT 3.5
+Most of the command blocks further below can be copied &
+pasted wholesale into a terminal. Note that \fBbash\fP \fIhere documents\fP
+(\fB\&... <<\(aqEOF\(aq\fP) \fBMUST\fP be pasted at once, up to and including the
+line having a single \fBEOF\fP on it.
+.UNINDENT
+.UNINDENT
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+If you have an existing \fB/usr/local\fP installation of
+\fIrTorrent\fP / \fIlibtorrent\fP, it is \fIvery\fP prudent to \fBmake uninstall\fP that before
+compiling another version. Those \fImight\fP prevent successful compilation
+if your lookup paths somehow bring those versions to the front.
+.sp
+In the same vein, remove any packages of
+\fBlibtorrent\fP and \fBrtorrent\fP you have on your machine. The build
+instructions on this page then ensure that it is \fIno\fP problem to have
+several versions concurrently on your machine.
+If anything goes wrong, you can easily reinstall the packages provided by your OS.
+.UNINDENT
+.UNINDENT
+.SS Preparatory Steps
+.SS Setting Up Locales
+.sp
+Commonly locales are already set up for you,
+but bare\-bones installs often come without locale support,
+which \fIrTorrent\-PS\fP absolutely requires due to its use of \fIUnicode\fP characters.
+.sp
+This ensures at least the common \fBen_US.UTF\-8\fP one is available:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+apt\-get install locales
+test \(dq$LANG\(dq = \(dqen_US.UTF\-8\(dq \e
+    || { echo \(dqen_US.UTF\-8 UTF\-8\(dq >>/etc/locale.gen ; locale\-gen \-\-lang en_US.UTF\-8; }
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Installing Build Dependencies
+.sp
+You need to install a few \fBrequired\fP packages — \fBand no, this
+is not optional in any way\fP\&. These are the only steps that must be
+performed by the \fBroot\fP user (i.e. in a root shell, or by writing
+\fBsudo\fP before the actual command):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+apt\-get install sudo lsb\-release build\-essential pkg\-config \e
+    subversion git time lsof binutils tmux curl wget \e
+    python\-setuptools python\-virtualenv python\-dev \e
+    libssl\-dev zlib1g\-dev libncurses\-dev libncursesw5\-dev \e
+    libcppunit\-dev autoconf automake libtool \e
+    libffi\-dev libxml2\-dev libxslt1\-dev
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Note that you can always show Debian\(aqs current build dependencies for
+rTorrent using this command:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+echo $(apt\-cache showsrc rtorrent libtorrent\-dev | \e
+    grep Build\-Depends: | cut \-f2 \-d: | tr \(dq,)\(dq \(dq \e\en\(dq | cut \-f1 \-d\(dq(\(dq)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+On \fIFedora\fP (26), use this (\fBlist is user\-provided, report any problems\fP):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+dnf install \-y \e
+    redhat\-lsb\-core make autoconf automake libtool gcc gcc\-c++ pkgconf\-pkg\-config \e
+    subversion git time lsof binutils tmux curl wget which \e
+    python\-setuptools python\-virtualenv python\-devel python2\-cffi \e
+    openssl\-devel zlib\-devel ncurses\-devel cppunit\-devel libxml2\-devel libxslt\-devel
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+For \fIArch\fP, see the \fBpacman\fP command in \fI\%Installation on Arch Linux\fP\&.
+.SS Optional \fBroot\fP Setup Steps
+.sp
+If you\(aqre security\-conscious, you can create a \fBrtorrent\fP user and do
+all the following setup steps under that new account. Doing that ensures
+that there is \fIno way\fP, on a properly maintained ∗nix system, for the
+build and setup scripts to break either your machine or your normal user
+account.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+groupadd rtorrent
+useradd \-g rtorrent \-G rtorrent,users \-c \(dqrTorrent client\(dq \e
+        \-s /bin/bash \-\-create\-home rtorrent
+chmod 750 ~rtorrent
+su \- rtorrent \-c \(dqmkdir \-p ~/bin\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS rTorrent Installation
+.SS Install via Debian Packages
+.sp
+See \fI\%Installation Using Debian Packages\fP above for details.
+After adding the right package for your platform,
+skip the next section and continue with \fI\%PyroScope Installation\fP\&.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+During \fIrTorrent\fP instance setup, do not forget to change the
+value of \fBpyro.extended\fP to 1 so the extended features are actually accessible!
+Starting with \fIversion 1.1\fP, that activation is automatic.
+.UNINDENT
+.UNINDENT
+.SS Build from Source
+.sp
+Get the \fI\%build script\fP via direct download or a \fBgit clone\fP,
+and call it with the \fBall\fP parameter as shown below;
+the script will then download, build, and install all necessary
+components, storing temporary files in the current directory. You can
+pass the \fBclean_all\fP parameter to remove those temporary files later
+on, after everything works. Make sure you followed the
+\fI\%Preparatory Steps\fP in the section further up on this page.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+Be sure to select the version of rTorrent you want to
+compile, as determined by the settings at the start of the script. If
+you have no preference otherwise, stick to the default set in the
+script. Note that such a choice is sticky once you performed the
+\fBdownload\fP step, until you call \fBclean_all\fP again.
+.UNINDENT
+.UNINDENT
+.sp
+All installations go to \fB~/.local/rtorrent/«version»/\fP, and disturb
+neither any host setup nor another version of rTorrent you\(aqve installed
+the same way.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Run this in your NORMAL user account, or as ‘rtorrent’!
+mkdir \-p ~/src/; cd $_
+git clone https://github.com/pyroscope/rtorrent\-ps.git
+cd rtorrent\-ps
+
+# Use this if you have the resources, adapt for the number of cores
+# and the amount of free memory you have available.
+export MAKE_OPTS=\(dq\-j4\(dq
+
+# Check the VERSION SELECTION at the top of the script, and edit as needed
+nice time ./build.sh all  # build \(aqdeps\(aq, \(aqvanilla\(aq, and then \(aqextended\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Note that the unpatched version is still available as
+\fBrtorrent\-vanilla\fP, and you can simply switch by changing the symlink
+in \fB~/bin\fP, or by calling either version with its full path.
+See the manual for more details on the changes applied.
+.sp
+build\-sh describes more use\-cases like building in \fIDocker\fP,
+or an incremental update after a \fBgit fetch\fP with new \fIrTorrent\-PS\fP changes.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+If you use the configuration as outlined below, do not forget
+to change the value of \fBpyro.extended\fP to 1 in case you want to unlock
+the additional features of the extended version!
+Starting with \fIversion 1.1\fP, that activation is automatic.
+.UNINDENT
+.UNINDENT
+.SS PyroScope Installation
+.sp
+The installation of \fBpyrocore\fP is done from source, see its \fI\%manual\fP for additional details.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Run this in your NORMAL user account, or as ‘rtorrent’!
+mkdir \-p ~/bin ~/.local
+git clone \(dqhttps://github.com/pyroscope/pyrocore.git\(dq ~/.local/pyroscope
+
+# Pass \(dq/usr/bin/python2\(dq, or whatever else fits, to the script as its
+# 1st argument, if the default of \(dq/usr/bin/python\(dq is not a suitable
+# version.
+~/.local/pyroscope/update\-to\-head.sh
+
+# Check success
+exec $SHELL \-l
+pyroadmin \-\-version
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The last call\(aqs output should look similar to this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ pyroadmin \-\-version
+pyroadmin 0.6.1.dev20180601 on Python 2.7.13
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS rTorrent Instance Setup
+.sp
+To be able to use several different instances of \fIrTorrent\fP (e.g. a second
+one for experimental configuration changes), this setup doesn\(aqt use
+\fB~/.rtorrent.rc\fP at all, but keeps everything in one place under the
+\fB~/rtorrent\fP directory. If you change the assignment to \fBRT_HOME\fP,
+you can place it anywhere you like, or create alternate instances with
+ease.
+.SS rTorrent Startup Script
+.sp
+First, create the instance\(aqs directories and a \fI\%start script\fP:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Run this in your NORMAL user account, or as ‘rtorrent’!
+export RT_HOME=\(dq${RT_HOME:\-$HOME/rtorrent}\(dq
+mkdir \-p $RT_HOME; cd $_
+mkdir \-p .session log work done watch/{start,load,hdtv,cleaned}
+cp ~/.local/pyroscope/docs/examples/start.sh ./start
+chmod a+x ./start
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Note that this script is needed on modern systems, else the special
+installation layout allowing concurrent use of several versions
+will not work as expected.
+So always call that script, and not \fBrtorrent\fP directly.
+.sp
+\fBTIP:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fBSafely storing downloads on a mounted device\fP
+.sp
+In case your data resides on a mounted device (e.g. an external USB disk),
+\fBadd a check to the start script\fP that it is actually present.
+To do that, create a \fB\&.mounted\fP file in the root of your device,
+and \fBexit\fP the start script if not found.
+For your convenience, the code for that is already there
+at the top of \fBstart\fP, but commented out.
+.sp
+If you don\(aqt check, that might lead to rehashing several terabytes of data,
+because \fIrTorrent\fP will mark the downloads stored on an absent device as broken
+(which they are without their data).
+.UNINDENT
+.UNINDENT
+.SS rTorrent Configuration
+.sp
+Next, a not\-so\-simple \fI\%rtorrent.rc\fP is created. It already provides
+everything needed to use all features of the \fIPyroScope\fP tools.
+.sp
+Note that built\-in \fBpyrocore\fP settings are read from a \fI\%provided include file\fP,
+that in turn loads snippets from the \fB~/.pyroscope/rtorrent.d\fP directory.
+The same mechanism is used in the main \fBrtorrent.rc\fP file,
+so you can easily add your own customizations in new \fBrtorrent.d/*.rc\fP files.
+.sp
+To get all this set up for you, call this provided script:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Run this in your NORMAL user account, or as ‘rtorrent’!
+~/.local/pyroscope/src/scripts/make\-rtorrent\-config.sh
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+After this, you should check at
+least the \fBrtorrent.d/20\-host\-var\-settings.rc\fP file and adapt the
+values to your environment and preferences. Consider copying the commands
+for the settings you want to adapt to the \fB_rtlocal.rc\fP file – read on as to why.
+.sp
+The \fB_rtlocal.rc\fP file is the place for some simple custom settings,
+like additional resource limits or changing default values.
+The \fBmake\-rtorrent\-config.sh\fP script does not copy that optional file.
+So create it yourself, and pick what you like from the \fI\%example _rtlocal.rc\fP,
+e.g. the logging configuration.
+.sp
+The script can be called again to get updates from \fIGitHub\fP,
+\fBbut will overwrite all standard configuration files\fP with their new version.
+To safely customize configuration,
+provide your own version of standard files under a new name,
+and list the replaced files in the \fBrtorrent.d/.rcignore\fP file.
+.sp
+For anything special not covered by standard configuration,
+add your own \fIadditional\fP files,
+or as mentioned use the \fB_rtlocal.rc\fP file.
+.sp
+Example for a \fB~/rtorrent/_rtlocal.rc\fP file:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Reduce retention period of uncompressed logs
+pyro.log_archival.days.set = 1
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+In \fBrtorrent.rc\fP, change the value of \fBpyro.extended\fP to 1
+so the extended \fIrTorrent\-PS\fP features are actually accessible!
+Starting with \fIversion 1.1\fP, that activation is automatic.
+.UNINDENT
+.UNINDENT
+.SS CLI Tools Configuration
+.sp
+This adds a minimal configuration, so that the defaults are taken from
+the installed software, which makes later updates a lot easier.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Run this in your NORMAL user account, or as ‘rtorrent’!
+pyroadmin \-\-create\-config
+
+cat >~/.pyroscope/config.ini <<EOF
+# PyroScope configuration file
+#
+# For details, see https://pyrocore.readthedocs.org/en/latest/setup.html
+#
+
+[GLOBAL]
+# Location of your rTorrent configuration
+rtorrent_rc = ~/rtorrent/rtorrent.rc
+
+# XMLRPC connection to rTorrent
+scgi_url = scgi://$HOME/rtorrent/.scgi_local
+
+[FORMATS]
+filelist = {{py:from pyrobase.osutil import shell_escape as quote}}{{#
+    }}{{for i, x in looper(d.files)}}{{d.realpath | quote}}/{{x.path | quote}}{{#
+        }}{{if i.next is not None}}{{chr(10)}}{{endif}}{{#
+    }}{{endfor}}
+
+movehere = {{py:from pyrobase.osutil import shell_escape as quote}}{{#
+    }}mv {{d.realpath | quote}} .
+
+# Formats for UI commands feedback
+tag_show = {{#}}Tags: {{ chr(32).join(d.tagged) }} [{{ d.name[:33] }}…]
+
+[SWEEP]
+# Settings for the \(dqrtsweep\(dq tool
+
+# Use the rules from the named [SWEEP_RULES_‹name›] sections
+default_rules = builtin, custom
+
+# Minimum amount of space that must be kept free (adds to the space request)
+space_min_free = 10g
+
+[SWEEP_RULES_CUSTOM]
+# Rules to manage disk space
+#
+# Rules are ordered by the given priority. You can disable built\-in rules
+# found in the [SWEEP_RULES_BUILTIN] section by changing \(dqdefault_rules\(dq
+# in the [SWEEP] section. Use \(dqrtsweep show\(dq to list active rules.
+#
+# Default sort order for each rule is by \(dqloaded\(dq date (oldest first).
+# Note that active, prio 3, and ignored items are protected!
+#
+# If the active rules fail to provide enough space, as much of the oldest
+# items as needed are removed.
+
+# Seeded and bigger than 500M after 7 days, inactive and big items first
+seeded7d.prio   = 910
+seeded7d.sort   = active,\-size
+seeded7d.filter = ratio=+1.2 size=+500m loaded=+5d
+
+[ANNOUNCE]
+# Add alias names for announce URLs to this section; those aliases are used
+# at many places, e.g. by the \(dqmktor\(dq tool and to shorten URLs to these aliases
+
+# Public / open trackers
+PBT     = http://tracker.publicbt.com:80/announce
+          udp://tracker.publicbt.com:80/announce
+PDT     = http://files2.publicdomaintorrents.com/bt/announce.php
+ArchOrg = http://bt1.archive.org:6969/announce
+          http://bt2.archive.org:6969/announce
+OBT     = http://tracker.openbittorrent.com:80/announce
+          udp://tracker.openbittorrent.com:80/announce
+Debian  = http://bttracker.debian.org:6969/announce
+Linux   = http://linuxtracker.org:2710/
+EOF
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Read the \fIpyrocore\fP \fI\%Configuration Guide\fP for more information regarding this file.
+You can come back to customizing it later, your system will work fine with the above default.
+.SS First Start and Testing
+.SS tmux Configuration
+.sp
+We spruce up \fBtmux\fP a bit using a \fI\%custom configuration\fP, before we
+start it the first time. This also makes it more homey for long\-time
+\fBscreen\fP users:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Run this in your NORMAL user account, or as ‘rtorrent’!
+cp \-\-no\-clobber ~/.local/pyroscope/docs/examples/tmux.conf ~/.tmux.conf
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Starting a tmux Session
+.sp
+You\(aqre now ready to start your shiny new \fIrTorrent\-PS\fP, so just do it:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Run this in your NORMAL user account, or as ‘rtorrent’!
+tmux \-2u new \-n rT\-PS \-s rtorrent \(dq~/rtorrent/start; exec bash\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The \fBexec bash\fP keeps your \fBtmux\fP window open if \fBrtorrent\fP exits,
+which allows you to actually read any error messages in case it ends \fIunexpectedly\fP\&.
+If such an error occurs (e.g. about your terminal not providing enough colors),
+check out setup and the trouble\-shooting for a fix.
+.sp
+After that, test the XMLRPC connection by using this command in a new \fBtmux\fP window:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Open a new tmux terminal window by pressing \(dqCtrl\-a\(dq followed by \(dqc\(dq, and then...
+rtxmlrpc system.time_usec
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+You can of course add more elaborate start scripts,
+like a cron watchdog, init.d scripts, or a systemd unit.
+Put the above \fBtmux\fP call into \fBExecStart\fP,
+and use \fB… new \-d …\fP to run a detached session
+– see the \fI\%rTorrent wiki\fP for detailed examples.
+.sp
+Continue with reading the \fIpyrocore\fP \fI\%User’s Manual\fP to get acquainted with the CLI tools,
+and setup for providing the necessary configuration regarding your terminal.
+.SH SETUP & CONFIGURATION
+.sp
+The main part of configuration regarding \fIrTorrent\-PS\fP itself is already done,
+if you followed  DebianInstallFromSource or used \fI\%pimp\-my\-box\fP for it.
+If you used neither, look into what \fI\%make\-rtorrent\-config.sh\fP does (see also make\-rtorrent\-config),
+in order to get all the features described in the manual,
+which in large part rely on those standard configuration snippets.
+.sp
+This chapter contains hints on what you might need to do regarding
+the runtime environment and your system setup.
+.sp
+You can skip to the next chapter to learn about
+the special \fIrTorrent\-PS\fP features and come back to this later,
+provided everything looks OK to you when you first started \fIrTorrent\-PS\fP
+(especially that all special characters render correctly).
+.SS Setting up Your Terminal Emulator
+.SS General Concerns
+.sp
+There are two major obstacles for a proper display of the extended canvas,
+and that is selecting the right font(s) and providing a terminal setup that
+supports 256 or more colors.
+.sp
+Read the following sections on how to solve any problems you might encounter
+within your environment.
+.SS Font Selection & Encoding Issues
+.sp
+Whatever font you use in your terminal profile, it has to support the
+characters used in the column headers and some of the displayed values,
+else you\(aqre getting a degraded user experience.
+Also, your terminal \fBmust\fP be set to use UTF\-8, which nowadays usually is the default anyway.
+.sp
+On \fILinux\fP, that means \fBLANG\fP should be something like \fBen_US.UTF\-8\fP, and \fBLC_ALL\fP
+and \fBLC_CTYPE\fP should \fBnot\fP be set at all! If you use a terminal
+multiplexer like most people do, and the display doesn\(aqt look right, try
+\fBtmux \-u\fP or \fBscreen \-U\fP to force UTF\-8 mode.
+.sp
+Also make sure you have the \fBlocales\fP package installed on Debian\-type systems,
+and the \fBen_US.UTF\-8\fP locale actually created. See install\-locale for that.
+.sp
+The following command lets you easily check whether your font supports
+the most important characters and your terminal is configured correctly:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+PYTHONIOENCODING=utf\-8 python \-c \(aqprint(u\(dq\eu22c5 \eu22c5\eu22c5 \eu201d \eu2019 \eu266f \eu2622 \(dq \e
+    u\(dq\eu260d \eu2318 \eu2730 \eu28ff \eu26a1 \eu262f \eu2691 \eu21ba \eu2934 \eu2935 \eu2206 \eu231a \(dq \e
+    u\(dq\eu2240\eu2207 \eu2707 \eu26a0\exa0\eu25d4 \eu26a1\exa0\eu21af \exbf \eu2a02 \eu2716 \eu21e3 \eu21e1 \(dq \e
+    u\(dq\eu2801 \eu2809 \eu280b \eu281b \eu281f \eu283f \eu287f \eu28ff \eu2639 \eu2780 \eu2781 \eu2782 \(dq \e
+    u\(dq\eu2783 \eu2784 \eu2785 \eu2786 \eu2787 \eu2788 \eu2789 \eu25b9\exa0\eu254d \eu25aa \eu26af \eu2692 \(dq \e
+    u\(dq\eu25cc \eu21c5 \eu21a1 \eu219f \eu229b \eu267a \(dq)\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+In case you have unsolvable problems with only a few specific glyphs,
+see add\-custom\-columns below on how to change them to ones working for you,
+or even switch them to plain ASCII.
+.SS Terminal Setup on Windows
+.sp
+To get full coverage of all Unicode glyphs used in the extended canvas,
+the steps below show you how to use font linking to make \fBEverson Mono\fP complement \fBDejaVu Sans Mono\fP
+when used in \fBPuTTY\fP version 0.70 or higher.
+.INDENT 0.0
+.IP 1. 3
+Download and install the \fI\%DejaVu Sans Mono\fP and \fI\%Everson Mono\fP fonts.
+.IP 2. 3
+Next, add or edit a multi\-string value for your preferred font under this Windows registry key:
+.INDENT 3.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+HKEY_LOCAL_MACHINE\eSOFTWARE\eMicrosoft\eWindows NT\eCurrentVersion\eFontLink\eSystemLink
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+To do that start \fBregedit\fP and go to that folder. Any key there names a font for which
+fallback fonts are registered. So add/edit the \fBDejaVu Sans Mono\fP key, and add fallback
+font references as its value.
+.INDENT 3.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+Right click \fBSystemLink\fP and select \fBNew\fP, then \fBMulti String Value\fP\&.
+.IP \(bu 2
+Use \fBDejaVu Sans Mono\fP as the key\(aqs name.
+.IP \(bu 2
+Double\-click the new key, and enter this as the value:
+.INDENT 3.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+Everson Mono.ttf,EversonMono
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.IP 3. 3
+After closing \fBregedit\fP, logout from Windows and back in again to activate the font link,
+but a full reboot is safer (hey, it\(aqs Windows, you should be used to it).
+.IP 4. 3
+Start \fBPuTTY\fP and select \fBChange settings\fP from the menu.
+.INDENT 3.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+In \fBWindow › Appearance\fP select \fBDejaVu Sans Mono\fP\&.
+.IP \(bu 2
+Set \fBUTF\-8\fP in \fBWindow / Translation\fP
+.IP \(bu 2
+Under \fBTerminal\fP check \fBUse background colour to erase screen\fP\&.
+.IP \(bu 2
+In \fBSSH › Data\fP, make sure to use \fBputty\-256color\fP for the \fBterminal\fP setting.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.IP 5. 3
+Connect, and check the display.
+.UNINDENT
+.sp
+Other fonts that were suggested are \fBAndale Mono\fP, and
+\fBGNU Unifont\fP\&. You have to try out yourself what looks good to you and
+works with your specific system and terminal emulator.
+Read \fI\%more about fallback fonts\fP on \fIsuperuser.com\fP\&.
+.INDENT 0.0
+.INDENT 3.5
+\-\- based on \fI\%feedback by @NoSubstitute\fP, with help from \fI\%superuser.com\fP and \fI\%MSDN\fP
+.UNINDENT
+.UNINDENT
+.sp
+\fBSEE ALSO:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fI\%Font linking on Windows\fP
+and \fI\%Using KiTTY instead of PuTTY\fP
+.UNINDENT
+.UNINDENT
+.SS Terminal Setup on Linux
+.sp
+When you use \fBgnome\-terminal\fP, everything should work out of the box,
+given you use the \fBstart\fP script, which sets \fBTERM\fP and \fBLANG\fP correctly.
+Also always call \fBtmux\fP with the \fB\-2u\fP options.
+.sp
+If you use \fBurxvt\fP, you have to provide fallback fonts as on \fIWindows\fP\&.
+Add the following to your \fB~/.Xresources\fP:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+URxvt*font: xft:DejaVu Sans Mono:style=regular:pixelsize=15,xft:Noto Sans Mono CJK JP:pixelsize=15,xft:FreeSerif
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Note that \fI15pt\fP is a threshold for the font size,
+below it \fBurxvt\fP thinks there\(aqs not enough space to render the glyphs.
+.sp
+Generally, to cope with problems like this or find other fonts that suit you better,
+the \fBttfdump\fP tool can help to check out fonts on the technical level.
+Another helper is the \fBgucharmap\fP GUI tool, that allows you to explore your installed fonts visually.
+.INDENT 0.0
+.INDENT 3.5
+\-\- based on \fI\%feedback by @ymvunjq\fP
+.UNINDENT
+.UNINDENT
+.SS Supporting 256 or More Colors
+.sp
+Having 256 colors available means you can select very dark shades of
+grey, and that can be used for subtle even / odd line backgrounds
+in the collapsed canvas of \fIrTorrent\-PS\fP\&.
+.sp
+To enable 256 colors, your terminal must obviously be able to support
+them at all (i.e. have a \fBxterm\-256color\fP terminfo entry, or similar).
+But even if that is the case, you often need to give a little nudge to
+the terminal multiplexers; namely start \fBtmux\fP with the \fB\-2\fP switch
+(that forces 256 color mode), or for \fBscreen\fP start it with the
+terminal already set to 256 color mode so it can sense the underlying
+terminal supports them, i.e. use this in your startup script:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+if [ \(dq$TERM\(dq = \(dq${TERM%\-256color}\(dq ]; then
+    export TERM=\(dq$TERM\-256color\(dq
+fi
+tmux ...
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Then, within the terminal multiplexer\(aqs environment, you must \fBagain\fP
+ensure the terminal is set to a 256 color terminfo entry.
+See the \fI\%\&.tmux.conf by @chros73\fP for possible solutions for any tmux\-related problems.
+.sp
+The reward for jumping through all those hoops is that you can then use
+color gradients for ratio coloring, and much more appropriate pallid
+color shades for backgrounds.
+.SS Showing a Terminal\(aqs Palette
+.sp
+The \fI\%term\-256color.py\fP script can help you with showing the colors your
+terminal supports, an example output using Gnome\(aqs terminal looks like
+the following...
+.INDENT 0.0
+.INDENT 2.5
+[image: xterm-256-color]
+[image]
+Output of \fBterm\-256\-color.py\fP.UNINDENT
+.UNINDENT
+.SS Trouble\-Shooting Guide
+.SS Reporting Problems
+.sp
+If you have any trouble during \fIrTorrent\-PS\fP installation and configuration,
+or using any of the commands from the documentation,
+join the \fI\%rtorrent\-community\fP channel \fI\%rtorrent\-ps\fP on Gitter.
+You can also ask questions on platforms like \fI\%Reddit\fP or \fI\%Stack Exchange\fP\&.
+[image]
+.sp
+If you are sure there is a bug, then \fI\%open an issue\fP on \fIGitHub\fP\&.
+Report any problems that are clearly rooted in the \fIrTorrent\fP core
+to the \fI\%upstream issue tracker\fP\&.
+.sp
+Make sure that nobody else reported the same problem before you,
+there is a \fI\%search box\fP you can use (after the \fBFilters\fP button).
+Please note that the \fIGitHub\fP issue tracker is not a support platform,
+use the Gitter channel or Reddit for any questions, as mentioned above.
+.sp
+And ESR\(aqs golden oldie \fI\%How To Ask Questions The Smart Way\fP is still a most valuable resource, too.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+Please \fBdescribe your problem clearly\fP, and provide any pertinent
+information.
+What are the \fBversion numbers\fP of software and OS?
+What did you do?
+What was the \fBunexpected result\fP?
+If things worked and ‘suddenly’ broke, \fBwhat did you change\fP?
+.sp
+\fBIn the chat, don\(aqt ask if somebody is there, just describe your problem\fP\&.
+Eventually, someone will notice you – people \fIdo\fP live in different time zones than you.
+.sp
+Put up any logs on \fI\%0bin\fP or any other pastebin
+service, and \fBmake sure you removed any personal information\fP you
+don\(aqt want to be publically known. Copy the pastebin link into the
+chat window.
+.UNINDENT
+.UNINDENT
+.sp
+The following helps with querying your system environment, e.g. the
+version of Python and your OS.
+.SS Providing Diagnostic Information
+.SS Python Diagnostics
+.sp
+Execute the following command to be able to provide some information on
+your Python installation:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+deactivate 2>/dev/null; /usr/bin/virtualenv \-\-version; python <<\(aq.\(aq
+import sys, os, time, pprint
+pprint.pprint(dict(
+    version=sys.version,
+    prefix=sys.prefix,
+    os_uc_names=os.path.supports_unicode_filenames,
+    enc_def=sys.getdefaultencoding(),
+    maxuchr=sys.maxunicode,
+    enc_fs=sys.getfilesystemencoding(),
+    tz=time.tzname,
+    lang=os.getenv(\(dqLANG\(dq),
+    term=os.getenv(\(dqTERM\(dq),
+    sh=os.getenv(\(dqSHELL\(dq),
+))
+\&.
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+If \fBenc_fs\fP is \fBnot\fP \fBUTF\-8\fP, then call
+\fBdpkg\-reconfigure locales\fP (on Debian type systems) and choose a
+proper locale (you might also need \fBlocale\-gen en_US.UTF\-8\fP), and make
+sure \fBLANG\fP is set to \fBen_US.UTF\-8\fP (or another locale with UTF\-8
+encoding).
+.SS OS Diagnostics
+.sp
+Similarly, execute this in a shell prompt:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+uname \-a; echo $(lsb_release \-as 2>/dev/null); grep name /proc/cpuinfo | uniq \-c; \e
+free \-m | head \-n2; uptime; \e
+strings $(which rtorrent) | grep \(dqclient version\(dq; \e
+ldd $(which rtorrent) | egrep \(dqlib(torrent|curses|curl|xmlrpc.so|cares|ssl|crypto)\(dq; \e
+ps auxw | egrep \(dqUSER|/rtorrent\(dq | grep \-v grep
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Common Problems & Solutions
+.sp
+Please \fI\%open an issue\fP on \fIGitHub\fP if you think that you have a problem that happens a lot,
+or you know several other people have the same problem,
+and \fBit\(aqs not already mentioned below\fP\&.
+.SS Error in option file: …/05\-rt\-ps\-columns.rc:…: Invalid key
+.sp
+You combined a brand\-new \fIpimp\-my\-box\fP configuration with an older version of \fIrTorrent\-PS\fP\&.
+Solution ♯1 (preferred)
+.sp
+Update to a recent build \fIrTorrent\-PS\fP\&.
+.sp
+Also make sure your \fB~/rtorrent/rtorrent.rc\fP is the \fI\%newest one\fP with the line…
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+method.insert = pyro.extended, const|value, (system.has, rtorrent\-ps)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+This auto\-detects the presence of \fIrTorrent\-PS\fP, but only works with builds from June 2018 onwards.
+Solution ♯2
+.sp
+Replace this line in \fB~/rtorrent/rtorrent.rc\fP…
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+method.insert = pyro.extended, const|value, (system.has, rtorrent\-ps)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+with that one…
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+method.insert = pyro.extended, const|value, 1
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Startup Failure: ‘your terminal only supports 8 colors’
+.sp
+See \fI\%Setting up Your Terminal Emulator\fP for detailed help on proper terminal setup.
+.sp
+If all else fails or you\(aqre in a rush, you can switch to the 8\-color theme
+by calling the \fBecho\fP command as shown and then start \fIrTorrent\-PS\fP again:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+echo default\-8 >~/.pyroscope/color\-schemes/.current
+~/rtorrent/start
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+If you don\(aqt use the standard configuration (where theme support comes from),
+then add the \fBui.color.*\fP commands from this \fI\%configuration snippet\fP to \fBrtorrent.rc\fP,
+which does the same thing.
+.SS Startup Failure: ‘libxmlrpc_*.so cannot open shared object file’
+.sp
+On newer systems, \fBRPATH\fP is replaced by \fBRUNPATH\fP with consequences
+regarding the search path for \fItransitive\fP library dependencies (like that of
+\fBlibxmlrpc\fP to the other \fBlibxmlrpc_*\fP libraries).
+In the end, those transitive dependencies cannot be resolved without some
+extra config.
+.sp
+The solution is to use the provided \fI\%start script\fP, which explicitly sets
+\fBLD_LIBRARY_PATH\fP from any \fBRPATH\fP or \fBRUNPATH\fP found in the executable.
+Or if you use a systemd unit, use an \fBEnvironment\fP directive to set the
+library path, e.g. \fBEnvironment=LD_LIBRARY_PATH=/opt/rtorrent/lib\fP\&.
+.SH USER'S MANUAL
+.sp
+This chapter describes the additional features in \fIrTorrent\-PS\fP,
+and other differences to a vanilla \fIrTorrent\fP build.
+.SS Additional Features
+.sp
+Using the right default configuration (more on that below),
+you will get the following additional features in your \fIrTorrent\-PS\fP installation:
+.INDENT 0.0
+.IP 1. 4
+The \fBt\fP key is bound to a \fBtrackers\fP view that shows all items
+sorted by tracker and then by name.
+.IP 2. 4
+The \fB!\fP key is bound to a \fBmessages\fP view, listing all items
+that currently have a non\-empty message, sorted in order of the
+message text.
+.IP 3. 4
+The \fB^\fP key is bound to the \fBrtcontrol\fP search result view, so
+you can easily return to your last search.
+.IP 4. 4
+The \fB?\fP key is bound to the \fBindemand\fP view, which sorts all
+open items by their activity, with the most recently active on top.
+.IP 5. 4
+The \fB%\fP key is bound to the \fBratio\fP view, which sorts all
+open items by their ratio (descending).
+.IP 6. 4
+The \fB°\fP key is bound to the \fBuploaded\fP view, which sorts all
+open items by their total upload amount (descending).
+.IP 7. 4
+The \fB\(dq\fP key is bound to the \fBdatasize\fP view, which sorts all
+open items by the size of their content data (descending).
+.IP 8. 4
+Add even more views, see \fI\%Additional Views\fP for details.
+.IP 9. 4
+\fBPage ↑\fP and \fBPage ↓\fP scroll by 50 items at a time (or whatever
+other value \fBui.focus.page_size\fP has).
+.IP 10. 4
+\fBHome\fP / \fBEnd\fP jump to the first / last item in the current
+view.
+.IP 11. 4
+\fBCtrl\-F\fP opens a prompt where you can enter a search term,
+and \fBShift\-F\fP or \fBF3\fP jump to the next hit for that term.
+If nothing matches, a message is shown on the console.
+[image: rt-ps-ui-find]
+[image]
+
+.IP 12. 4
+The \fB~\fP key rotates through all available color themes, or a
+user\-selected subset. See \fI\%Color Themes\fP for details.
+.IP 13. 4
+The \fB<\fP and \fB>\fP keys rotate through all added category views
+(\fBpyro.category.add=‹name›\fP), with filtering based on the
+ruTorrent label (\fBcustom_1=‹name›\fP). See \fI\%Category Views\fP for details.
+.IP 14. 4
+\fB|\fP reapplies the category filter and thus updates the current
+category view.
+.IP 15. 4
+The \fBu\fP key shows the uptime and some other essential data of your
+rTorrent instance.
+.IP 16. 4
+\fBF2\fP shows some important help resources (web links) in the
+console log.
+.IP 17. 4
+\fB*\fP toggles between the collapsed (as described on \fI\%Extended
+Canvas Explained\fP) and the expanded display of the current view.
+[image: rt-ps-canvas-v2-small]
+[image]
+
+.IP 18. 4
+\fB/\fP toggles the visibility of ‘sacrificial’ columns – normally,
+they\(aqre only hidden when the terminal width gets too small.
+.IP 19. 4
+The \fBactive\fP view is changed to include all incomplete items
+regardless of whether they have any traffic, and then groups the
+list into complete, incomplete, and queued items, in that order.
+Within each group, they\(aqre sorted by download and then upload speed.
+.IP 20. 4
+Some \fIcanvas v2\fP columns are added in the \fIpimp\-my\-box\fP configuration –
+the selected throttle (⋉), a download\(aqs chunk size (≣),
+and the expected time of arrival (⟲ ◥◤) on the \fIactive\fP and \fIleeching\fP displays only.
+The visibility of the chunk size column can be toggled using the \fB_\fP key.
+.IP 21. 4
+The commands \fBs=«keyword»\fP, \fBt=«tracker_alias»\fP, and
+\fBf=«filter_condition»\fP are pre\-defined for searching using a
+Ctrl\-X prompt.
+.IP 22. 4
+The \fB\&.\fP key toggles the membership in the \fBtagged\fP view for the
+item in focus, \fB:\fP shows the \fBtagged\fP view, and \fBT\fP clears
+that view (i.e. removes the tagged state on all items). This can be
+very useful to manually select a few items and then run
+\fBrtcontrol\fP on them, or alternatively use \fB\-\-to\-view tagged\fP to
+populate the \fBtagged\fP view, then deselect some items interactively
+with the \fB\&.\fP key, and finally mass\-control the rest.
+See \fI\%Additional Views\fP for details.
+.IP 23. 4
+You can use the \fBpurge=\fP and \fBcull=\fP commands (on a Ctrl\-X
+prompt) for deleting the current item and its (incomplete) data.
+.IP 24. 4
+\fBCtrl\-g\fP shows the tags of an item (as managed by \fBrtcontrol\fP);
+\fBtag.add=‹tag›\fP and \fBtag.rm=‹tag›\fP can be used to change the set
+of tags, both also show the new set of tags after changing them.
+.IP 25. 4
+Time\-stamped log files with rotation, archival (compression), and pruning
+– with a setting for the number of days to keep logs in uncompressed form, or at all.
+.IP 26. 4
+Trackers are scraped regularly (active items relatively often,
+inactive items including closed ones seldomly), so that the display
+of downloads / seeders / leechers is not totally outdated.
+The \fB&\fP key can be used to manually scrape the item in focus.
+.IP 27. 4
+A watchdog for the \fBpyrotorque\fP daemon process (checks every 5 minutes,
+and starts it when not running \fIif\fP the \fI~/.pyroscope/run/pyrotorque\fP file exists).
+.UNINDENT
+.sp
+With regards to using the ‘right’ configuration to get the above, you need
+the \fB*.rc.default\fP files in the \fB~/.pyroscope/rtorrent.d\fP directory
+provided by \fIpyrocore\fP\&.
+\fI\%Standard Configuration Explained\fP has details on these.
+Some more features are defined by the \fI\%pimp\-my\-box\fP configuration templates.
+.sp
+To get there, perform the DebianInstallFromSource as described in this manual,
+or use the \fI\%pimp\-my\-box\fP project for an automatic remote installation.
+The instructions in the \fI\%Extending your ‘.rtorrent.rc’\fP section of the \fIpyrocore\fP manual
+only cover half of it, and you might miss some described features.
+.SS Extended Canvas Explained
+.sp
+The following is an explanation of the collapsed display of \fIrTorrent\-PS\fP (\fIcanvas v2\fP).
+.INDENT 0.0
+.INDENT 2.5
+[image: Extended Canvas Screenshot]
+[image]
+Extended Canvas Screenshot.UNINDENT
+.UNINDENT
+.sp
+In case your screen looks broken compared to this,
+see terminal\-setup for necessary pre\-conditions and settings
+regarding your terminal emulator application and operating system.
+.sp
+In older builds, you need to remember to press the \fB*\fP key while showing a view,
+or change the state of new views after adding them (by calling the \fI\%view.collapsed.toggle\fP command),
+else you won\(aqt ever see it.
+.sp
+The following is an overview of the default columns, and what the values and icons in them mean.
+.sp
+A \fB⍰\fP after the column title indicates a ‘sacrificial’ column, which disappear when the display
+gets too narrow to display all the columns. When even that does not provide enough space,
+columns are omitted beginning on the right side (\fIName\fP is always included).
+Sacrificial columns can also be toggled using the \fB/\fP key
+– note they\(aqre toggled as a whole group,
+so other dynamic states like the \fB≣\fP column toggle are ignored.
+.sp
+Columns marked \fB⪮\fP are provided by a \fI\%pimp\-my\-box\fP configuration include
+(i.e. loaded from \fB~/rtorrent/rtorrent.d/\fP),
+and ones carrying \fB✶\fP by \fBpyrocore\fP (from \fB~/.pyroscope/rtorrent.d/\fP).
+All others are built\-in.
+.INDENT 0.0
+.TP
+.B ❢
+Message or alert indicator (♺ = Tracker cycle complete,
+i.e. \(dqTried all trackers\(dq; ʘ = item\(aqs data path does not exist
+(needs \fI\%support by a cron job\fP); ⚡\ = establishing connection;
+↯ = data transfer problem; ◔ = timeout; ¿? = unknown torrent /
+info hash; ⨂ = authorization problem (possibly temporary); ⋫ = tracker
+downtime; ☡ = DNS problems; ⚠ = other)
+.TP
+.B ☢
+Item state (▹ = started, ╍ = paused, ▪ = stopped)
+.TP
+.B ☍    \fB⍰\fP
+Tied item? [⚯]
+.TP
+.B ⌘    \fB⍰\fP
+Command lock\-out? (⚒ = heed commands, ◌ = ignore commands)
+.TP
+.B ↺   \fB⍰\fP
+Number of completions from last scrape info
+.TP
+.B ⤴     \fB⍰\fP
+Number of seeds from last scrape info
+.TP
+.B ⤵     \fB⍰\fP
+Number of leeches from last scrape info
+.TP
+.B ↕   \fB⍰\fP
+Transfer direction indicator [⇅ ↡ ↟]
+.TP
+.B ℞
+Number of connected peers
+.TP
+.B ∆⋮ ⟲
+Upload rate, or when inactive, time the download took (only after completion).
+.TP
+.B ∇⋮ ◷
+Approximate time since completion (units are «”’hdwmy» from seconds to years);
+for incomplete items the download rate or, if there\(aqs no traffic,
+the time since the item was started or loaded
+.TP
+.B ⟲ ◥◤ \fB⍰ ⪮\fP
+Expected time of arrival (only on the \fIactive\fP and \fIleeching\fP views)
+.TP
+.B ⋉   \fB⍰ ⪮\fP
+Throttle selected for this item (∞ is the special \fBNULL\fP throttle; ⓪…⑨ for
+\fIruTorrent\fP\(aqs \fBthr_0…9\fP channels)
+.TP
+.B Σ⇈  \fB⍰\fP
+Total sum of uploaded data
+.TP
+.B ⣿
+Completion status (✔ = done; else up to 8 dots [⣿] and ❚, i.e. progress in 10% steps);
+the old \fBui.style.progress.set\fP command is deprecated,
+see add\-custom\-columns for the new way to get
+a different set of glyphs or an ASCII version
+.TP
+.B ☯
+Ratio (☹ plus color indication for < 1, ➀ — ➉ : >= the number, ⊛ : >= 11);
+the old \fBui.style.ratio.set\fP command is deprecated,
+see add\-custom\-columns for the new way to get
+a different set of number glyphs or an ASCII version
+.TP
+.B ☯ ‰ \fB⍰ ✶\fP
+Detailed ratio, in promille and as a number (only on the \fIratio\fP view).
+.TP
+.B ⛁
+Data size
+.TP
+.B ≣   \fB⍰ ⪮\fP
+Chunk size – this column can be toggled on / off using the \fB_\fP key
+.TP
+.B ◷ ↑↓ \fB✶\fP
+Time of last data transfer (only on the \fIlast_xfer\fP view).
+.TP
+.B ◷ ↺⤴⤵ \fB✶\fP
+Time of last tracker scrape (only on the \fItrackers\fP view).
+.TP
+.B Domain \fB⍰ ✶\fP
+15 characters of the unmapped tracker domain name (only on the \fItrackers\fP view).
+.TP
+.B ◷ ℞ \fB✶\fP
+Time a peer was last connected, or the number of peers connected right now (only on the \fIindemand\fP view).
+.TP
+.B ✰
+Priority (✖ = off, ⇣ = low, nothing for normal, ⇡ = high)
+.TP
+.B ⚑
+A ⚑ indicates this item is on the \fBtagged\fP view
+.TP
+.B Name
+Name of the download item – either the name contained in the metafile,
+or else the value of the \fBdisplayname\fP custom field when set on an item
+.TP
+.B Tracker
+Domain of the first HTTP tracker with seeds or leeches,
+or else the first one altogether – note that you can define nicer
+aliases using the \fI\%trackers.alias.set_key\fP command in your configuration
+.UNINDENT
+.sp
+For the various time displays to work, you need
+the \fIpyrocore\fP \fI\%standard configuration for rtorrent.rc\fP\&.
+.sp
+The scrape info and peer numbers are exact only for values below 100, else they
+indicate the order of magnitude using roman numerals (c = 10², m = 10³,
+X = 10⁴, C = 10⁵, M = 10⁶).
+For up\-to\-date scrape info, you need the \fI\%Tracker Auto\-Scraping\fP configuration from \fIpyrocore\fP\&.
+.SS Command Extensions
+.sp
+The following new commands are available.
+Note that the links point to the \fI\%Commands Reference\fP chapter in the \fIrTorrent Handbook\fP\&.
+.sp
+\fImath.*\fP Commands.INDENT 0.0
+.INDENT 2.0
+.IP \(bu 2
+\fI\%math.add\fP
+.IP \(bu 2
+\fI\%math.avg\fP
+.IP \(bu 2
+\fI\%math.cnt\fP
+.IP \(bu 2
+\fI\%math.div\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%math.max\fP
+.IP \(bu 2
+\fI\%math.med\fP
+.IP \(bu 2
+\fI\%math.min\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%math.mod\fP
+.IP \(bu 2
+\fI\%math.mul\fP
+.IP \(bu 2
+\fI\%math.sub\fP
+.UNINDENT
+.UNINDENT
+.sp
+\fIstring.*\fP Commands.INDENT 0.0
+.INDENT 2.0
+.IP \(bu 2
+\fI\%string.contains\fP
+.IP \(bu 2
+\fI\%string.contains_i\fP
+.IP \(bu 2
+\fI\%string.endswith\fP
+.IP \(bu 2
+\fI\%string.equals\fP
+.IP \(bu 2
+\fI\%string.join\fP
+.IP \(bu 2
+\fI\%string.len\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%string.lpad\fP
+.IP \(bu 2
+\fI\%string.lstrip\fP
+.IP \(bu 2
+\fI\%string.map\fP
+.IP \(bu 2
+\fI\%string.replace\fP
+.IP \(bu 2
+\fI\%string.rpad\fP
+.IP \(bu 2
+\fI\%string.rstrip\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%string.shorten\fP
+.IP \(bu 2
+\fI\%string.split\fP
+.IP \(bu 2
+\fI\%string.startswith\fP
+.IP \(bu 2
+\fI\%string.strip\fP
+.IP \(bu 2
+\fI\%string.substr\fP
+.UNINDENT
+.UNINDENT
+.sp
+\fIconvert.*\fP Commands.INDENT 0.0
+.INDENT 2.0
+.IP \(bu 2
+\fI\%convert.human_size\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%convert.magnitude\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%convert.time_delta\fP
+.UNINDENT
+.UNINDENT
+.sp
+\fIsystem.*\fP Commands.INDENT 0.0
+.INDENT 2.0
+.IP \(bu 2
+\fI\%system.client_version.as_value\fP
+.IP \(bu 2
+\fI\%system.env\fP
+.IP \(bu 2
+\fI\%system.has\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%system.has.list\fP
+.IP \(bu 2
+\fI\%system.has.private_methods\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%system.has.public_methods\fP
+.IP \(bu 2
+\fI\%system.random\fP
+.UNINDENT
+.UNINDENT
+.sp
+\fId.*\fP Commands.INDENT 0.0
+.INDENT 2.0
+.IP \(bu 2
+\fI\%d.custom.as_value\fP
+.IP \(bu 2
+\fI\%d.custom.erase\fP
+.IP \(bu 2
+\fI\%d.custom.if_z\fP
+.IP \(bu 2
+\fI\%d.custom.items\fP
+.IP \(bu 2
+\fI\%d.custom.keys\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%d.custom.set_if_z\fP
+.IP \(bu 2
+\fI\%d.custom.toggle\fP
+.IP \(bu 2
+\fI\%d.is_meta\fP
+.IP \(bu 2
+\fI\%d.message.alert\fP
+.IP \(bu 2
+\fI\%d.multicall.filtered\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%d.tracker_alias\fP
+.IP \(bu 2
+\fI\%d.tracker_domain\fP
+.IP \(bu 2
+\fI\%d.tracker_scrape.complete\fP
+.IP \(bu 2
+\fI\%d.tracker_scrape.downloaded\fP
+.IP \(bu 2
+\fI\%d.tracker_scrape.incomplete\fP
+.UNINDENT
+.UNINDENT
+.sp
+\fInetwork.*\fP Commands.INDENT 0.0
+.INDENT 2.0
+.IP \(bu 2
+\fI\%network.history.auto_scale\fP
+.IP \(bu 2
+\fI\%network.history.depth\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%network.history.depth.set\fP
+.IP \(bu 2
+\fI\%network.history.refresh\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%network.history.sample\fP
+.UNINDENT
+.UNINDENT
+.sp
+\fIui.*\fP Commands.INDENT 0.0
+.INDENT 2.0
+.IP \(bu 2
+\fI\%ui.bind_key\fP
+.IP \(bu 2
+\fI\%ui.bind_key.verbose\fP
+.IP \(bu 2
+\fI\%ui.canvas_color\fP
+.IP \(bu 2
+\fI\%ui.canvas_color.set\fP
+.IP \(bu 2
+\fI\%ui.color.*.index\fP
+.IP \(bu 2
+\fI\%ui.color.*.set\fP
+.IP \(bu 2
+\fI\%ui.color.alarm…title\fP
+.IP \(bu 2
+\fI\%ui.column.hidden.list\fP
+.IP \(bu 2
+\fI\%ui.column.hide\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%ui.column.is_hidden\fP
+.IP \(bu 2
+\fI\%ui.column.render\fP
+.IP \(bu 2
+\fI\%ui.column.sacrificed\fP
+.IP \(bu 2
+\fI\%ui.column.sacrificial.list\fP
+.IP \(bu 2
+\fI\%ui.column.show\fP
+.IP \(bu 2
+\fI\%ui.column.spec\fP
+.IP \(bu 2
+\fI\%ui.current_view\fP
+.IP \(bu 2
+\fI\%ui.find.next\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%ui.find.term\fP
+.IP \(bu 2
+\fI\%ui.focus.end\fP
+.IP \(bu 2
+\fI\%ui.focus.home\fP
+.IP \(bu 2
+\fI\%ui.focus.page_size\fP
+.IP \(bu 2
+\fI\%ui.focus.pgdn\fP
+.IP \(bu 2
+\fI\%ui.focus.pgup\fP
+.IP \(bu 2
+\fI\%ui.style.progress\fP
+.IP \(bu 2
+\fI\%ui.style.ratio\fP
+.UNINDENT
+.UNINDENT
+.sp
+\fIOther\fP Commands.INDENT 0.0
+.INDENT 2.0
+.IP \(bu 2
+\fI\%array.at\fP
+.IP \(bu 2
+\fI\%close_low_diskspace.normal\fP
+.IP \(bu 2
+\fI\%compare\fP
+.IP \(bu 2
+\fI\%do\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%import.return\fP
+.IP \(bu 2
+\fI\%log.messages\fP
+.IP \(bu 2
+\fI\%throttle.names\fP
+.IP \(bu 2
+\fI\%trackers.alias.items\fP
+.UNINDENT
+.INDENT 2.0
+.IP \(bu 2
+\fI\%trackers.alias.set_key\fP
+.IP \(bu 2
+\fI\%value\fP
+.IP \(bu 2
+\fI\%view.collapsed.toggle\fP
+.UNINDENT
+.UNINDENT
+.SH TIPS & HOW-TOS
+.SS Checking Details of the Standard Configuration
+.sp
+Not every detail of the standard configuration can be documented in this manual,
+because at some point it would basically duplicate the \fB*.rc\fP files in English,
+and also run the risk of being out of date (i.e. wrong) very fast.
+.sp
+To understand every nook and cranny of the features added by the config sets
+that get installed if you follow DebianInstallFromSource,
+look into the \fB*.rc\fP files and specifically read the comments in them.
+.sp
+The \fBpyrocore\fP files are in the \fB~/.pyroscope/rtorrent.d\fP directory,
+and \fBpimp\-my\-box\fP ones in \fB~/rtorrent/rtorrent.d\fP\&.
+.sp
+Remember that \fB\&.rcignore\fP files in those directories allow to
+selectively disable parts of the standard configuration, like so:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+echo >>~/rtorrent/rtorrent.d/.rcignore \(dqdisable\-control\-q.rc\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+For finding specifics on added commands or paths and such, \fBgrep\fP is your friend,
+as in this example:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ grep \-C1 import.rc ~/.pyroscope/rtorrent.d/*.rc.default ~/rtorrent/rtorrent.d/*.rc ~/rtorrent/*rt*rc
+rtorrent/rtorrent.rc\-execute2 = (cat,(pyro.bin_dir),pyroadmin),\-q,\-\-create\-import,(cat,(cfg.basedir),\(dqrtorrent.d/*.rc\(dq)
+rtorrent/rtorrent.rc:import = (cat,(cfg.basedir),\(dqrtorrent.d/.import.rc\(dq)
+rtorrent/rtorrent.rc\-
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Validate Self\-Signed Certs
+.sp
+The following helps in case you want to use trackers with \fBhttps\fP announce URLs
+that still use self\-signed certificates, instead of \fILet\(aqs Encrypt\fP like they should.
+Unless you disable certificate checks in the rTorrent configuration,
+you must add such certificates to your the system to make them valid.
+.sp
+This script does that via an easy command call, just pass it the tracker domain or URL:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+cat >/usr/local/sbin/load\-domain\-certificate <<\(aqEOF\(aq
+#! /bin/bash
+if test \-z \(dq$1\(dq; then
+    echo \(dqusage: $0 <domainname_or_url>\(dq
+    exit 1
+fi
+DOMAINNAME=$(sed \-re \(aqs%^(https://)?([^/]+)(.*)$%\e2%\(aq <<<$1)
+set \-x
+openssl s_client \-servername ${DOMAINNAME} \-connect ${DOMAINNAME}:443 </dev/null | tee /tmp/${DOMAINNAME}.crt
+openssl x509 \-inform PEM \-in /tmp/${DOMAINNAME}.crt \-text \-out /usr/share/ca\-certificates/${DOMAINNAME}.crt
+grep ${DOMAINNAME}.crt /etc/ca\-certificates.conf >/dev/null || echo ${DOMAINNAME}.crt >>/etc/ca\-certificates.conf
+update\-ca\-certificates
+ls \-l /etc/ssl/certs | grep ${DOMAINNAME}
+EOF
+chmod a+x /usr/local/sbin/load\-domain\-certificate
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH ADVANCED CUSTOMIZATION
+.sp
+This chapter helps you to personalize your \fIrTorrent\fP experience,
+specifically regarding the \fIncurses\fP terminal user interface.
+It provides some background on the standard configuration,
+and how you can tweak it further according to your preferences.
+.SS Color Scheme Configuration
+.sp
+This section describes how you can change all the colors in \fIrTorrent\-PS\fP to your liking.
+Note that there are \fI\%existing color schemes\fP provided by the \fIpyrocore\fP configuration,
+and you can rotate through them using the \fB~\fP key thanks to \fI\%rtorrent.d/theming.rc\fP\&.
+.sp
+You can copy one of the provided color scheme \fB*.rc.default\fP files in \fB~/.pyroscope/color\-schemes/\fP
+to a new \fB‹mytheme›.rc\fP file.
+Details about how to specify colors and so on are in the sub\-sections that follow.
+.SS Color Configuration Details
+.INDENT 0.0
+.IP \(bu 2
+\fI\%Working With Color Schemes\fP
+.IP \(bu 2
+\fI\%Adding Your Own Color Schemes\fP
+.UNINDENT
+.sp
+And here are some visuals of the default schemes…
+.sp
+[image: color-scheme-default]
+[image]
+   [image: color-scheme-happy-pastel]
+[image]
+
+.sp
+[image: color-scheme-solarized-blue]
+[image]
+   [image: color-scheme-solarized-yellow]
+[image]
+
+.SS Working With Color Schemes
+.sp
+If your terminal works as intended,
+you now might want to find you own color theme.
+The easiest way is to use a second shell and \fI\%rtxmlrpc\fP\&. Try
+out some colors, and add the combinations you like to your
+\fB~/.rtorrent.rc\fP\&.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# For people liking candy stores...
+rtxmlrpc ui.color.title.set \(dqbold magenta on bright cyan\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+You can use the following code in a terminal to dump a full color scheme from the running client:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+for i in $(rtxmlrpc system.listMethods | egrep \(aq^ui.color.[^.]+$\(aq); do
+    echo $i = $(rtxmlrpc \-r $i | tr \(dq\(aq\(dq \(aq\(dq\(aq) ;
+done
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Adding Your Own Color Schemes
+.sp
+Color schemes are lists of \fBui.color.‹color name›.set\fP commands in your configuration,
+or in a  \fB*.rc[.default]\fP file in the \fB~/.pyroscope/color\-schemes/\fP directory.
+If you want to use scheme rotation at all (via the \fB~\fP key),
+put your own schemes into extra \fBcolor\-schemes/*.rc\fP files and not the main configuration.
+.sp
+The set of color names is predetermined and refers to the \fImeaning\fP of the color,
+i.e. where it is used on the canvas. \fBfooter\fP and \fBalarm\fP are obvious examples.
+.sp
+Here\(aqs a configuration example showing all the commands and their defaults:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# UI/VIEW: Colors
+ui.color.alarm.set=\(dqbold white on red\(dq
+ui.color.complete.set=\(dqbright green\(dq
+ui.color.even.set=\(dq\(dq
+ui.color.focus.set=\(dqreverse\(dq
+ui.color.footer.set=\(dqbold bright cyan on blue\(dq
+ui.color.incomplete.set=\(dqyellow\(dq
+ui.color.info.set=\(dqwhite\(dq
+ui.color.label.set=\(dqgray\(dq
+ui.color.leeching.set=\(dqbold bright yellow\(dq
+ui.color.odd.set=\(dq\(dq
+ui.color.progress0.set=\(dqred\(dq
+ui.color.progress20.set=\(dqbold bright red\(dq
+ui.color.progress40.set=\(dqbold bright magenta\(dq
+ui.color.progress60.set=\(dqyellow\(dq
+ui.color.progress80.set=\(dqbold bright yellow\(dq
+ui.color.progress100.set=\(dqgreen\(dq
+ui.color.progress120.set=\(dqbold bright green\(dq
+ui.color.queued.set=\(dqmagenta\(dq
+ui.color.seeding.set=\(dqbold bright green\(dq
+ui.color.stopped.set=\(dqblue\(dq
+ui.color.title.set=\(dqbold bright white on blue\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+See the \fI\%ui.color.* command reference\fP for details on these and related commands.
+.sp
+The following color settings work better than the default ones in a 256
+color terminal (gnome\-terminal), for me at least. Your mileage (color
+table) may vary. Having 256 colors means you have very dark shades of
+grey, and that is used here to set the even / odd backgrounds.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+ui.color.complete.set=41
+ui.color.stopped.set=33
+
+ui.color.footer.set=\(dqbright cyan on 20\(dq
+ui.color.even.set=\(dqon 234\(dq
+ui.color.odd.set=\(dqon 232\(dq
+
+ui.color.progress0.set=196
+ui.color.progress20.set=202
+ui.color.progress40.set=213
+ui.color.progress60.set=214
+ui.color.progress80.set=226
+ui.color.progress100.set=41
+ui.color.progress120.set=\(dqbold bright green\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+[image: rt-ps-glyphs]
+[image]
+
+.sp
+Note that you might need to enable support for 256 colors in your
+terminal, see canvas\-256\-colors for a description. In a nutshell, you need to
+install the \fBncurses\-term\fP package if you don\(aqt have it already, and
+also add these commands to your \fIrTorrent\fP start script:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+if [ \(dq$TERM\(dq = \(dq${TERM%\-256color}\(dq ]; then
+    export TERM=\(dq$TERM\-256color\(dq
+fi
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Customizing the Display Layout
+.SS Canvas v2 Topics
+.INDENT 0.0
+.IP \(bu 2
+\fI\%Canvas v2 Overview\fP
+.IP \(bu 2
+\fI\%Inspecting Your Display\fP
+.IP \(bu 2
+\fI\%Column Layout Definitions\fP
+.IP \(bu 2
+\fI\%Defining Your Own Columns\fP
+.IP \(bu 2
+\fI\%Disabling Columns\fP
+.IP \(bu 2
+\fI\%Adding Traffic Graphs\fP
+.UNINDENT
+.SS Canvas v2 Overview
+.sp
+The main display with the downloads list is flexible and
+can be configured to your will, in \fIrTorrent\-PS 1.1\fP and up.
+This is also known as \fIcanvas v2\fP\&.
+.sp
+Use the following \fI\%rtxmlrpc\fP command to check if you have a version
+that can do this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ rtxmlrpc \(dqsystem.has=,canvas_v2\(dq
+1
+# The \(aq1\(aq means you have canvas v2 on board;
+# a \(aq0\(aq or \(dqMethod \(aqsystem.has\(aq not defined\(dq means you don\(aqt.
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The only fixed parts are the position indicator at the very left of the display,
+and the combined name / tracker column on the right.
+The latter takes all the space left by other columns.
+.SS Inspecting Your Display
+.sp
+To list the columns you have in your setup, call \fI\%rtxmlrpc\fP like so:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ rtxmlrpc method.get=,ui.column.render | sed \-re \(aqs/ /␣/g\(aq | sort
+100:3C95/2:❢␣␣
+110:2C92/2:☢␣
+120:?2:☍␣
+130:?2:⌘␣
+400:?3C23/3:␣↺␣
+410:?3C24/3:␣⤴␣
+420:?3C14/3:␣⤵␣
+500:?2:⚡␣
+510:3C28/3:℞␣␣
+520:6C96/6:∆⋮␣⌛␣␣
+530:6C90/6:∇⋮␣⌚␣␣
+800:3:⋉␣
+900:?5C24/3C21/2:␣Σ⇈␣␣
+910:2C94/2:⣿␣
+920:3C93/3:☯␣␣
+930:5C15/3C21/2:␣✇␣␣␣
+970:2C91/2:✰␣
+980:2C16/2:⚑␣
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The important thing here are the numbers in front,
+which define the sort order of columns from left to right.
+They also allow to address a specific column,
+which becomes important in a moment.
+.sp
+All these are built\-in defaults, except the throttle indicator \fB⋉\fP with index 800,
+which is defined in \fI\%~/rtorrent/rtorrent.d/05\-rt\-ps\-columns\-v2.rc.include\fP of \fI\%pimp\-my\-box\fP\&.
+.sp
+\fBIMPORTANT:\fP
+.INDENT 0.0
+.INDENT 3.5
+You \fBMUST\fP update your \fI\%pimp\-my\-box\fP configuration
+if you used that to set up your system.
+Otherwise you\(aqll get duplicate columns.
+.UNINDENT
+.UNINDENT
+.sp
+To show the full column definitions with their code, call \fI\%pyroadmin\fP:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ pyroadmin \-\-dump\-rc | grep \-A1 ui.column.render | egrep \(aq^(method.set_key|    )\(aq
+method.set_key = ui.column.render, \(dq100:3C95/2:❢  \(dq, \e
+    ((array.at, {\(dq  \(dq, \(dq♺ \(dq, \(dq⚠\ \(dq, \(dq◔ \(dq, \(dq⚡\ \(dq, \(dq↯ \(dq, \(dq¿?\(dq, \(dq⨂ \(dq}, ((d.message.alert)) ))
+method.set_key = ui.column.render, \(dq110:2C92/2:☢ \(dq, \e
+    ((string.map, ((cat, ((d.is_open)), ((d.is_active)) )), {00, \(dq▪ \(dq}, …, {11, \(dq▹ \(dq}))
+…
+method.set_key = ui.column.render, \(dq980:2C16/2:⚑ \(dq, \e
+    ((array.at, {\(dq  \(dq, \(dq⚑ \(dq}, ((d.views.has, tagged)) ))
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Column Layout Definitions
+.sp
+The keys of the \fBui.column.render\fP multi\-command must follow a defined format,
+namely \fB‹index›:〈?〉‹width›〈‹color definition›〉:‹title›\fP\&.
+There are three fields, separated by colons.
+The parts in \fB〈…〉\fP are optional.
+.sp
+\fB‹index›\fP was already mentioned, used for sorting and addressing columns.
+.sp
+The second field can start with a \fB?\fP to tag this column as ‘sacrificial’,
+i.e. optional in the face of too narrow terminals.
+\fB‹width›\fP is a column\(aqs width in characters.
+The \fB‹color definition›\fP determines what terminal attributes are used to render these characters,
+and is a sequence of \fBC‹color index›/‹length›\fP elements.
+.sp
+Finally, \fB‹title›\fP is used for the column\(aqs heading.
+Make sure to end it with a space to leave room for wide Unicode glyphs,
+and always make it as long as the column width.
+.sp
+To get a color index table, try this command:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+rtxmlrpc system.has.private_methods \e
+    | egrep \(aq^ui.color.*index$\(aq \e
+    | xargs \-I+ rtxmlrpc \-i \(aqprint=\(dq+ = \(dq,(+)\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Since the \fBui.color.*index\fP commands are private, the output must go to the \fIrTorrent\fP console.
+This is what you\(aqll see (timestamps removed):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+ui.color.alarm.index = 22
+ui.color.complete.index = 23
+ui.color.custom1.index = 1
+ui.color.custom2.index = 2
+ui.color.custom3.index = 3
+ui.color.custom4.index = 4
+ui.color.custom5.index = 5
+ui.color.custom6.index = 6
+ui.color.custom7.index = 7
+ui.color.custom8.index = 8
+ui.color.custom9.index = 9
+ui.color.even.index = 30
+ui.color.focus.index = 19
+ui.color.footer.index = 18
+ui.color.incomplete.index = 27
+ui.color.info.index = 21
+ui.color.label.index = 20
+ui.color.leeching.index = 28
+ui.color.odd.index = 29
+ui.color.progress0.index = 10
+ui.color.progress20.index = 11
+ui.color.progress40.index = 12
+ui.color.progress60.index = 13
+ui.color.progress80.index = 14
+ui.color.progress100.index = 15
+ui.color.progress120.index = 16
+ui.color.queued.index = 26
+ui.color.seeding.index = 24
+ui.color.stopped.index = 25
+ui.color.title.index = 17
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+There are also columns with \fIdynamic\fP color schemes, using a color index ≥ 90,
+which map to a ‘normal’ color index depending on an item\(aqs attributes.
+An example is \fB3C95/2\fP for the alert column,
+which changes to red (\fBui.color.alarm\fP) if there is an active alert.
+.sp
+This is a list of the dynamic color schemes:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+90: \fBDOWN_TIME\fP – Download (∇ \fIleeching\fP) or time display (⌚ \fIinfo\fP + \fIseeding\fP/\fIincomplete\fP)
+.IP \(bu 2
+91: \fBPRIO\fP – A color for ✰, depending on \fBd.priority\fP: \fIprogress0\fP, \fIprogress60\fP, \fIinfo\fP, \fIprogress120\fP
+.IP \(bu 2
+92: \fBSTATE\fP – A color for ☢, depending on \fBd.is_open\fP (\fIprogress0\fP if not) and \fBd.is_active\fP (\fIprogress80\fP or \fIprogress100\fP)
+.IP \(bu 2
+93: \fBRATIO\fP – A \fIprogress\fP color for ☯ from 0 to 120
+.IP \(bu 2
+94: \fBPROGRESS\fP – A \fIprogress\fP color from 0 to 100 for the ⣿ column
+.IP \(bu 2
+95: \fBALERT\fP – For ❢, \fIinfo\fP or \fIalarm\fP depending on alert state
+.IP \(bu 2
+96: \fBUP_TIME\fP – Upload (∆ \fIseeding\fP) or time display (⌛ \fIinfo\fP + \fIseeding\fP/\fIincomplete\fP)
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+The mixed \fBDOWN_TIME\fP and \fBUP_TIME\fP schemes must span the full width of the column,
+and can only be used with \fIone\fP color definition in the column key (anything after them is ignored).
+.SS Defining Your Own Columns
+[image: Canvas v2 ASCII Ratio Column]
+[image]
+.sp
+This example shows how to replace the ratio column (920)
+with a pure ASCII version. You can see the result on the right.
+.sp
+Place this code in your custom configuration,
+e.g. in the \fB_rtlocal.rc\fP file (when using \fI\%pimp\-my\-box\fP).
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Remove the default column
+method.set_key = ui.column.render, (ui.column.spec, 920)
+
+# Add ASCII ratio in percent
+# (1..99 for incomplete; 1c = 1.0; 1m = 10.0; …)
+method.set_key = ui.column.render, \(dq922:3C93/3:R% \(dq, \e
+    ((string.replace, ((convert.magnitude, ((math.div, ((d.ratio)), 10)) )), \e
+                      {\(dq⋅\(dq, \(dq.\(dq} ))
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+To construct a column definition like this,
+you need to understand \fI\%rTorrent Scripting\fP first
+– more so than what\(aqs sufficient for writing simple configurations.
+.sp
+Looking at the original column definition often helps, e.g. to grab a few snippets for your own version:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ pyroadmin \-\-dump\-rc | egrep \-A1 \(aq\(dq920:.+\(dq\(aq
+method.set_key = ui.column.render, \(dq920:3C93/3:☯  \(dq, \e
+    ((string.substr, \(dq☹ ➀ ➁ ➂ ➃ ➄ ➅ ➆ ➇ ➈ ➉ \(dq, \e
+                     ((math.mul, 2, ((math.div, ((d.ratio)), 1000)) )), 2, \(dq⊛ \(dq))
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Also, try to understand how all the other column definitions work,
+you can learn a few tricks that are typical for column rendering.
+[image: Canvas v2 Chunk Size Column]
+[image]
+.sp
+Especially if you want to display additional values in the same format as an existing column,
+you just have to swap the command accessing the displayed item\(aqs data.
+Here\(aqs a chunk size column, all you need to do is
+replace \fBd.size_bytes\fP in the code of column 930 with \fBd.chunk_size\fP,
+and give it a new index and heading.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+ui.color.custom9.set = \(dqbright blue\(dq
+method.set_key = ui.column.render, \(dq935:5C9/3C21/2: ≣   \(dq, \e
+    ((convert.human_size, ((d.chunk_size)) ))
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+That example also shows how to use a custom color.
+.SS Disabling Columns
+.sp
+The \fBui.column.show\fP and \fBui.column.hide\fP commands provide the means to
+easily change the visibility of columns, without touching their definition.
+They both take a list of column keys as their arguments, as either strings or values.
+.sp
+The following example shows column ♯42 only on the \fIactive\fP and \fIleeching\fP views,
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+method.set_key = event.view.show, ~column_42_toggle, \e
+    \(dqbranch = \e\(dqstring.contains=$ui.current_view=, active, leeching\e\(dq, \e
+        ui.column.show=42, ui.column.hide=42\(dq
+ui.column.hide = 42
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The \fBui.column.is_hidden\fP and \fBui.column.hidden.list\fP commands can be used to query the visibility of columns,
+the first one takes a single column key as its argument.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ rtxmlrpc \-\-repr ui.column.is_hidden \(aq\(aq 42
+1
+$ rtxmlrpc \-\-repr ui.column.hidden.list
+[42]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+A practical use of \fBui.column.is_hidden\fP is to toggle a column.
+This code does so for ♯935, and binds the toggle to the \fB_\fP key.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+method.insert = pmb._toggle_chunk_size, simple|private, \e
+    \(dqbranch = ui.column.is_hidden=935, ui.column.show=935, ui.column.hide=935 ; \e
+     ui.current_view.set = (ui.current_view)\(dq
+pyro.bind_key = toggle_chunk_size, _, \(dqpmb._toggle_chunk_size=\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The \fBui.current_view.set = (ui.current_view)\fP part forces a redraw of the canvas,
+giving you instant feedback.
+.SS Adding Traffic Graphs
+.sp
+Add these lines to your configuration:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Show traffic of the last hour
+network.history.depth.set = 112
+schedule = network_history_sampling,1,32, network.history.sample=
+method.insert = network.history.auto_scale.toggle, simple|private, \e
+    \(dqbranch=network.history.auto_scale=, \e
+        \e\(dqnetwork.history.auto_scale.set=0\e\(dq, \e
+        \e\(dqnetwork.history.auto_scale.set=1\e\(dq\(dq
+method.insert = network.history.auto_scale.ui_toggle, simple|private, \e
+    \(dqnetwork.history.auto_scale.toggle= ;network.history.refresh=\(dq
+branch=pyro.extended=,\(dqschedule = bind_auto_scale,0,0, \e
+    \e\(dqui.bind_key=download_list,=,network.history.auto_scale.ui_toggle=\e\(dq\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+And you\(aqll get this in your terminal:
+.INDENT 0.0
+.INDENT 2.5
+[image: rTorrent-PS Network History]
+[image]
+rTorrent\-PS Network History.UNINDENT
+.UNINDENT
+.sp
+As you can see, you get the upper and lower bounds of traffic within
+your configured time window, and each bar of the graph represents an
+interval determined by the sampling schedule. Pressing \fB=\fP toggles
+between a graph display with a baseline of 0, and a zoomed view that scales
+it to the current bounds.
+.SH DEVELOPMENT GUIDE
+.sp
+This chapter contains some explanations of the project structure and
+activities related to development of the project.
+.SS Running Integration Tests
+.sp
+The \fBtasks.py\fP script defines a \fBtest\fP task for \fIinvoke\fP,
+which runs tests located in the \fBtests/commands/*.txt\fP files.
+.sp
+These test scripts are edited console logs of shell calls,
+and the test runner executes any line starting with a \fB$\fP\&.
+It then checks that any line following the command is contained
+in its output. The return code is checked via a \fBRC=n\fP line.
+.sp
+Any line starting with \fB#\fP is a comment.
+.sp
+The lines asserting output can contain \fB…\fP to mark omissions
+– any whitespace around it is ignored.
+That means that \fBfoo … bar\fP checks that \fIboth\fP \fBfoo\fP and \fBbar\fP
+are contained somewhere in the command\(aqs output.
+.sp
+Here\(aqs the sample output you want to have (no failures):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ invoke test
+\-\-\- Running tests in \(aqtests/commands/array.txt\(aq...
+\&.......
+
+\-\-\- Running tests in \(aqtests/commands/misc.txt\(aq...
+\&..................................................
+
+\-\-\- Running tests in \(aqtests/commands/string.txt\(aq...
+\&....................
+
+\-\-\- Running tests in \(aqtests/commands/math.txt\(aq...
+\&.......................................
+
+☺ ☺ ☺  ALL OK. ☺ ☺ ☺
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+And this is what a failure looks like:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ invoke test \-n misc
+\-\-\- Running tests in \(aqtests/commands/misc.txt\(aq...
+\&.
+FAIL: »!1’20”« not found in output of »rtxmlrpc convert.time_delta \(aq\(aq +1527903580 +1527903500«
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1’20”
+RC=0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+\&................................................
+
+☹ ☹ ☹  1 TEST(S) FAILED. ☹ ☹ ☹
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+This also shows how you can run only one selected test suite, using the \fB\-\-name\fP or \fB\-n\fP option.
+.SS The Build Script
+.sp
+The \fI\%build.sh\fP script contains all the minute details and settings to successfully
+build selected dependencies and the \fIlibtorrent\fP / \fIrtorrent\fP source on many platforms.
+.sp
+And no, it is not a \fIMakefile\fP, since there\(aqs no benefit in that, for the things the script does.
+\fB[g]make\fP is used \fIwithin\fP the contributing projects.
+.sp
+See build\-from\-source on the ‘normal’ use of the script for building a binary.
+Other uses like building packages (with or without \fIDocker\fP) or the most recent upstream source
+are described in the following sections.
+.sp
+To \fBbuild a new extended binary after you downloaded updates\fP via a \fBgit pull \-\-ff\-only\fP,
+just call \fB\&./build.sh extend\fP – this will apply any new patches included in that update,
+but not re\-build all the dependencies.
+.sp
+If you\(aqre sure that the diff only contains source code changes (in \fBpatches/*.cc\fP),
+only calling \fBmake\fP in the \fIrTorrent\fP source directory is \fIway faster\fP\&.
+In case dependency versions changed in \fBbuild.sh\fP, you have to go the slowest route with
+\fB\&./build.sh clean_all all\fP to get them onto your machine.
+.sp
+For everything else, call \fB\&./build.sh help\fP to get a usage summary similar to this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ ./build.sh help
+Environment for building rTorrent PS\-1.0\-349\-g12ccbe8\-2018\-06\-30\-1143 0.9.6/0.13.6
+export PACKAGE_ROOT=/opt/rtorrent
+export INSTALL_ROOT=/home/pyroscope
+…
+
+Usage: ./build.sh (all | clean | clean_all | download | build | check | extend)
+Build rTorrent PS\-1.0\-… 0.9.6/0.13.6 into ~/.local/rtorrent/0.9.6\-PS\-1.1\-dev
+
+Custom environment variables:
+    CURL_OPTS=\(dq\-sLS\(dq (e.g. \-\-insecure)
+    MAKE_OPTS=\(dq\-j4\(dq
+    CFG_OPTS=\(dq\(dq (e.g. \-\-enable\-debug \-\-enable\-extra\-debug)
+    CFG_OPTS_LT=\(dq\(dq (e.g. \-\-disable\-instrumentation for MIPS, PowerPC, ARM)
+    CFG_OPTS_RT=\(dq\(dq
+
+Build actions:
+    build_all   a/k/a ‹all› – Download and build and install all deps + vanilla + extended
+    build       Build and install all components
+    build_git   a/k/a ‹git› – Build and install libtorrent and rtorrent from git checkouts
+    check       Print some diagnostic success indicators
+    clean_all   Remove all downloads and created files
+    clean       Clean up generated files
+    deps        Build all dependencies
+    deps_git    Build all dependencies [GIT HEAD MODE]
+    docker_deb  Build Debian packages via Docker
+    download    Download and unpack sources
+    env         Show build environement
+    extend      Rebuild and install libtorrent and rTorrent with patches applied
+    install     Install to /opt/rtorrent
+    pkg2deb     Package current /opt/rtorrent installation for APT [needs fpm]
+    pkg2pacman  Package current /opt/rtorrent installation for PACMAN [needs fpm]
+    vanilla     Build vanilla rTorrent [also un\-patches src dirs]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Creating a Release
+.INDENT 0.0
+.IP \(bu 2
+Finish \fBdocs/CHANGES.md\fP and set the release date
+.IP \(bu 2
+Run \fBinvoke cmd_docs >docs/include\-commands.rst\fP, and commit any additions
+.IP \(bu 2
+Make sure every command has docs in the manual (\fBinvoke undoc\fP)
+.IP \(bu 2
+Tag the release, push tags, put changelog up on GitHub
+.IP \(bu 2
+Build packages and upload to Bintray (using \fBbintray.sh\fP)
+.IP \(bu 2
+Change DEB download links in \fIpimp\-my\-box\fP
+.IP \(bu 2
+Make a stable snapshot of docs under the new version
+.IP \(bu 2
+Bump version to next release in \fBdocs/conf.py\fP
+.IP \(bu 2
+Announce to \fIreddit\fP etc.
+.UNINDENT
+.SS Building the Debian Package
+.sp
+A Debian package for easy installation is built using
+\fI\%fpm\fP, so you have to install
+that first on the build machine, if you don\(aqt have it yet:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+apt\-get install ruby ruby\-dev
+gem install fpm
+fpm \-h | grep fpm.version
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Then you need to prepare the install target, as follows (we assume
+building under the \fBrtorrent\fP user here):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mkdir \-p /opt/rtorrent
+chmod 0755 /opt/rtorrent
+chown \-R rtorrent.rtorrent /opt/rtorrent
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Then, the contents of the package are built by calling
+\fB\&./build.sh install\fP, which will populate the \fB/opt/rtorrent\fP
+directory. When that is done, you can test the resulting executable
+located at \fB/opt/rtorrent/bin/rtorrent\fP\&.
+.sp
+Finally, \fB\&./build.sh pkg2deb\fP creates the Debian package in \fB/tmp\fP\&.
+The script expects the packager\(aqs name and email in the usual
+environment variables, namely \fBDEBFULLNAME\fP and \fBDEBEMAIL\fP\&. For a
+few platforms (recent Debian, Ubuntu, and Raspbian), you can find
+pre\-built ones at \fI\%Bintray\fP\&.
+.sp
+\fBSEE ALSO:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fI\%Using Docker for Building Packages\fP
+.UNINDENT
+.UNINDENT
+.SS Building git HEAD of rTorrent
+.sp
+You can also build the latest source of the main rTorrent project (including its \fBlibtorrent\fP),
+with all the settings and rpath linking of the \fBrtorrent\-ps\fP builds,
+but just like \fIvanilla\fP when it comes to applying patches
+(only \fIessential\fP ones are applied, like the \fIOpenSSL\fP one).
+.sp
+This is intended to be used for checking compatibility of patches with the head of the core project,
+and preparing PRs for it.
+You will \fInot get a stable system\fP and these builds are in no way recommended for production use.
+.sp
+Start by checking out the two projects as siblings of the \fBrtorrent\-ps\fP workdir,
+leading to a folder structure like this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+\&.
+├── libtorrent
+├── rakshasa\-rtorrent
+└── rtorrent\-ps
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+As you can see, the sibling folders can have an optional \fBrakshasa\-\fP prefix.
+.sp
+Then use these commands within \fBrtorrent\-ps\fP to build all dependencies and
+the git HEAD code from the sibling folders:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+INSTALL_DIR=$HOME/.local/rtorrent\-git ./build.sh clean_all deps_git build_git
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Just like with the vanilla and extended version, you\(aqll get a ‘branded’ binary
+called \fBrtorrent\-git\fP, and a symlink at \fB~/bin/rtorrent\fP will point to it.
+.sp
+The \fBINSTALL_DIR\fP is set explicitly,
+so that a release version and git HEAD can be installed and used concurrently,
+without any conflicts.
+.SS Using Docker for Building Packages
+.sp
+The \fBdocker_deb\fP build action uses \fBDockerfile.Debian\fP to compile and package
+\fIrTorrent\-PS\fP on a given \fIDebian\fP or \fIUbuntu\fP release.
+Similarly, \fBdocker_arch\fP does the same for \fIArch Linux\fP using \fBDockerfile.ArchLinux\fP\&.
+.sp
+\fBdocker_deb\fP takes an optional \fB‹distro›:‹codename›\fP argument,
+and defaults to \fBdebian:stretch\fP\&.
+You can also use \fBall\fP, \fBstable\fP, or \fBoldstable\fP to name classes of distributions,
+defined in the related \fI\%docker_distros_*\fP lists at the start of \fI\%build.sh\fP\&.
+.sp
+\fBdocker_arch\fP takes no release names due to its rolling release nature,
+but check out the \fBARG CODENAME=20200205\fP at the top of \fBDockerfile.ArchLinux\fP
+that makes the build more reproducible
+– you might want to update that to \fBlatest\fP or a newer release date.
+.sp
+Any additional arguments to the \fBbuild.sh\fP call
+are passed on to the underlying \fBdocker build\fP command.
+Since \fBdocker_*\fP takes arguments, you cannot call any further actions after it,
+in the same \fBbuild.sh\fP call.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+You need Docker version \fB17.06\fP or higher to use this.
+.UNINDENT
+.UNINDENT
+.SH CHANGE HISTORY
+.SS List of Releases
+.INDENT 0.0
+.IP \(bu 2
+\fI\%2018\-10\-xx v1.2 “rTorrent 0.9.7”\fP
+.IP \(bu 2
+\fI\%2018\-07\-01 v1.1 “Design Your Canvas”\fP
+.IP \(bu 2
+\fI\%2017\-03\-12 v1.0 “First version\-tagged release”\fP
+.UNINDENT
+.SS 2018\-10\-xx v1.2 “rTorrent 0.9.7”
+UNRELEASED DEVELOPMENT VERSION.INDENT 0.0
+.IP \(bu 2
+UI: Added item search via \fBCtrl\-F\fP and \fBShift\-F\fP / \fBF3\fP
+.IP \(bu 2
+UI: Added \fIno data\fP indicator to alerts (in the \fB❢\fP column)
+.IP \(bu 2
+UI: Replaced problematic glyphs like ‘hourglass’ (caused visual defects on \fIStretch\fP and \fIBionic\fP)
+.IP \(bu 2
+Command: Added \fBstring.shorten\fP command (for logging)
+.IP \(bu 2
+Fix: Compilation on 32bit platforms (issue #108)
+.IP \(bu 2
+Docker: Demo launcher renamed to \fBlaunch\-rt\-ps\-demo.sh\fP,
+and supports any distro with a package available for it
+.UNINDENT
+.SS 2018\-07\-01 v1.1 “Design Your Canvas”
+.sp
+This release adds the new fully customizable and responsive \fIcanvas v2\fP,
+and many new configuration and XMLRPC commands plus a few fixes
+– see below for a full list of changes.
+It comes with complete documentation hosted on \fIRead the Docs\fP and built with \fISphinx\fP\&.
+Binary builds for \fIDebian\fP and \fIUbuntu\fP are available as DEB packages on \fIBintray\fP\&.
+.sp
+Note that \fIrTorrent\-PS\fP is based on the \fIstable\fP release of \fIrTorrent\fP,
+and that is still version 0.9.6 at the time of this release.
+Many of the features and commands in version 0.9.7 are originally developed in
+or otherwise back\-ported to this project anyway.
+.sp
+Read the related \fI\%Migrating to Version 0.6.1 (UNRELEASED)\fP instructions,
+which will update configuration snippets in the \fBrtorrent.d\fP directories.
+If you used those snippets before, their update is \fBrequired\fP to run the new version
+– else you\(aqll get visual defects at the very minimum,
+but worse stuff might happen.
+.sp
+If you do not have a \fB~/rtorrent/rtorrent.d\fP directory created by the helper scripts,
+then you just have to know yourself what to do (i.e. browse through \fBgit\fP diffs)
+– those scripts can only handle standard situations and setups.
+.INDENT 0.0
+.IP \(bu 2
+Docs: Much improved (moved to \fIRead the Docs\fP and using \fISphinx\fP)
+.IP \(bu 2
+UI: Added responsive \fIcanvas v2\fP with full customization (issue #60)
+.INDENT 2.0
+.IP \(bu 2
+New \fBui.column.render\fP multi\-command
+.IP \(bu 2
+Added \fBui.column.hide\fP and related commands
+.IP \(bu 2
+Added 3 new \fBconvert.*\fP commands
+.IP \(bu 2
+Added \fBui.color.custom1…9\fP and \fBui.color.*.index\fP commands
+.IP \(bu 2
+New default columns: ❢ ℞ ⋉ ≣
+.IP \(bu 2
+New alert indicators for “tracker down” and “DNS problems”
+.IP \(bu 2
+‘Tagged’ indicator (⚑) now in its own column
+.IP \(bu 2
+Built\-in views are collapsed by default now
+.UNINDENT
+.IP \(bu 2
+UI: \fBInfo\fP details panel is now active by default (not \fBPeer list\fP)
+.IP \(bu 2
+UI: Made \fB*\fP key a built\-in keyboard shortcut [@chros73]
+.IP \(bu 2
+UI: Key to toggle sacrificial columns manually (bound to \fB/\fP)
+.IP \(bu 2
+Command: Added \fBstring.*\fP command group (issue #59)
+.IP \(bu 2
+Command: Added \fBmath.*\fP command group [@chros73] (issue #65)
+.IP \(bu 2
+Command: Added \fBvalue\fP conversion command
+.IP \(bu 2
+Command: Added \fBarray.at\fP command (issue #60)
+.IP \(bu 2
+Command: Added \fBd.custom.if_z\fP and more \fBd.custom.*\fP commands (issue #101)
+.IP \(bu 2
+Command: Added \fBd.is_meta\fP command [@chros73]
+.IP \(bu 2
+Command: Added \fBd.tracker_alias\fP command (issue #97)
+.IP \(bu 2
+Command: Added \fBd.multicall.filtered\fP
+.IP \(bu 2
+Command: Added \fBsystem.has\fP and 3 other related commands (issue #82)
+.IP \(bu 2
+Command: Added \fBsystem.client_version.as_value\fP command
+.IP \(bu 2
+Command: Added \fBdo\fP command (issue #98)
+.IP \(bu 2
+Command: Added \fBimport.return\fP private command
+.IP \(bu 2
+Command: Added \fBthrottle.names\fP (issue #65)
+.IP \(bu 2
+Command: Added \fBui.bind_key.verbose\fP flag (issue #55)
+.IP \(bu 2
+Command: Added \fBevent.view.hide\fP and \fBevent.view.show\fP events
+.IP \(bu 2
+Fix: Prevent filtering of \fBstarted\fP and \fBstopped\fP views [@chros73] (issue #36)
+.IP \(bu 2
+Fix: \fBsystem.file.allocate.set=[0|1]\fP semantics [@chros73] (issue #41)
+.IP \(bu 2
+Fix: \fBlog.messages\fP – restored lost patch for message writing (issue #78)
+.IP \(bu 2
+Fix: Properly close XMLRPC log, i.e. only \fIonce\fP (issue #94)
+.IP \(bu 2
+Fix: \fBstart\fP handles platforms that use \fBRUNPATH\fP instead of \fBRPATH\fP
+.IP \(bu 2
+Patch: \fBcatch\fP command is silent when first command is \fBfalse=\fP
+.IP \(bu 2
+Build: \fBbootstrap\fP script – switch to Python3 (issue #84)
+.IP \(bu 2
+Build: Improved git build process
+.IP \(bu 2
+Build: \fBall\fP now really does it all, and added a few more actions
+.IP \(bu 2
+Build: Allow installation of several concurrent patch versions
+.IP \(bu 2
+Build: Apply patches for OpenSSL 1.1 (on platforms using it)
+.IP \(bu 2
+Build: Added \fB\-std=c++11|0x\fP option (needed for \fBalgorithm::median\fP patch)
+.IP \(bu 2
+Build: Fixed \fBCXXFLAGS\fP for GCC 6+
+.IP \(bu 2
+Build: Dropped \fIrTorrent\fP 0.8.x/0.9.2 support (issue #26)
+.IP \(bu 2
+Build: Fedora 26 support (if you use this: it\(aqs unmaintained, unless people open PRs)
+.IP \(bu 2
+Tasks: Added integration tests for commands – \fBinvoke test [\-n ‹name›]\fP (issue #84)
+.IP \(bu 2
+Tasks: New \fBcmd_docs\fP task to generate extension command index
+.IP \(bu 2
+Docker: Run \fBpkg2deb\fP for several Debian / Ubuntu LTS versions
+.IP \(bu 2
+Docker: Run an \fIEPHEMERAL\fP rTorrent\-PS instance in a \fIDebian Stretch\fP container
+.UNINDENT
+.sp
+\fBNOTE:\fP Support for \fIrTorrent\fP versions before 0.9.6 and non\-C++11
+compilers will end soon!
+.SS 2017\-03\-12 v1.0 “First version\-tagged release”
+.INDENT 0.0
+.IP \(bu 2
+Improved build script
+.IP \(bu 2
+\fBsystem.random = [[<lower>,] <upper>]\fP command
+.IP \(bu 2
+UI: tracker alias mappings
+.INDENT 2.0
+.IP \(bu 2
+\fBtrackers.alias.set_key=«domain»,«alias»\fP and
+\fBtrackers.alias.items=\fP commands
+.UNINDENT
+.IP \(bu 2
+New Arch AUR PKGBUILDs, and \fBpkg2pacman\fP action by @xsmile (#48)
+.IP \(bu 2
+More flexible installation options (#43)
+.IP \(bu 2
+Easier manual setup with \fBmake\-rtorrent\-config.sh\fP script
+.UNINDENT
+.SH INDICES & TABLES
+.INDENT 0.0
+.IP \(bu 2
+genindex
+.IP \(bu 2
+modindex
+.IP \(bu 2
+search
+.UNINDENT
+.SH AUTHOR
+PyroScope Project
+.SH COPYRIGHT
+2017-2018, PyroScope Project
+.\" Generated by docutils manpage writer.
+.

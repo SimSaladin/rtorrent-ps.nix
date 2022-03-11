@@ -1,12 +1,13 @@
 { lib
+, symlinkJoin
 , fetchFromGitHub
 , stdenvNoCC
 , runCommandNoCC
 , makeWrapper
 , substituteAll
-, python
 , rtorrent
 , pyrocore
+, pyrocoreEnv
 , rtorrent-configs
 , RT_HOME ? "$HOME/.rtorrent"
 , RT_SOCKET ? "$RT_HOME/.scgi_local"
@@ -18,34 +19,34 @@ let
 
   cfg = rtorrent-configs;
 
-  pyrocoreEnv = python.buildEnv.override {
-    extraLibs = [ pyrocore ];
-    ignoreCollisions = true;
-  };
+  startScript = runCommandNoCC "rtorrent-ps-start" { src = ./start.sh; } ''
+    install -Dm0755 $src $out/bin/rtorrent-ps
+    patchShebangs $out
+  '';
 
-  # Note: to use this script, set environment variables:
-  #   RT_HOME RT_SOCKET RT_INITRC
-  startScript = substituteAll {
-    src = ./start.sh;
-    postInstall = ''
-      chmod 0755 $out
-      patchShebangs $out
-    '';
-  };
+  rtorrent-magnet = runCommandNoCC "rtorrent-magnet" { src = ../rtorrent-magnet; } ''
+    install -Dm0755 $src $out/bin/rtorrent-magnet
+    patchShebangs $out
+  '';
 
-  rtorrent-magnet = substituteAll {
-    src = ../rtorrent-magnet;
-    postInstall = ''
-      chmod 0755 $out
-      patchShebangs $out
-    '';
-  };
+  configs = runCommandNoCC "rtorrent-configs" { } ''
+    mkdir -p $out/etc
+    ln -s ${cfg.rtorrentRc} $out/etc/rtorrent.rc
+    ln -s ${cfg.rtConfigs} $out/etc/rtorrent.d
+    ln -s ${cfg.pyroConfigs} $out/etc/pyroscope
+  '';
+
 in
-
-stdenvNoCC.mkDerivation rec {
+symlinkJoin rec {
   name = "rtorrent-ps";
 
-  inherit (ps) version src;
+  paths = [
+    configs
+    startScript
+    rtorrent-magnet
+    rtorrent
+    pyrocore
+  ];
 
   nativeBuildInputs = [ makeWrapper ];
 
@@ -58,27 +59,18 @@ stdenvNoCC.mkDerivation rec {
     "--set-default PYRO_CONFIG_DIR ${cfg.pyroConfigs}"
   ];
 
-  installPhase = ''
-    mkdir -p $out/{etc,bin}
-    mkdir -p $out/share/{bash-completion/completions,applications}
+  postBuild = ''
+    rm -rf $out/{EGG-INFO,lib,nix-support}
 
-    makeWrapper ${startScript} $out/bin/rtorrent-ps ${makeWrapperArgs}
-    makeWrapper ${pyrocoreEnv}/bin/python $out/bin/python-pyrocore ${makeWrapperArgs}
-    makeWrapper ${rtorrent-magnet} $out/bin/rtorrent-magnet ${makeWrapperArgs}
-    makeWrapper ${rtorrent}/bin/rtorrent $out/bin/rtorrent-${rtorrent.version}
-
-    # pyrocore
-    for f in ${pyrocore}/bin/*; do
-      makeWrapper "$f" $out/bin/$(basename "$f") ${makeWrapperArgs}
+    for f in $out/bin/*; do
+      wrapProgram "$f" ${makeWrapperArgs}
     done
-    ln -st $out/share/bash-completion/completions ${pyrocore}/share/bash-completion/completions/*
-    ln -st $out/share ${pyrocore}/share/pyroscope
+
+    makeWrapper ${pyrocoreEnv.interpreter} $out/bin/python-pyrocore ${makeWrapperArgs}
+    makeWrapper ${rtorrent}/bin/rtorrent $out/bin/rtorrent-${rtorrent.version}
 
     patchShebangs $out/bin
 
-    # configs
-    ln -s ${cfg.rtorrentRc} $out/etc/rtorrent.rc
-    ln -s ${cfg.rtConfigs} $out/etc/rtorrent.d
-    ln -s ${cfg.pyroConfigs} $out/etc/pyroscope
+    install -Dm0644 ${../rtorrent-ps.1} $out/share/man/man1/rtorrent-ps.1
   '';
 }

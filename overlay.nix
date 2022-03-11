@@ -13,8 +13,8 @@ final: prev: {
 
   rtorrent-ps = {
     "0.9.6" = final.callPackage ./rtorrent-ps {
-      rtorrent = final.rtorrent_0_9_6;
       rtorrent-configs = final.callPackage ./config { };
+      rtorrent = final.rtorrent_0_9_6;
     };
     "0.9.7" = final.rtorrent-ps.stable.override { rtorrent = final.rtorrent_0_9_7; };
     "0.9.8" = final.rtorrent-ps.stable.override { rtorrent = final.rtorrent_0_9_8; };
@@ -26,6 +26,11 @@ final: prev: {
     inherit (python2Packages) buildPythonPackage setuptools six requests prompt_toolkit tempita;
     pyrobase = final.callPackage ./pyrobase.nix { inherit (python2Packages) buildPythonPackage six tempita; };
     ProxyTypes = final.callPackage ./ProxyTypes.nix { inherit (python2Packages) buildPythonPackage; };
+  };
+
+  pyrocoreEnv = python2Packages.python.buildEnv.override {
+    extraLibs = [ final.pyrocore ];
+    ignoreCollisions = true;
   };
 
   rtorrentLib.createImport = src: attrs: final.runCommand "create-import" attrs

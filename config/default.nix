@@ -3,24 +3,26 @@
 , runCommand
 , pyrocore
 }:
-let pyroscope = "${pyrocore}/share/pyroscope";
-in
 rec {
-  rtConfigs = rtorrentLib.createImport ./rtorrent.d { inherit pyroscope; };
+  rtConfigs = rtorrentLib.createImport ./rtorrent.d {
+    pyroscope = pyroConfigs;
+  };
 
   rtorrentRc = substituteAll {
     src = ./rtorrent.rc;
-    inherit pyrocore pyroscope rtConfigs;
-  };
-
-  pyroConfigIni = substituteAll {
-    src = ./config.ini;
-    inherit pyroscope;
+    pyroscope = pyroConfigs;
+    inherit rtConfigs;
   };
 
   pyroConfigs = runCommand "pyroConfigs" { } ''
     mkdir -p $out
-    ln -s ${pyroscope}/* $out/
-    ln -snf ${pyroConfigIni} $out/config.ini
+
+    cp -r --no-preserve=mode -t $out ${pyrocore.src}/src/pyrocore/data/config/{color-schemes,rtorrent.d,templates,*.ini,*.py}
+    ${pyrocore}/bin/pyroadmin -q --create-import $out/rtorrent.d/*.rc
+
+    substitute ${./config.ini} $out/config.ini \
+      --subst-var-by pyroscope $out
+    substitute ${../pyrocore/rtorrent-pyro.rc} $out/rtorrent-pyro.rc \
+      --subst-var-by rtorrent_d $out/rtorrent.d
   '';
 }
