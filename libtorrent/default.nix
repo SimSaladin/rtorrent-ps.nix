@@ -10,8 +10,8 @@
 , rtorrent-ps
 }:
 let
-  generic = { version, sha256, ... }@attrs:
-    let attrs' = builtins.removeAttrs attrs [ "version" "sha256" ];
+  generic = { version, rev ? "v${version}", sha256, ... }@attrs:
+    let attrs' = builtins.removeAttrs attrs [ "version" "rev" "sha256" ];
     in
     stdenv.mkDerivation (rec {
       name = "libtorrent";
@@ -20,8 +20,7 @@ let
       src = fetchFromGitHub {
         owner = "rakshasa";
         repo = "libtorrent";
-        rev = "v${attrs.version}";
-        inherit sha256;
+        inherit rev sha256;
       };
 
       nativeBuildInputs = [ pkg-config autoreconfHook ];
@@ -50,5 +49,25 @@ in
         ./lt-ps-honor_system_file_allocate_0.13.7.patch
         "${rtorrent-ps.src}/patches/lt-ps-log_open_file-reopen_all.patch"
       ] ++ lib.optional (lib.versions.majorMinor openssl.version == "1.1") "${rtorrent-ps.src}/patches/lt-open-ssl-1.1.patch";
+    };
+
+    libtorrent_0_13_8 = mkLibtorrent {
+      version = "0.13.8";
+      sha256 = "sha256-uSDzOU53i0aKm0C27In+zLAAHeKMu5av90DoN5YyvsA=";
+      patches = [
+        "${rtorrent-ps.src}/patches/lt-ps-better-bencode-errors_all.patch"
+        ./lt-ps-honor_system_file_allocate_0.13.7.patch
+      ];
+    };
+
+    # has ipv6 support
+    libtorrent_master = mkLibtorrent {
+      version = "0.13.8-20-g53596afc";
+      rev = "53596afc5fae275b3fb5753a4bb2a1a7f7cf6a51";
+      sha256 = "sha256-gyl/jfbptHz/gHkkVGWShhv1Z7o9fa9nJIz27U2A6wg=";
+      patches = [
+        "${rtorrent-ps.src}/patches/lt-ps-better-bencode-errors_all.patch"
+        ./lt-ps-honor_system_file_allocate_0.13.7.patch
+      ];
     };
   }

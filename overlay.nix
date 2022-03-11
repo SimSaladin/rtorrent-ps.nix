@@ -11,6 +11,8 @@ final: prev: {
     mkLibtorrent
     libtorrent_0_13_6
     libtorrent_0_13_7
+    libtorrent_0_13_8
+    libtorrent_master
     ;
 
   libtorrent = final.libtorrent_0_13_6;
@@ -19,6 +21,7 @@ final: prev: {
     mkRtorrent
     rtorrent_0_9_6
     rtorrent_0_9_7
+    rtorrent_0_9_8
     ;
 
   rtorrent = final.rtorrent_0_9_6;
@@ -26,9 +29,8 @@ final: prev: {
 
   rtorrent-ps = final.callPackage ./rtorrent-ps { };
   rtorrent-ps_0_9_6 = final.rtorrent-ps;
-  rtorrent-ps_0_9_7 = final.rtorrent-ps.override {
-    rtorrent = final.rtorrent_0_9_7;
-  };
+  rtorrent-ps_0_9_7 = final.rtorrent-ps.override { rtorrent = final.rtorrent_0_9_7; };
+  rtorrent-ps_0_9_8 = final.rtorrent-ps.override { rtorrent = final.rtorrent_0_9_8; };
 
   rtorrent-configs = final.callPackage ./config { };
 

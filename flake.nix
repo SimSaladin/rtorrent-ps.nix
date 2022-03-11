@@ -20,12 +20,16 @@
             libtorrent
             libtorrent_0_13_6
             libtorrent_0_13_7
+            libtorrent_0_13_8
             rtorrent
             rtorrent_0_9_6
             rtorrent_0_9_7
+            rtorrent_0_9_8
             rtorrent-ps
             rtorrent-ps_0_9_7
-            pyrocore pyrobase;
+            rtorrent-ps_0_9_8
+            pyrocore
+            pyrobase;
           };
           defaultPackage = self.packages.${system}.rtorrent-ps;
         }) //

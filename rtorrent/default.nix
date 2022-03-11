@@ -60,13 +60,37 @@ rec {
       "${ps.src}/patches/ps-max_scgi_size_all.patch"
       "${ps.src}/patches/ps-object_std-map-serialization_all.patch"
       "${ps.src}/patches/ps-silent-catch_all.patch"
-      ./ps-throttle-steps_all.patch
+      ./ps-throttle-steps_0.9.7.patch
       "${ps.src}/patches/ps-ui_pyroscope_all.patch"
       "${ps.src}/patches/ps-view-filter-by_all.patch"
       "${ps.src}/patches/pyroscope.patch"
-      ./ui_pyroscope.patch
+      ./ui_pyroscope_0.9.7.patch
       ./pyroscope_cxxstd.patch
       "${ps.src}/patches/backport_0.9.6_algorithm_median.patch" # rak::median is not in 0.9.7 either
+    ];
+  };
+
+  rtorrent_0_9_8 = mkRtorrent {
+    version = "0.9.8";
+    sha256 = "sha256-4gx35bjzjUFdT2E9VGf/so7EQhaLQniUYgKQmVdwikE=";
+    libtorrent = pkgs.libtorrent_0_13_8;
+    patches = [
+      ./ps-close_lowdisk_normal_all.patch
+      ./ps-dl-ui-find_0.9.8.patch
+      "${ps.src}/patches/ps-import.return_all.patch"
+      "${ps.src}/patches/ps-info-pane-is-default_all.patch"
+      "${ps.src}/patches/ps-info-pane-xb-sizes_all.patch"
+      ./ps-issue-515_all.patch
+      "${ps.src}/patches/ps-item-stats-human-sizes_all.patch"
+      "${ps.src}/patches/ps-log_messages_all.patch"
+      "${ps.src}/patches/ps-max_scgi_size_all.patch"
+      "${ps.src}/patches/ps-object_std-map-serialization_all.patch"
+      "${ps.src}/patches/ps-silent-catch_all.patch"
+      "${ps.src}/patches/ps-ui_pyroscope_all.patch"
+      "${ps.src}/patches/pyroscope.patch"
+      ./ui_pyroscope_0.9.8.patch
+      ./pyroscope_cxxstd.patch
+      ./better_command_insert_error.patch # TODO add to other versions too
     ];
   };
 }

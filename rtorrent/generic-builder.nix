@@ -17,6 +17,7 @@
 , libtorrent
 , patches ? [ ]
 , withDebug ? false
+, enableIPv6 ? false # true
 }@attrs:
 let
   ps = (import ../rtorrent-ps-src.nix { inherit fetchFromGitHub; }).default;
@@ -37,9 +38,13 @@ stdenv.mkDerivation rec {
 
   dontStrip = withDebug;
 
-  postUnpack =
-    let psExtraFiles = lib.filter (x: isNull (builtins.match ".*\.patch" x)) (lib.filesystem.listFilesRecursive "${ps.src}/patches");
-    in ''cp ${lib.concatStringsSep " " psExtraFiles} $sourceRoot/src'';
+  postUnpack = ''
+    cp ${./command_pyroscope.cc} $sourceRoot/src/command_pyroscope.cc # patched version of "${ps.src}/patches/ui_pyroscope.cc"
+    cp ${ lib.concatStringsSep " " [
+      "${ps.src}/patches/ui_pyroscope.cc"
+      "${ps.src}/patches/ui_pyroscope.h"
+    ]} $sourceRoot/src
+  '';
 
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [
@@ -70,8 +75,14 @@ stdenv.mkDerivation rec {
     ./autogen.sh
   '';
 
-  # todo: --enable-ipv6 ?
-  configureFlags = [ "--with-xmlrpc-c" "--with-posix-fallocate" ];
+  configureFlags = [
+    "--with-xmlrpc-c"
+    "--with-posix-fallocate"
+  ] ++ lib.optional enableIPv6 "--enable-ipv6";
+
+  #postCheck = ''
+  #  rtorrent -h
+  #'';
 
   postInstall = ''
     mkdir -p $out/share/man/man1 $out/share/doc/rtorrent
