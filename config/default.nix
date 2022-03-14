@@ -18,7 +18,7 @@ rec {
     mkdir -p $out
 
     cp -r --no-preserve=mode -t $out ${pyrocore.src}/src/pyrocore/data/config/{color-schemes,rtorrent.d,templates,*.ini,*.py}
-    ${pyrocore}/bin/pyroadmin -q --create-import $out/rtorrent.d/*.rc
+    ${pyrocore}/bin/pyroadmin -q --create-import "$out/rtorrent.d/*.rc"
 
     substitute ${./config.ini} $out/config.ini \
       --subst-var-by pyroscope $out
