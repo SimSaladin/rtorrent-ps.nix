@@ -41,18 +41,25 @@ in
         };
         Service = {
           Type = "forking";
+
           # TODO parameterize commands
           ExecStart =
             let
               netns = "rtorrent";
               user = "sim";
+              rtCmd = "sudo ip netns exec ${netns} su -l ${user} -c ${cfg.package}/bin/rtorrent-ps";
+              newSession = "new-session -s ${cfg.tmuxSessionName} -d -P ${rtCmd}";
+              setOption = "set-option -s exit-empty on";
             in
-            "/usr/bin/tmux -L ${cfg.tmuxSocketName} new-session -P -s ${cfg.tmuxSessionName} -d "
-            + "sudo ip netns exec ${netns} su -l ${user} -c "
-            + "${cfg.package}/bin/rtorrent-ps";
-          ExecStop = ''/usr/bin/bash -c "${cfg.package}/bin/rtxmlrpc quit; while pidof rtorrent >/dev/null; do echo stopping rtorrent...; sleep 1; done"'';
-          # TODO implement
-          #ExecReload=
+            "/usr/bin/tmux -L ${cfg.tmuxSocketName} ${newSession} \\; ${setOption}";
+
+          ExecStop =
+            let
+              quitRpc = "${cfg.package}/bin/rtxmlrpc quit";
+              wait = "while pidof rtorrent >/dev/null; do echo stopping rtorrent...; sleep 1; done";
+            in
+            ''/usr/bin/bash -c "if ${quitRpc}; then; ${wait}; fi; exit 0"'';
+
           LimitFSIZE = "1T";
           LimitRSS = "64G";
           LimitNOFILE = 1048576;
