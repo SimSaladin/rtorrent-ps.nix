@@ -33,33 +33,26 @@ in
   };
 
   config = mkIf cfg.enable {
+          # TODO parameterize commands
     systemd.user.services.rtorrent-ps = {
         Unit = {
           Description = "RTorrent-PS";
-          After = [ "network.target" ];
+          After = [ "network.target" "tmux-server@rt.service" ];
+          BindsTo = [ "tmux-server@${cfg.tmuxSocketName}.service" ];
           RequiresMountsFor = [ "/media/moore" ]; # TODO parameterize
         };
-        Service = {
-          Type = "forking";
-
-          # TODO parameterize commands
+        Service =
+          {
+          Type = "oneshot";
           ExecStart =
             let
-              netns = "rtorrent";
-              user = "sim";
-              rtCmd = "sudo ip netns exec ${netns} su -l ${user} -c ${cfg.package}/bin/rtorrent-ps";
-              newSession = "new-session -s ${cfg.tmuxSessionName} -d -P ${rtCmd}";
-              setOption = "set-option -s exit-empty on";
+              RT_EXE = "${cfg.package}/bin/rtorrent-ps";
             in
-            "/usr/bin/tmux -L ${cfg.tmuxSocketName} ${newSession} \\; ${setOption}";
-
-          ExecStop =
-            let
-              quitRpc = "${cfg.package}/bin/rtxmlrpc quit";
-              wait = "while pidof rtorrent >/dev/null; do echo stopping rtorrent...; sleep 1; done";
-            in
-            ''/usr/bin/bash -c "if ${quitRpc}; then; ${wait}; fi; exit 0"'';
-
+          [
+            ''/usr/bin/tmux -2uv -N -L ${cfg.tmuxSocketName} run-shell -C "%hidden RUNRT='${RT_EXE}'"''
+            ''/usr/bin/tmux -2uv -N -L ${cfg.tmuxSocketName} run-shell -C "source-file #{HOME}/RT/tmux.conf"''
+          ];
+          RemainAfterExit = true;
           LimitFSIZE = "1T";
           LimitRSS = "64G";
           LimitNOFILE = 1048576;
