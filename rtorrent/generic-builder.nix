@@ -6,7 +6,7 @@
 , autoconf
 , autoconf-archive
 , automake
-, autoreconfHook
+#, autoreconfHook
 , cppunit
 , ncurses
 , libsigcxx
@@ -14,17 +14,21 @@
 , zlib
 , openssl
 , xmlrpc_c
-, version
-, rev ? "v${version}"
+, rtorrent-ps-srcs
+}:
+
+{ version
 , sha256
-, libtorrent
+, rev ? "v${version}"
 , RT_VERSION ? version
+, libtorrent
 , patches ? [ ]
 , withDebug ? false
 , enableIPv6 ? false # true
 }@attrs:
+
 let
-  ps = (import ../rtorrent-ps-src.nix { inherit fetchFromGitHub; }).default;
+  ps = rtorrent-ps-srcs.default;
 in
 
 stdenv.mkDerivation rec {
@@ -69,6 +73,7 @@ stdenv.mkDerivation rec {
     zlib
   ];
 
+  # TODO clarify why this is needed
   inherit RT_VERSION;
 
   postPatch = ''
@@ -94,7 +99,6 @@ stdenv.mkDerivation rec {
 
   configureFlags = [
     "--with-xmlrpc-c"
-    "--with-posix-fallocate"
   ] ++ lib.optional enableIPv6 "--enable-ipv6";
 
   #postCheck = ''

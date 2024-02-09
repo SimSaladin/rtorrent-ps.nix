@@ -1,19 +1,24 @@
-# `rtorrent-ps.nix`
+# RTorrent-PS for Nix/NixOS
 
-RTorrent with all Pyroscope extras packaged as a Nix derivation.
+This flake provides the following:
 
-Installation:
+- RTorrent-PS packages.
+- NixOS and Home Manager modules useful for running RTorrent.
+
+## Quickstart
 
 ```bash
-nix-build              # RT_HOME defaults to ~/.rtorrent
-nix build --impure     # pass --impure if using the new interface
+# Build latest rtorrent-ps
+nix build .#rtorrent-ps
 
-# Configuring RT_HOME:
-nix-build --argstr RT_HOME /data/rtorrent
+# Set custom RT_HOME:
 nix build --impure --expr '(builtins.getFlake (toString ./.)).defaultPackage.${builtins.currentSystem}.override { RT_HOME = "/data/foo"; }'
 ```
 
-Configuration files read from RT_HOME (if they exist):
+## Advanced Configuration
 
-- `tracker-aliases.rc`
-- `watch-dirs.rc`
+**TODO:** Do something similar to
+<https://github.com/pyroscope/pimp-my-box/tree/master>.
+
+- The `pyrocore.passthru.createImport` function can be used to help with
+  importing all config files contained within a directory (`rtorrent.d`).

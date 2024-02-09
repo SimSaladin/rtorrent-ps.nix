@@ -7,15 +7,16 @@
 , openssl
 , libsigcxx
 , zlib
+, rtorrent-ps-srcs
 }:
 let
-  ps = (import ../rtorrent-ps-src.nix { inherit fetchFromGitHub; }).default;
+  ps = rtorrent-ps-srcs.default;
 
   generic = { version, rev ? "v${version}", sha256, ... }@attrs:
     let attrs' = builtins.removeAttrs attrs [ "version" "rev" "sha256" ];
     in
-    stdenv.mkDerivation (rec {
-      name = "libtorrent";
+    stdenv.mkDerivation ({
+      pname = "libtorrent";
       version = "${attrs.version}-${ps.version}";
 
       src = fetchFromGitHub {
@@ -27,9 +28,11 @@ let
       nativeBuildInputs = [ pkg-config autoreconfHook ];
       buildInputs = [ cppunit openssl libsigcxx zlib ];
     } // attrs');
-in
-  rec {
+
     mkLibtorrent = attrs: lib.makeOverridable generic attrs;
+in
+  {
+    inherit mkLibtorrent;
 
     libtorrent_0_13_6 = mkLibtorrent {
       version = "0.13.6";
@@ -61,14 +64,22 @@ in
       ];
     };
 
-    # has ipv6 support
+    # has ipv6 support and memory crash fixes
     libtorrent_master = mkLibtorrent {
-      version = "0.13.8-20-g53596afc";
-      rev = "53596afc5fae275b3fb5753a4bb2a1a7f7cf6a51";
-      sha256 = "sha256-gyl/jfbptHz/gHkkVGWShhv1Z7o9fa9nJIz27U2A6wg=";
+      version = "0.13.8-20230416";
+      rev = "91f8cf4b0358d9b4480079ca7798fa7d9aec76b5";
+      sha256 = "sha256-mEIrMwpWMCAA70Qb/UIOg8XTfg71R/2F4kb3QG38duU=";
+      #version = "0.13.8-20-g53596afc";
+      #rev = "53596afc5fae275b3fb5753a4bb2a1a7f7cf6a51";
+      #sha256 = "sha256-gyl/jfbptHz/gHkkVGWShhv1Z7o9fa9nJIz27U2A6wg=";
       patches = [
         "${ps.src}/patches/lt-ps-better-bencode-errors_all.patch"
         ./lt-ps-honor_system_file_allocate_0.13.7.patch
+      ];
+      configureFlags = [
+        # https://github.com/rakshasa/rtorrent/issues/1237
+        "--enable-aligned"
+        "--with-posix-fallocate"
       ];
     };
   }

@@ -1,17 +1,22 @@
 { lib
-, pkgs
 , fetchFromGitHub
+, automake111x
+, rtorrent-ps-srcs
+, callPackage
+, libtorrents
 }:
 let
-  ps = (import ../rtorrent-ps-src.nix { inherit fetchFromGitHub; }).default;
+  ps = rtorrent-ps-srcs.default;
+  mkRtorrent' = callPackage ./generic-builder.nix { inherit rtorrent-ps-srcs; };
+  mkRtorrent = oattrs: lib.makeOverridable (mkRtorrent'.override oattrs);
 in
-rec {
-  mkRtorrent = pkgs.callPackage ./generic-builder.nix;
+{
+  inherit mkRtorrent;
 
-  rtorrent_0_9_6 = mkRtorrent {
+  rtorrent_0_9_6 = mkRtorrent { } {
     version = "0.9.6";
     sha256 = "0iyxmjr1984vs7hrnxkfwgrgckacqml0kv4bhj185w9bhjqvgfnf";
-    libtorrent = pkgs.libtorrent_0_13_6;
+    libtorrent = libtorrents.libtorrent_0_13_6;
     patches = [
       "${ps.src}/patches/backport_0.9.6_algorithm_median.patch"
       "${ps.src}/patches/ps-close_lowdisk_normal_all.patch"
@@ -42,10 +47,10 @@ rec {
     ];
   };
 
-  rtorrent_0_9_7 = mkRtorrent {
+  rtorrent_0_9_7 = mkRtorrent { } {
     version = "0.9.7";
     sha256 = "sha256-6qEWseLUItDNNPrZvxvPACQf01FVw4eaeseZ8tmYLSk=";
-    libtorrent = pkgs.libtorrent_0_13_7;
+    libtorrent = libtorrents.libtorrent_0_13_7;
     patches = [
       ./ps-close_lowdisk_normal_all.patch
       "${ps.src}/patches/ps-dl-ui-find_all.patch"
@@ -70,10 +75,10 @@ rec {
     ];
   };
 
-  rtorrent_0_9_8 = mkRtorrent {
+  rtorrent_0_9_8 = mkRtorrent { } {
     version = "0.9.8";
     sha256 = "sha256-4gx35bjzjUFdT2E9VGf/so7EQhaLQniUYgKQmVdwikE=";
-    libtorrent = pkgs.libtorrent_0_13_8;
+    libtorrent = libtorrents.libtorrent_0_13_8;
     patches = [
       ./ps-close_lowdisk_normal_all.patch
       ./ps-dl-ui-find_0.9.8.patch
@@ -94,12 +99,16 @@ rec {
     ];
   };
 
-  # has ipv6 support
-  rtorrent_master = mkRtorrent {
-    version = "0.9.8-24-g1e40014";
-    rev = "1e400144828c937cb3a8cbd05191db9d95ee1676";
-    sha256 = "sha256-627aTFVbdeUgf/YRWMao01qcN/85lONTv+IC2hFF3z8=";
-    libtorrent = pkgs.libtorrent_master;
+  # has ipv6 support and other fixes
+  # In particular: https://github.com/rakshasa/rtorrent/pull/1169
+  rtorrent_master = mkRtorrent { automake = automake111x; } {
+    version = "0.9.8-20230416";
+    rev = "1da0e3476dcabbf74b2e836d6b4c37b4d96bde09"; # Mar 16, 2023
+    sha256 = "sha256-OXOZSMuNAU+VGwNyyfzcmkTRjDJq9HsKUNxZDYpSvFQ=";
+    #version = "0.9.8-24-g1e40014";
+    #rev = "1e400144828c937cb3a8cbd05191db9d95ee1676";
+    #sha256 = "sha256-627aTFVbdeUgf/YRWMao01qcN/85lONTv+IC2hFF3z8=";
+    libtorrent = libtorrents.libtorrent_master;
     RT_VERSION = "0.9.8";
     patches = [
       ./ps-close_lowdisk_normal_all.patch
@@ -119,6 +128,5 @@ rec {
       ./better_command_insert_error.patch # TODO add to other versions too
     ];
     enableIPv6 = true;
-    automake = pkgs.automake111x;
   };
 }

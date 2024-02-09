@@ -1,76 +1,116 @@
 { lib
+, stdenv
 , symlinkJoin
-, fetchFromGitHub
-, stdenvNoCC
-, runCommandNoCC
-, makeWrapper
 , substituteAll
+, installShellFiles
+, writeShellApplication
+, makeWrapper
+, coreutils
+, lsof
+, py2
 , rtorrent
 , pyrocore
-, pyrocoreEnv
-, rtorrent-configs
-, RT_HOME ? "$HOME/.rtorrent"
-, RT_SOCKET ? "$RT_HOME/.scgi_local"
-, RT_INITRC ? rtorrent-configs.rtorrentRc
+, RT_HOME ? "\"$HOME/.rtorrent\""
+, RT_SOCKET ? "\"$RT_HOME/.scgi_local\""
+, callPackage
 }:
 
 let
-  ps = (import ../rtorrent-ps-src.nix { inherit fetchFromGitHub; }).default;
+  src = srcs.latest;
+  srcs = callPackage ../rtorrent-ps-src.nix { };
 
-  cfg = rtorrent-configs;
+  # PyroScope configuration (default)
+  pyroscope = "${pyrocore}/lib/pyroscope";
 
-  startScript = runCommandNoCC "rtorrent-ps-start" { src = ./start.sh; } ''
-    install -Dm0755 $src $out/bin/rtorrent-ps
-    patchShebangs $out
-  '';
+  # The initial rtorrent.rc to load. It imports other configs.
+  initRc = substituteAll {
+    src = ./main.rtorrent.rc;
+    inherit pyroscope;
+    rtConfigs = pyrocore.passthru.createImport {
+      src = ../config/rtorrent.d;
+      inherit pyroscope;
+    };
+  };
 
-  rtorrent-magnet = runCommandNoCC "rtorrent-magnet" { src = ../rtorrent-magnet; } ''
-    install -Dm0755 $src $out/bin/rtorrent-magnet
-    patchShebangs $out
-  '';
+  startScript = writeShellApplication {
+    name = "rtorrent-ps";
+    text = builtins.readFile ./start.sh;
+    runtimeInputs = [ coreutils rtorrent lsof ];
+  };
 
-  configs = runCommandNoCC "rtorrent-configs" { } ''
-    mkdir -p $out/etc
-    ln -s ${cfg.rtorrentRc} $out/etc/rtorrent.rc
-    ln -s ${cfg.rtConfigs} $out/etc/rtorrent.d
-    ln -s ${cfg.pyroConfigs} $out/etc/pyroscope
-  '';
+  rtorrent-magnet = writeShellApplication {
+    name = "rtorrent-magnet";
+    text = builtins.readFile ../misc/rtorrent-magnet;
+  };
+
+  rtorrent-ps-unwrapped = stdenv.mkDerivation {
+    pname = "rtorrent-ps";
+    version = src.version;
+
+    src = src.src;
+
+    nativeBuildInputs = [
+      makeWrapper
+      installShellFiles
+      (py2.withPackages (ps: with ps; [
+        sphinx
+        sphinx_rtd_theme
+      ]))
+    ];
+
+    postBuild = ''
+      # Build documentation
+      make -C docs html man
+    '';
+
+    postInstall = ''
+      # man page
+      installManPage docs/build/man/rtorrent-ps.1
+
+      # HTML docs
+      mkdir -p $out/share/doc/rtorrent-ps/
+      mv docs/build/html $out/share/doc/rtorrent-ps/
+    '';
+  };
+
+  pyrocoreEnv = py2.buildEnv.override {
+    extraLibs = [ pyrocore ];
+    ignoreCollisions = true;
+  };
+
+  rtorrent-ps = symlinkJoin rec {
+    name = "rtorrent-ps-${rtorrent.version}";
+
+    paths = [
+      startScript
+      rtorrent-ps-unwrapped
+      rtorrent-magnet
+      pyrocore
+      rtorrent
+    ];
+
+    makeWrapperArgs = lib.concatStringsSep " " [
+      "--prefix PATH : $out/bin"
+      "--run 'export RT_HOME=\${RT_HOME-${RT_HOME}}'"
+      "--run 'export RT_SOCKET=\${RT_SOCKET-${RT_SOCKET}}'"
+      "--set-default RT_INITRC ${initRc}"
+      "--set-default PYRO_CONFIG_DIR ${pyroscope}"
+    ];
+
+    nativeBuildInputs = [ makeWrapper ];
+
+    postBuild = ''
+      rm -rf $out/EGG-INFO
+
+      # Wrap executables with the proper environment
+      for exe in $out/bin/*; do
+        wrapProgram "$exe" ${makeWrapperArgs}
+      done
+
+      # A python interpreter with the appropriate packages available
+      makeWrapper ${pyrocoreEnv.interpreter} $out/bin/python-pyrocore ${makeWrapperArgs}
+    '';
+  };
 
 in
-symlinkJoin rec {
-  name = "rtorrent-ps";
-
-  paths = [
-    configs
-    startScript
-    rtorrent-magnet
-    rtorrent
-    pyrocore
-  ];
-
-  nativeBuildInputs = [ makeWrapper ];
-
-  makeWrapperArgs = lib.concatStringsSep " " [
-    "--prefix PATH : $out/bin"
-    "--set-default RT_BIN ${rtorrent}/bin/rtorrent"
-    "--set-default RT_INITRC \"${RT_INITRC}\""
-    "--run 'export RT_HOME=\${RT_HOME-${RT_HOME}}'"
-    "--run 'export RT_SOCKET=\${RT_SOCKET-${RT_SOCKET}}'"
-    "--set-default PYRO_CONFIG_DIR ${cfg.pyroConfigs}"
-  ];
-
-  postBuild = ''
-    rm -rf $out/{EGG-INFO,lib,nix-support}
-
-    for f in $out/bin/*; do
-      wrapProgram "$f" ${makeWrapperArgs}
-    done
-
-    makeWrapper ${pyrocoreEnv.interpreter} $out/bin/python-pyrocore ${makeWrapperArgs}
-    makeWrapper ${rtorrent}/bin/rtorrent $out/bin/rtorrent-${rtorrent.version}
-
-    patchShebangs $out/bin
-
-    install -Dm0644 ${../rtorrent-ps.1} $out/share/man/man1/rtorrent-ps.1
-  '';
-}
+  rtorrent-ps
