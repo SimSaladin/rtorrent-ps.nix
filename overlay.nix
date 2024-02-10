@@ -11,35 +11,38 @@ let
   };
 
   # C/C++: Force generic GCC to avoid segfaults with unstable features.
-  currentGeneric = import final {
+  currentGeneric = import nixpkgs {
     config = final.config;
     system = final.system;
   };
 
+  py2 = nixpkgsStable.python2;
+
   pyrocore = nixpkgsStable.callPackage ./pyrocore { };
+  pyrocoreEnv = py2.buildEnv.override {
+    extraLibs = [ pyrocore ];
+    ignoreCollisions = true;
+  };
 
   # Sources for patches etc. Just http/git fetch.
-  rtorrent-ps-srcs = (prev.callPackage ./rtorrent-ps-src.nix { }).latest;
+  rtorrent-ps-srcs = prev.callPackage ./rtorrent-ps-src.nix { };
+  rtorrent-ps-src = rtorrent-ps-srcs.default;
 
-  libtorrents = currentGeneric.callPackage ./libtorrent { inherit rtorrent-ps-srcs; };
+  libtorrents = currentGeneric.callPackage ./libtorrent {
+    inherit rtorrent-ps-src;
+  };
 
-  rtorrents = currentGeneric.callPackage ./rtorrent { inherit rtorrent-ps-srcs libtorrents; };
+  rtorrents = currentGeneric.callPackage ./rtorrent {
+    inherit rtorrent-ps-src libtorrents;
+  };
 
-  rtorrentPS = args: final.callPackage ./rtorrent-ps ({
-    src = rtorrent-ps-srcs.default;
-    py2 = nixpkgsStable.python2;
-  } // args);
+  rtorrentPSs = currentGeneric.callPackage ./rtorrent-ps {
+    inherit rtorrent-ps-src rtorrents pyrocore pyrocoreEnv py2;
+  };
 
 in
 
 {
-  inherit libtorrents rtorrents pyrocore;
-
-  rtorrent-ps = with rtorrents; {
-    "0.9.6" = rtorrentPS { rtorrent = rtorrent_0_9_6; };
-    "0.9.7" = rtorrentPS { rtorrent = rtorrent_0_9_7; };
-    "0.9.8" = rtorrentPS { rtorrent = rtorrent_0_9_8; };
-    "latest" = rtorrentPS { rtorrent = rtorrent_master; };
-    "stable" = final.rtorrent-ps."0.9.6";
-  };
+  inherit pyrocore;
+  inherit libtorrents rtorrents rtorrentPSs;
 }

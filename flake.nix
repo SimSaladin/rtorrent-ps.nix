@@ -25,14 +25,22 @@
         in
         {
           packages = {
-            rtorrent-ps = pkgs.rtorrent-ps.latest;
-            inherit (pkgs) pyrocore pyrocoreEnv;
             inherit (pkgs.libtorrents) libtorrent_master;
             inherit (pkgs.rtorrents) rtorrent_master;
-            inherit (pkgs.rtorrent-configs) pyroscope rtConfigs rtorrentRc;
+            inherit (pkgs) pyrocore;
+            #  pyrocoreEnv;
+            #rtorrent-ps = pkgs.rtorrent-ps;
+            #rtorrent-ps = pkgs.rtorrentPSs.rtorrent-ps;
+            #inherit (pkgs.rtorrent-configs) pyroscope rtConfigs rtorrentRc;
+            inherit (pkgs.rtorrentPSs)
+              rtorrent-ps
+              pyrocoreEnv
+              ;
           };
 
-          defaultPackage = self.packages.${system}.rtorrent-ps;
+          legacyPackages = pkgs.rtorrentPSs // { };
+
+          #defaultPackage = self.packages.${system}.rtorrent-ps;
         }) //
     {
       overlays.default = overlay;

@@ -74,6 +74,8 @@ let
       substitute ${./config.tpl.ini} $out/lib/pyroscope/config.ini \
         --subst-var-by pyroscope $out/lib/pyroscope
     '';
+
+    passthru.createImport = createPyroImportForDirectory;
   };
 
   createPyroImportForDirectory = { src, ... }@args:
@@ -87,6 +89,7 @@ let
       '';
 
 in
-{
-  inherit pyrocore createPyroImportForDirectory;
-}
+  pyrocore
+#{
+#  inherit pyrocore createPyroImportForDirectory;
+#}

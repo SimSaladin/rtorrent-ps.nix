@@ -7,10 +7,10 @@
 , openssl
 , libsigcxx
 , zlib
-, rtorrent-ps-srcs
+, rtorrent-ps-src
 }:
 let
-  ps = rtorrent-ps-srcs.default;
+  ps = rtorrent-ps-src;
 
   generic = { version, rev ? "v${version}", sha256, ... }@attrs:
     let attrs' = builtins.removeAttrs attrs [ "version" "rev" "sha256" ];

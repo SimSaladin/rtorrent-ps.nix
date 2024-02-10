@@ -14,7 +14,7 @@
 , zlib
 , openssl
 , xmlrpc_c
-, rtorrent-ps-srcs
+, rtorrent-ps-src
 }:
 
 { version
@@ -28,7 +28,7 @@
 }@attrs:
 
 let
-  ps = rtorrent-ps-srcs.default;
+  ps = rtorrent-ps-src;
 in
 
 stdenv.mkDerivation rec {

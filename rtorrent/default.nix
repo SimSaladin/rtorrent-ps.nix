@@ -1,13 +1,15 @@
 { lib
 , fetchFromGitHub
 , automake111x
-, rtorrent-ps-srcs
+, rtorrent-ps-src
 , callPackage
 , libtorrents
 }:
 let
-  ps = rtorrent-ps-srcs.default;
-  mkRtorrent' = callPackage ./generic-builder.nix { inherit rtorrent-ps-srcs; };
+  ps = rtorrent-ps-src;
+
+  mkRtorrent' = callPackage ./generic-builder.nix { inherit rtorrent-ps-src; };
+
   mkRtorrent = oattrs: lib.makeOverridable (mkRtorrent'.override oattrs);
 in
 {
