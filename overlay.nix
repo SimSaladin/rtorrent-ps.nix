@@ -22,8 +22,9 @@ let
   pkgsGeneric = if prev ? pkgsGeneric then prev.pkgsGeneric else
   if pkgs != null then pkgs else
   import prev.path {
-    config = prev.config;
-    localSystem = prev.lib.systems.elaborate (prev.stdenv.system);
+    config = final.config;
+    system = final.hostPlatform.system;
+    #localSystem = prev.lib.systems.elaborate (prev.stdenv.system);
   };
 
 in

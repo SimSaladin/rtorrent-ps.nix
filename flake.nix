@@ -48,7 +48,10 @@
         }
       ) // {
       inherit hmModules;
-      overlays.default = overlay' { inherit nixpkgs2111; };
+      overlays.default = overlay' {
+        inherit nixpkgs2111;
+        pkgs = nixpkgs.legacyPackages.x86_64-linux; # XXX
+      };
 
     };
 }
