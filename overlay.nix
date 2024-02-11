@@ -3,7 +3,7 @@
   # Generic
 , pkgs ? null
 , ...
-}@inputs:
+}:
 
 final: prev:
 
@@ -20,7 +20,7 @@ let
 
   # C/C++: Force generic GCC to avoid segfaults with unstable features.
   pkgsGeneric = if prev ? pkgsGeneric then prev.pkgsGeneric else
-  if inputs.pkgs != null then inputs.pkgs else
+  if pkgs != null then pkgs else
   import prev.path {
     config = prev.config;
     inherit (prev.stdenv) system;
