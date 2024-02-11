@@ -15,6 +15,10 @@ let
   generic = { version, rev ? "v${version}", sha256, ... }@attrs:
     let attrs' = builtins.removeAttrs attrs [ "version" "rev" "sha256" ];
     in
+
+    # compiling with non-generic optimizations results in segfaults for some
+    # reason.
+    assert stdenv.hostPlatform.gcc == { };
     stdenv.mkDerivation ({
       pname = "libtorrent";
       version = "${attrs.version}-${ps.version}";

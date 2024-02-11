@@ -27,6 +27,10 @@
 , enableIPv6 ? false # true
 }@attrs:
 
+# compiling with non-generic optimizations results in segfaults for some
+# reason.
+assert stdenv.hostPlatform.gcc == { };
+
 let
   ps = rtorrent-ps-src;
 in

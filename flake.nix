@@ -13,7 +13,7 @@
   outputs = { self, flake-utils, nixpkgs, nixpkgs2111 }:
     let
       supportedSystems = [ "x86_64-linux" ];
-      overlays.default = import ./overlay.nix;
+      overlay' = import ./overlay.nix;
       hmModules.rtorrent-ps = import ./hm;
       #nixosModule = import ./nixos;
     in
@@ -22,41 +22,33 @@
         let
           pkgs' = nixpkgs.legacyPackages.${system};
 
-          # Python: downgrade to unsupported Python 2 shit to make things work.
-          # Pin python packages to stable (python 2 support is very broken in unstable currently)
-          pkgsStable = import nixpkgs2111 {
-            config = pkgs'.config // { allowInsecure = true; }; # XXX borken python deps
-            localSystem = pkgs'.hostPlatform;
-          };
-
-          # C/C++: Force generic GCC to avoid segfaults with unstable features.
-          pkgsGeneric = import nixpkgs {
-            config = pkgs'.config;
-            inherit system;
-          };
-
           pkgs = pkgs'.appendOverlays [
-            overlays.default
-            (_: _: { inherit pkgsStable pkgsGeneric; })
+            (overlay' { inherit nixpkgs2111; pkgs = pkgs'; })
           ];
         in
         {
           packages = {
-            inherit (pkgs) pyrocore pyrocoreEnv;
-            inherit (pkgs.libtorrents) libtorrent_master;
-            inherit (pkgs.rtorrents) rtorrent_master;
+            inherit (pkgs) pyrocore;
             inherit (pkgs.rtorrentPSs) rtorrent-ps rtorrent-magnet;
             inherit (pkgs.rtorrentPSs.rtorrent-ps.pkgs) startScript initRc;
+            libtorrent = pkgs.libtorrents.libtorrent_master;
+            rtorrent = pkgs.rtorrents.rtorrent_master;
             default = self.packages.${system}.rtorrent-ps;
           };
 
           legacyPackages = with pkgs;
-            rtorrents // libtorrents // rtorrentPSs;
+            rtorrents // libtorrents // rtorrentPSs // {
+              inherit rtorrents libtorrents rtorrentPSs pyrocore;
+            };
 
           checks = {
             test-rtorrent-ps = self.packages.${system}.rtorrent-ps;
             #test-rtorrent-ps-stable = self.legacyPackages.${system}.rtorrent-ps_stable;
           };
         }
-      ) // { inherit overlays hmModules; };
+      ) // {
+      inherit hmModules;
+      overlays.default = overlay' { inherit nixpkgs2111; };
+
+    };
 }
