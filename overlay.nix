@@ -23,7 +23,7 @@ let
   if pkgs != null then pkgs else
   import prev.path {
     config = prev.config;
-    inherit (prev.stdenv) system;
+    localSystem = prev.lib.systems.elaborate (prev.stdenv.system);
   };
 
 in
