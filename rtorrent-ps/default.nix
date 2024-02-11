@@ -9,27 +9,53 @@
 , lsof
 , rtorrent-ps-src
 , pyrocore
-, pyrocoreEnv
-, py2
 , rtorrents
 , callPackage
+, runCommandNoCC
 }:
 
 let
   # PyroScope configuration (default)
   pyroscope = "${pyrocore}/lib/pyroscope";
 
-  inherit (pyrocore.passthru) createImport;
+  inherit (pyrocore.passthru) pyEnv createImport;
 
+  # Create the initial rtorrent.d which is will be loaded by main rtorrent.rc
+  generateMainRC =
+    { pyroBaseDir ? "${pyrocore}/lib/pyroscope"
+    , colorScheme ? "default-16.rc"
+    , extraConfig ? ""
+    }:
+    let
+      mainConfigDirImportRC = createImport {
+        src = ./templates/rtorrent.d;
+        rtorrentPyroImportRC = "${pyroBaseDir}/rtorrent-pyro.rc";
+      };
 
-  # The initial rtorrent.rc to load. It imports other configs.
-  initRc = substituteAll {
-    src = ./main.rtorrent.rc;
-    inherit pyroscope;
-    rtConfigs = createImport {
-      src = ../config/rtorrent.d;
-      inherit pyroscope;
-    };
+      mainRC = substituteAll {
+        src = ./main.rtorrent.rc;
+        inherit mainConfigDirImportRC;
+        colorSchemeRC = "${pyroBaseDir}/color-schemes/${colorScheme}.rc";
+        inherit extraConfig;
+        postCheck = ''
+          if [[ ! -e $colorSchemeRC ]]; then
+            echo "error: importable file $colorSchemeRC was not found!" >&2
+            exit 1
+          fi
+        '';
+      };
+    in runCommandNoCC "rtorrent-configs" { } ''
+      mkdir -p $out
+      # link pyroscope initial configs to output
+      ln -s ${pyroBaseDir} $out/pyroscope
+      # link our main rtorrent.rc
+      ln -s ${mainRC} $out/rtorrent.rc
+      # link our rtorrent.d
+      ln -sn ${builtins.dirOf mainConfigDirImportRC} $out/rtorrent.d
+    '';
+
+  initRc = generateMainRC {
+    colorScheme = "solarized-blue";
   };
 
   rtorrent-magnet = writeShellApplication {
@@ -57,7 +83,7 @@ let
         nativeBuildInputs = [
           makeWrapper
           installShellFiles
-          (py2.withPackages (ps: with ps; [ sphinx sphinx_rtd_theme ]))
+          (pyEnv.python.withPackages (ps: with ps; [ sphinx sphinx_rtd_theme ]))
         ];
 
         postBuild = ''
@@ -104,7 +130,7 @@ let
           done
 
           # A python interpreter with the appropriate packages available
-          makeWrapper ${pyrocoreEnv.interpreter} $out/bin/python-pyrocore ${makeWrapperArgs}
+          makeWrapper ${pyEnv.interpreter} $out/bin/python-pyrocore ${makeWrapperArgs}
         '';
 
         passthru.pkgs = {
@@ -117,19 +143,22 @@ let
 
   # by rtorrent version
   versions = {
-    rtorrent-ps_096    = mkRtorrentPS { rtorrent = rtorrents.rtorrent_0_9_6; };
-    rtorrent-ps_097    = mkRtorrentPS { rtorrent = rtorrents.rtorrent_0_9_7; };
-    rtorrent-ps_098    = mkRtorrentPS { rtorrent = rtorrents.rtorrent_0_9_8; };
+    rtorrent-ps_096 = mkRtorrentPS { rtorrent = rtorrents.rtorrent_0_9_6; };
+    rtorrent-ps_097 = mkRtorrentPS { rtorrent = rtorrents.rtorrent_0_9_7; };
+    rtorrent-ps_098 = mkRtorrentPS { rtorrent = rtorrents.rtorrent_0_9_8; };
     rtorrent-ps_master = mkRtorrentPS { rtorrent = rtorrents.rtorrent_master; };
     rtorrent-ps_stable = versions.rtorrent-ps_096;
     rtorrent-ps_latest = versions.rtorrent-ps_master;
-    rtorrent-ps        = versions.rtorrent-ps_latest;
+    rtorrent-ps = versions.rtorrent-ps_latest;
   };
 
-  topPkgs = with builtins; lib.concatMapAttrs (v: rt: {
-    "rtorrentPSPkgs${substring (stringLength "rtorrent-ps") (-1) v}" = rt.pkgs;
-  }) versions;
+  topPkgs = with builtins; lib.concatMapAttrs
+    (v: rt: {
+      "rtorrentPSPkgs${substring (stringLength "rtorrent-ps") (-1) v}" = rt.pkgs;
+    })
+    versions;
 
-in versions // topPkgs // {
-  inherit mkRtorrentPS pyrocoreEnv createImport rtorrent-magnet;
+in
+versions // topPkgs // {
+  inherit mkRtorrentPS createImport rtorrent-magnet;
 }

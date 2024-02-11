@@ -2,11 +2,11 @@
 , fetchFromGitHub
 , runCommandNoCC
 , installShellFiles
-, python2 # Must be sufficiently old sphinx
+, py2 # Must be sufficiently old sphinx
 }:
 
 let
-  inherit (python2.pkgs) buildPythonPackage setuptools requests prompt_toolkit tempita six;
+  inherit (py2.pkgs) buildPythonPackage setuptools requests prompt_toolkit tempita six;
 
   pyrobase = callPackage ./pyrobase.nix { inherit buildPythonPackage six tempita; };
 
@@ -75,21 +75,34 @@ let
         --subst-var-by pyroscope $out/lib/pyroscope
     '';
 
-    passthru.createImport = createPyroImportForDirectory;
+    passthru = {
+      pyEnv = pyrocoreEnv;
+      createImport = createPyroImportForDirectory;
+    };
+  };
+
+  pyrocoreEnv = py2.buildEnv.override {
+    extraLibs = [ pyrocore ];
+    ignoreCollisions = true;
   };
 
   createPyroImportForDirectory = { src, ... }@args:
-    runCommandNoCC "imports.rtorrent.rc" (args)
+    let
+      dir = runCommandNoCC "imports.rtorrent.rc" args
       ''
         mkdir -p $out
-        for f in ${src}/*.rc{,.include}; do
-          substituteAll "$f" "$out/$(basename "$f")"
+        for f in $src/*.rc{,.include}; do
+          o="$out/$(basename "$f")"
+          substituteAll "$f" "$o"
+          if found=$(grep -o '^[^#]*\(@[A-Za-z][A-Za-z0-9_]*@\)' "$o"); then
+            echo "error: not substitutions were made in file $f: $found" >&2
+            exit 1
+          fi
         done
         ${pyrocore}/bin/pyroadmin -q --create-import "$out/*.rc"
       '';
+    in
+    "${dir}/.import.rc";
 
 in
-  pyrocore
-#{
-#  inherit pyrocore createPyroImportForDirectory;
-#}
+pyrocore

@@ -6,7 +6,7 @@
 #   @pyroscope@/rtorrent.d
 
 # Import "pyrocore" defaults
-import = @pyroscope@/rtorrent-pyro.rc
+import = @rtorrentPyroImportRC@
 
 # TORQUE: Daemon watchdog schedule
 # Must be activated by touching the "$RT_HOME/run/pyrotorque" file!
