@@ -109,7 +109,7 @@ stdenv.mkDerivation rec {
 
   configureFlags = [
     "--with-xmlrpc-c"
-    "--enable-aligned" # https://github.com/rakshasa/libtorrent/issues/244
+    #"--enable-aligned" # https://github.com/rakshasa/libtorrent/issues/244
   ] ++ lib.optional enableIPv6 "--enable-ipv6";
 
   #postCheck = ''
