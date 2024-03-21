@@ -117,7 +117,7 @@ let
           "--prefix PATH : $out/bin"
           "--run 'export RT_HOME=\${RT_HOME-${RT_HOME}}'"
           "--run 'export RT_SOCKET=\${RT_SOCKET-${RT_SOCKET}}'"
-          "--set-default RT_INITRC ${initRc}"
+          "--set-default RT_INITRC ${initRc}/rtorrent.rc"
           "--set-default PYRO_CONFIG_DIR ${pyroscope}"
         ];
 
