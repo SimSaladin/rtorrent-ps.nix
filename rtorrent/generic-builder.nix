@@ -33,6 +33,10 @@ assert stdenv.hostPlatform.gcc == { };
 
 let
   ps = rtorrent-ps-src;
+
+  # supposedly fixes freezes with TCP trackes.
+  # https://github.com/rakshasa/rtorrent/issues/180
+  curl' = curl.override ({ c-aresSupport = true; });
 in
 
 stdenv.mkDerivation rec {
@@ -67,7 +71,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     cppunit
-    curl
+    curl'
     libsigcxx
     libtool
     libtorrent
