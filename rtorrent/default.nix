@@ -129,6 +129,7 @@ in
       ./pyroscope_cxxstd.patch
       ./better_command_insert_error.patch # TODO add to other versions too
       ./fast-session-loading-0.9.8.patch
+      ./rtorrent-ml-fixes-0.9.8.patch
     ];
     enableIPv6 = true;
   };
