@@ -14,6 +14,7 @@
 , zlib
 , openssl
 , xmlrpc_c
+, libxml2
 , rtorrent-ps-src
 }:
 
@@ -77,6 +78,7 @@ stdenv.mkDerivation rec {
     libtorrent
     ncurses
     openssl
+    libxml2
     xmlrpc_c
     zlib
   ];
@@ -107,6 +109,7 @@ stdenv.mkDerivation rec {
 
   configureFlags = [
     "--with-xmlrpc-c"
+    "--enable-aligned" # https://github.com/rakshasa/libtorrent/issues/244
   ] ++ lib.optional enableIPv6 "--enable-ipv6";
 
   #postCheck = ''

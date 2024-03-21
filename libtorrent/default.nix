@@ -7,13 +7,14 @@
 , openssl
 , libsigcxx
 , zlib
+, udns
 , rtorrent-ps-src
 }:
 let
   ps = rtorrent-ps-src;
 
   generic = { version, rev ? "v${version}", sha256, ... }@attrs:
-    let attrs' = builtins.removeAttrs attrs [ "version" "rev" "sha256" ];
+    let attrs' = builtins.removeAttrs attrs [ "version" "rev" "sha256" "buildInputs" ];
     in
 
     # compiling with non-generic optimizations results in segfaults for some
@@ -30,7 +31,7 @@ let
       };
 
       nativeBuildInputs = [ pkg-config autoreconfHook ];
-      buildInputs = [ cppunit openssl libsigcxx zlib ];
+      buildInputs = [ cppunit openssl libsigcxx zlib ] ++ (attrs.buildInputs or []);
     } // attrs');
 
     mkLibtorrent = attrs: lib.makeOverridable generic attrs;
@@ -68,7 +69,10 @@ in
       ];
     };
 
-    # has ipv6 support and memory crash fixes
+    # - ipv6 support
+    # - memory crash fixes
+    # - udns
+    # - scanf crash fix
     libtorrent_master = mkLibtorrent {
       version = "0.13.8-20230416";
       rev = "91f8cf4b0358d9b4480079ca7798fa7d9aec76b5";
@@ -79,11 +83,16 @@ in
       patches = [
         "${ps.src}/patches/lt-ps-better-bencode-errors_all.patch"
         ./lt-ps-honor_system_file_allocate_0.13.7.patch
+        ./libtorrent-udns-0.13.8.patch # from https://github.com/swizzin/swizzin
+        ./libtorrent-scanf-0.13.8.patch # from https://github.com/swizzin/swizzin
       ];
       configureFlags = [
         # https://github.com/rakshasa/rtorrent/issues/1237
         "--enable-aligned"
         "--with-posix-fallocate"
+      ];
+      buildInputs = [
+        udns
       ];
     };
   }
