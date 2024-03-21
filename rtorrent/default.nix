@@ -128,6 +128,7 @@ in
       ./ui_pyroscope_0.9.8.patch
       ./pyroscope_cxxstd.patch
       ./better_command_insert_error.patch # TODO add to other versions too
+      ./fast-session-loading-0.9.8.patch
     ];
     enableIPv6 = true;
   };

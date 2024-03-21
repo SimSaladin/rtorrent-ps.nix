@@ -85,6 +85,7 @@ in
         ./lt-ps-honor_system_file_allocate_0.13.7.patch
         ./libtorrent-udns-0.13.8.patch # from https://github.com/swizzin/swizzin
         ./libtorrent-scanf-0.13.8.patch # from https://github.com/swizzin/swizzin
+        ./lookup-cache-0.13.8.patch
       ];
       configureFlags = [
         # https://github.com/rakshasa/rtorrent/issues/1237
