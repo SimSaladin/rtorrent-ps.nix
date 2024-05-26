@@ -6,7 +6,7 @@
 }:
 
 let
-  inherit (py2.pkgs) buildPythonPackage setuptools requests prompt_toolkit tempita six;
+  inherit (py2.pkgs) buildPythonPackage setuptools requests prompt-toolkit tempita six;
 
   pyrobase = callPackage ./pyrobase.nix { inherit buildPythonPackage six tempita; };
 
@@ -34,7 +34,7 @@ let
 
     propagatedBuildInputs = [
       ProxyTypes
-      prompt_toolkit
+      prompt-toolkit
       pyrobase
       requests
       setuptools
