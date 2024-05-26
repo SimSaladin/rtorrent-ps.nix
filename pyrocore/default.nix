@@ -1,6 +1,6 @@
 { callPackage
 , fetchFromGitHub
-, runCommandNoCC
+, runCommand
 , installShellFiles
 , py2 # Must be sufficiently old sphinx
 }:
@@ -88,7 +88,7 @@ let
 
   createPyroImportForDirectory = { src, ... }@args:
     let
-      dir = runCommandNoCC "imports.rtorrent.rc" args
+      dir = runCommand "imports.rtorrent.rc" args
       ''
         mkdir -p $out
         for f in $src/*.rc{,.include}; do

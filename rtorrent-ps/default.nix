@@ -11,7 +11,7 @@
 , pyrocore
 , rtorrents
 , callPackage
-, runCommandNoCC
+, runCommand
 }:
 
 let
@@ -44,7 +44,7 @@ let
           fi
         '';
       };
-    in runCommandNoCC "rtorrent-configs" { } ''
+    in runCommand "rtorrent-configs" { } ''
       mkdir -p $out
       # link pyroscope initial configs to output
       ln -s ${pyroBaseDir} $out/pyroscope
