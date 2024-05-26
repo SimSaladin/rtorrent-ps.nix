@@ -22,3 +22,8 @@ nix build --impure --expr '(builtins.getFlake (toString ./.)).defaultPackage.${b
 
 - The `pyrocore.passthru.createImport` function can be used to help with
   importing all config files contained within a directory (`rtorrent.d`).
+
+## Links and Resources
+
+- rtorrent Handbook <https://rtorrent-docs.readthedocs.io>
+- docker-rtorrent-rutorrent <https://github.com/crazy-max/docker-rtorrent-rutorrent>

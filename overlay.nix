@@ -14,7 +14,7 @@ let
   pkgsStable = if prev ? pkgsStable then prev.pkgsStable else
   import nixpkgs2111 {
     config = prev.config // { allowInsecure = true; }; # XXX borken python deps
-    localSystem = prev.hostPlatform;
+    localSystem = prev.stdenv.hostPlatform;
   };
 
 
@@ -23,7 +23,7 @@ let
   if pkgs != null then pkgs else
   import prev.path {
     config = final.config;
-    system = final.hostPlatform.system;
+    system = final.stdenv.hostPlatform.system;
     #localSystem = prev.lib.systems.elaborate (prev.stdenv.system);
   };
 
