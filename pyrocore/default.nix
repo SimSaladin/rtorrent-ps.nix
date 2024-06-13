@@ -25,6 +25,7 @@ let
 
     patches = [
       ./read_config_values_from_env.patch
+      ./rtxmlrpc-history-file.patch
       # Should not be applied when prompt-toolkit is sufficiently old (lol)
       #./fix_prompt_toolkit_import.patch
     ];
