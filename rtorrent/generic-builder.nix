@@ -1,4 +1,13 @@
 { lib
+, version
+, RT_VERSION ? version
+, patches ? [ ]
+, rev ? "v${version}"
+, sha256
+, rtorrent-ps-src
+}@attrs:
+
+{ lib
 , stdenv
 , fetchFromGitHub
 , pkg-config
@@ -15,22 +24,14 @@
 , openssl
 , xmlrpc_c
 , libxml2
-, rtorrent-ps-src
-}:
-
-{ version
-, sha256
-, rev ? "v${version}"
-, RT_VERSION ? version
 , libtorrent
-, patches ? [ ]
 , withDebug ? false
 , enableIPv6 ? false # true
-}@attrs:
+}:
 
 # compiling with non-generic optimizations results in segfaults for some
 # reason.
-assert stdenv.hostPlatform.gcc == { };
+assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
 
 let
   ps = rtorrent-ps-src;
@@ -51,16 +52,6 @@ stdenv.mkDerivation rec {
   };
 
   inherit patches;
-
-  dontStrip = withDebug;
-
-  postUnpack = ''
-    cp ${./command_pyroscope.cc} $sourceRoot/src/command_pyroscope.cc # patched version of "${ps.src}/patches/ui_pyroscope.cc"
-    cp ${ lib.concatStringsSep " " [
-      "${ps.src}/patches/ui_pyroscope.cc"
-      "${ps.src}/patches/ui_pyroscope.h"
-    ]} $sourceRoot/src
-  '';
 
   nativeBuildInputs = [
     autoconf-archive
@@ -83,8 +74,19 @@ stdenv.mkDerivation rec {
     zlib
   ];
 
-  # TODO clarify why this is needed
-  inherit RT_VERSION;
+  dontStrip = withDebug;
+
+  env = {
+    inherit RT_VERSION; # TODO clarify why this is needed
+  };
+
+  postUnpack = ''
+    cp ${./command_pyroscope.cc} $sourceRoot/src/command_pyroscope.cc # patched version of "${ps.src}/patches/ui_pyroscope.cc"
+    cp ${ lib.concatStringsSep " " [
+      "${ps.src}/patches/ui_pyroscope.cc"
+      "${ps.src}/patches/ui_pyroscope.h"
+    ]} $sourceRoot/src
+  '';
 
   postPatch = ''
     # Version handling
@@ -112,10 +114,6 @@ stdenv.mkDerivation rec {
     #"--enable-aligned" # https://github.com/rakshasa/libtorrent/issues/244
   ] ++ lib.optional enableIPv6 "--enable-ipv6";
 
-  #postCheck = ''
-  #  rtorrent -h
-  #'';
-
   postInstall = ''
     mkdir -p $out/share/man/man1 $out/share/doc/rtorrent
     mv doc/old/rtorrent.1 $out/share/man/man1/rtorrent.1
@@ -123,4 +121,8 @@ stdenv.mkDerivation rec {
   '' + lib.optionalString withDebug ''
     ln -s $src "$out/share/rtorrent-${version}"
   '';
+
+  #postCheck = ''
+  #  rtorrent -h
+  #'';
 }
