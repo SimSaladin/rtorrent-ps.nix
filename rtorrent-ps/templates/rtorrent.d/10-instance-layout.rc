@@ -1,19 +1,41 @@
 # Layout of paths in the filesystem
 
-# CONFIG: Manifest constants (base layout)
-method.insert = cfg.watch, string|private|const, (cat, (cfg.basedir), "watch/")
-method.insert = cfg.logs,  string|private|const, (cat, (cfg.basedir), "log/")
-
-# Set fundamental system paths
+# TODO does this really achieve something on most distros anyway?
 network.http.capath.set = "/etc/ssl/certs"
-session.path.set        = (cat, (cfg.basedir), ".session")
-directory.default.set   = (cat, (cfg.basedir), "work")
-system.cwd.set          = (directory.default)
 
-# Write a PID file into the session directory
-execute.nothrow = bash, -c, (cat, "echo >",\
-    (session.path), "rtorrent.pid", " ", (system.pid))
+# CONFIG: Manifest constants (base layout)
+method.insert = cfg.session,  string|private|const, (cat, (cfg.basedir), ".session")
+method.insert = cfg.download, string|private|const, (cat, (cfg.basedir), "work")
+method.insert = cfg.watch,    string|private|const, (cat, (cfg.basedir), "watch/")
+method.insert = cfg.logs,     string|private|const, (cat, (cfg.basedir), "log/")
+# The PID file location depends on the session store path and might change at
+# runtime. (oh no. anyway...) For now set it to const, because the logic isn't
+# there to relacate the pid file.
+method.insert = cfg.pidfile, string|private|const, (cat, (cfg.session), "/rtorrent.pid")
 
-# Report major config values on startup
-print = (cat, "CFG base:    ", (cfg.basedir))
-print = (cat, "CFG session: ", (session.path))
+# Set session paths, also ensure working directory is the download directory (kinda unnecessary probably)
+session.path.set      = (cfg.session)
+directory.default.set = (cfg.download)
+system.cwd.set        = (directory.default)
+
+# Write the pid to the pidfile at startup.
+execute.throw.bg = sh, -xc, "echo \"$1\" >\"$2\"", -, (system.pid), (cfg.pidfile)
+
+# Create instance directories
+execute.throw = mkdir, -p, --, \
+    (cfg.session), \
+    (cfg.logs), \
+    (cat, (cfg.watch), "load"), \
+    (cat, (cfg.watch), "start")
+
+# TODO this doesn't seem to work with the new syntax...
+## A function for reporting major important values on startup and after.
+#method.insert = debug.print_current_config_values, simple|const, \
+#   ((cat, "INFO: (some) config values are currently:",\
+#     " cfg.basedir='",  (cfg.basedir),  "'",\
+#     " cfg.watch='",    (cfg.watch),    "'",\
+#     " cfg.logs='",     (cfg.logs),     "'",\
+#     " session.path='", (session.path), "'"))
+#
+## Print the config values at startup
+#print = (debug.print_current_config_values)

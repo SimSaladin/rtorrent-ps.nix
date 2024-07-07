@@ -7,6 +7,7 @@ method.insert = pmb._network.history.auto_scale.toggle, simple|private, \
 method.insert = pmb._network.history.auto_scale.ui_toggle, simple|private, \
     "pmb._network.history.auto_scale.toggle= ; network.history.refresh="
 
-branch=(pyro.extended), ((schedule2, network_history_sampling, 1, 32, "network.history.sample="))
+branch=(pyro.extended), ((schedule2, network_history_sampling, 1, 32, \
+    "network.history.sample="))
 branch=(pyro.extended), ((schedule2, bind_auto_scale, 0, 0, \
     "ui.bind_key = download_list, =, pmb._network.history.auto_scale.ui_toggle="))

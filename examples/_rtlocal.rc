@@ -1,4 +1,4 @@
-### Local settings include file #############################################
+### Local settings include file                               vim:ft=rtorrent:
 
 # Throttles
 throttle.up = kb500, 500

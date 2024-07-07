@@ -1,4 +1,7 @@
-{ nixpkgs2111 ? null /* pkgsStable: Pinned for dependencies */ }:
+{ channels ? { }
+# , nixpkgs2111 ? null /* pkgsStable: Pinned for dependencies */
+, ...
+}:
 
 let
   versions = import ./rtorrent-ps/versions.nix { };
@@ -7,16 +10,19 @@ in
 final: prev:
 
 let
-  inherit (prev) lib;
+  lib = prev.lib.extend (import ./functions.nix);
+
+  system = final.stdenv.hostPlatform.system;
 
   # Python: downgrade to unsupported Python 2 shit to make things work.
   # Pin python packages to stable (python 2 support is very broken in unstable currently)
   pkgsStable =
-    if final ? pkgsStable then final.pkgsStable else
-    import nixpkgs2111 {
-      config = final.config // { allowInsecure = true; }; # XXX borken python deps
-      localSystem = final.stdenv.hostPlatform;
-    };
+    if final ? pkgsStable then final.pkgsStable
+    else channels.${system}.nixpkgs2111;
+    #import nixpkgs2111 {
+    #  config = final.config // { allowInsecure = true; }; # XXX borken python deps
+    #  localSystem = final.stdenv.hostPlatform;
+    #};
 
   # C/C++: Force generic GCC to avoid segfaults with unstable features.
   pkgsGeneric =
@@ -65,6 +71,8 @@ let
 
 in
 {
+  inherit lib;
+
   rtorrentPSPackages = lib.mapAttrs (mkPackages pkgsGeneric) versions // {
     inherit pyrocore rtorrent-magnet;
     recurseForDerivations = true;

@@ -3,11 +3,11 @@
 # Note that you need a rTorrent-PS version compiled on or after 2017-03-11 for this!
 
 # Provide dummy method for plain rTorrent (making anything here just ignored, but working)
-branch=(not, (pyro.extended)), ((method.redirect, trackers.alias.set_key, false))
+branch = (not, (pyro.extended)), ((method.redirect, trackers.alias.set_key, false))
 
 trackers.alias.set_key = bt1.archive.org, "Internet Archive"
 trackers.alias.set_key = linuxtracker.org, LinuxTracker
 trackers.alias.set_key = files2.publicdomaintorrents.com, "PD Torrents"
 
 # Load user configuration
-try_import = (cat,(cfg.basedir),"tracker-aliases.rc")
+try_import = (cat, (cfg.basedir), "tracker-aliases.rc")

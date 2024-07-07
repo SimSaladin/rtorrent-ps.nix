@@ -1,3 +1,4 @@
 # Set session name
 
-session.name.set = (cat,"$execute.capture=sh,-c,\"echo -n $(hostname)\"",":",(system.pid))
+session.name.set = (execute.capture, \
+    sh, -c, "echo -n \"$(hostname):$1\"", -, (system.pid))

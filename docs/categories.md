@@ -2,23 +2,27 @@
 
 Configure watch directories in `$RT_HOME/watch-dirs.rc` (automatically reloaded).
 
-**TODO: is this empty category necessary?**
+## Setup categories
+
+- Might want to ensure the "other" category exists (`""`), for uncategorized
+  items.
+- Define categories: `pyro.category.add = hdtv`.
 
 ```
 # "Other" category for empty labels
 pyro.category.add = (cat,)
 ```
 
-## Setup categories
-
-- Define categories: `pyro.category.add = hdtv`.
-
 ## Managing categories
 
 - Set category of an item: `d.category.set = <category>`
 - Get category: `d.custom = category`
 
-```
+```bash
+# The category is stored in the custom_1 attribute of items.
+rtcontrol custom_1=\! -qo custom_1
+
+# Set category of all items that have the tracker 'foobar':
 rtcontrol tracker=foobar --exec="d.category.set=asdf"
 ```
 
@@ -29,7 +33,7 @@ Named like `category_<category>`
 - List category views:              `python-pyrocore -m pyrocore.ui.categories -l`
 - Rotate to next view (key `>`):      `python-pyrocore -m pyrocore.ui.categories -qn`
 - Rotate to previous view (key `<`):  `python-pyrocore -m pyrocore.ui.categories -qp`
-- Re-filter current view:           `python-pyrocore -m pyrocore.ui.categories -qu`
+- Re-filter current view (key `|`):   `python-pyrocore -m pyrocore.ui.categories -qu`
 
 ## Load categorized items
 

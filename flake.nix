@@ -12,7 +12,7 @@
     flutils.url = "github:gytis-ivaskevicius/flake-utils-plus";
   };
 
-  outputs = { self, flutils, nixpkgs2111, ... }@inputs:
+  outputs = { self, flutils, ... }@inputs:
     let
       inherit (flutils.lib) flattenTree;
 
@@ -23,13 +23,7 @@
 
       supportedSystems = flutils.lib.defaultSystems;
 
-      channels.nixpkgs.overlaysBuilder = channels: [
-        (_: prev: {
-          lib = prev.lib.extend (import ./functions.nix);
-          pkgsStable = channels.nixpkgs2111;
-        })
-        self.overlays.default
-      ];
+      channels.nixpkgs.overlaysBuilder = _channels: [ self.overlays.default ];
 
       channels.nixpkgs2111.config = { allowBroken = true; };
 
@@ -52,6 +46,6 @@
 
       hmModules.default = import ./home-manager { };
 
-      overlays.default = import ./overlay.nix { inherit nixpkgs2111; };
+      overlays.default = import ./overlay.nix { channels = self.pkgs; };
     };
 }
