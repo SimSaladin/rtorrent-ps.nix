@@ -1,4 +1,5 @@
-{ callPackage
+{ lib
+, callPackage
 , rtorrent-magnet
 , rtorrent-ps-src
 , pyrocore
@@ -7,7 +8,11 @@
 
 let
   common = args:
-    callPackage ./common.nix { } ({ inherit rtorrent-ps-src rtorrent-magnet pyrocore; } // args);
+  let
+    wrapper = callPackage ./common.nix { };
+    args' = { inherit rtorrent-ps-src rtorrent-magnet pyrocore; } // args;
+  in
+    lib.makeOverridable wrapper args';
 
   # by rtorrent version
   self = {

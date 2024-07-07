@@ -37,7 +37,7 @@ let
 
   rtorrent-magnet = final.callPackage ./rtorrent-magnet { };
 
-  mkPackages = { callPackages, ... }: version: { rev, hash }:
+  mkPackages = { callPackage, callPackages, ... }: version: { rev, hash }:
     let
       rtorrent-ps-src = {
         inherit version;
@@ -62,7 +62,7 @@ let
         inherit rtorrent-ps-src libtorrentVersions;
       };
 
-      rtorrentPSVersions = callPackages ./rtorrent-ps {
+      rtorrentPSVersions = callPackage ./rtorrent-ps {
         inherit rtorrent-ps-src rtorrent-magnet pyrocore rtorrentVersions;
       };
 

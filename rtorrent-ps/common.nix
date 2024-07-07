@@ -94,6 +94,9 @@ let
     '';
   };
 
+  # The final "rtorrent-ps" package is actually the relevant derivations
+  # smashed together into a single derivation with additional configuration
+  # baked in (mostly in the form of wrappers for the relevant executables).
   self = symlinkJoin rec {
     name = "rtorrent-ps-${unwrapped.version}_${rtorrent.version}";
 
