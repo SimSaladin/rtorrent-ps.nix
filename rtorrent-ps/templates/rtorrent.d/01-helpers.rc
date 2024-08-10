@@ -23,5 +23,5 @@ method.insert = os.path.exists, simple, "string.equals = 0, \
   (execute.capture_system, \"test -e \\\"$1\\\"; echo $?\", (argument.0))"
 
 # Attempt to import the argument when it's a file
-method.insert = try_import_existing, simple|private, \
-  "branch = (os.path.exists, (argument.0)), try_import = (argument.0)"
+method.insert = try_import_existing, simple, "branch = \
+  (os.path.exists, (argument.0)), (try_import, (argument.0))"
