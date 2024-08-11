@@ -47,7 +47,10 @@ in
   config = mkIf cfg.enable {
       home.packages = [ cfg.finalPackage ];
 
-      home.file."${builtins.replaceStrings ["~/"] [""] cfg.baseDir}/_rtlocal.rc".text = cfg.extraConfig;
+      home.file."${builtins.replaceStrings ["~/"] [""] cfg.baseDir}/_rtlocal.rc" = {
+        enable = cfg.extraConfig != "";
+        text = cfg.extraConfig;
+      };
 
       programs.rtorrent-ps = {
         # could just set RT_HOME in the session env
