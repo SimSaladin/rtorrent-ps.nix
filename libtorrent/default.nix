@@ -11,7 +11,7 @@ let
   common = args:
     callPackage (import ./common.nix ({ inherit lib fetchFromGitHub ps; } // args)) { };
 in
-  rec {
+  lib.recurseIntoAttrs (rec {
     libtorrent_0_13_6 = common {
       version = "0.13.6";
       sha256 = "1rvrxgb131snv9r6ksgzmd74rd9z7q46bhky0zazz7dwqqywffcp";
@@ -65,6 +65,4 @@ in
     };
 
     latest = libtorrent_master;
-
-    recurseForDerivations = true;
-  }
+  })

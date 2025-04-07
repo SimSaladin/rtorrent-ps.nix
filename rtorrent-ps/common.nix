@@ -67,11 +67,9 @@ let
       ln -sn ${builtins.dirOf mainConfigDirImportRC} $out/rtorrent.d
     '';
 
-  unwrapped = stdenv.mkDerivation {
+  rtorrent-ps-unwrapped = stdenv.mkDerivation {
     pname = "rtorrent-ps";
-    version = rtorrent-ps-src.version;
-
-    src = rtorrent-ps-src.src;
+    inherit (rtorrent-ps-src) version src;
 
     nativeBuildInputs = [
       makeWrapper
@@ -98,14 +96,14 @@ let
   # smashed together into a single derivation with additional configuration
   # baked in (mostly in the form of wrappers for the relevant executables).
   self = symlinkJoin rec {
-    name = "rtorrent-ps-${unwrapped.version}_${rtorrent.version}";
+    name = "rtorrent-ps-${rtorrent-ps-unwrapped.version}_${rtorrent.version}";
 
     paths = [
       startScript
       rtorrent-magnet
       pyrocore
       rtorrent
-      unwrapped
+      rtorrent-ps-unwrapped
     ];
 
     nativeBuildInputs = [ makeWrapper ];
@@ -131,7 +129,7 @@ let
     '';
 
     passthru = {
-      inherit unwrapped startScript initRc generateMainRC;
+      inherit rtorrent-ps-unwrapped startScript initRc generateMainRC;
     };
 
   };

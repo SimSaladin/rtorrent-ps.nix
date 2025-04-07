@@ -9,21 +9,23 @@
     # those.
     nixpkgs2111.url = "github:NixOS/nixpkgs/nixos-21.11";
 
-    flutils.url = "github:gytis-ivaskevicius/flake-utils-plus";
+    flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus";
   };
 
-  outputs = { self, flutils, ... }@inputs:
+  outputs = { self, flake-utils-plus, ... }@inputs:
     let
-      inherit (flutils.lib) flattenTree;
+      inherit (flake-utils-plus.lib) mkFlake defaultSystems flattenTree;
 
       defaultVersion = "PS-1.1-71-gee296b1";
     in
-    flutils.lib.mkFlake {
+    mkFlake {
       inherit self inputs;
+      supportedSystems = defaultSystems;
 
-      supportedSystems = flutils.lib.defaultSystems;
-
-      channels.nixpkgs.overlaysBuilder = _channels: [ self.overlays.default ];
+      channels.nixpkgs.overlaysBuilder = channels: [
+        (_: _: { pkgs2111 = channels.nixpkgs2111; })
+        self.overlays.default
+      ];
 
       channels.nixpkgs2111.config = { allowBroken = true; };
 
@@ -31,21 +33,22 @@
         let
           pkgs = channels.nixpkgs;
           inherit (pkgs.stdenv.hostPlatform) system;
-          packages = pkgs.rtorrentPSPackages;
-          defaultPackages = packages.${defaultVersion};
         in
         {
-          packages = flattenTree packages // flattenTree defaultPackages // {
-            default = self.packages.${system}.rtorrent-ps;
-          };
+          packages =
+            flattenTree pkgs.rtorrentPSPackages //
+            flattenTree pkgs.rtorrentPSPackages.${defaultVersion} //
+            { default = self.packages.${system}.rtorrent-ps; };
 
           checks = {
             test-rtorrent-ps = self.packages.${system}.rtorrent-ps;
           };
         };
 
-      hmModules.default = import ./home-manager { };
+      overlays.default = import ./overlay.nix {
+        channels = self.pkgs;
+      };
 
-      overlays.default = import ./overlay.nix { channels = self.pkgs; };
+      hmModules.default = import ./home-manager { };
     };
 }

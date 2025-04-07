@@ -3,7 +3,8 @@
 , ps
 , version
 , rev ? "v${version}"
-, sha256
+, sha256 ? hash
+, hash ? sha256
 , buildInputs ? [ ]
 , nativeBuildInputs ? [ ]
 , patches ? [ ]
@@ -31,17 +32,22 @@ stdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "rakshasa";
     repo = "libtorrent";
-    inherit rev sha256;
+    inherit rev hash;
   };
 
   inherit patches;
 
+  buildInputs = [ cppunit openssl libsigcxx zlib ] ++ buildInputs;
+
+  nativeBuildInputs = [ pkg-config autoreconfHook ] ++ nativeBuildInputs;
+
   configureFlags =
-    lib.optional withPosixFallocate "--with-posix-fallocate"
-    ++ lib.optional enableAligned "--enable-aligned"
-  ;
+    lib.optional withPosixFallocate "--with-posix-fallocate" ++
+    lib.optional enableAligned "--enable-aligned";
 
-  nativeBuildInputs = nativeBuildInputs ++ [ pkg-config autoreconfHook ];
-
-  buildInputs = buildInputs ++ [ cppunit openssl libsigcxx zlib ];
+  meta = {
+    description = "A BitTorrent library written in C++ for *nix, with focus on high performance and good code";
+    homepage = "https://github.com/rakshasa/libtorrent";
+    license = lib.licenses.gpl2Plus;
+  };
 }

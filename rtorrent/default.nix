@@ -1,9 +1,8 @@
 { lib
-, fetchFromGitHub
-, automake111x
-, rtorrent-ps-src
 , callPackage
-, libtorrentVersions
+, rtorrent-ps-src
+, libtorrentPackages
+, automake111x
 }:
 let
   ps = rtorrent-ps-src;
@@ -11,7 +10,7 @@ let
   common = args:
     callPackage (import ./generic-builder.nix ({ inherit lib rtorrent-ps-src; } // args));
 in
-rec {
+lib.recurseIntoAttrs (rec {
   rtorrent_0_96 = common {
     version = "0.9.6";
     sha256 = "0iyxmjr1984vs7hrnxkfwgrgckacqml0kv4bhj185w9bhjqvgfnf";
@@ -45,7 +44,7 @@ rec {
     ];
   }
   {
-    libtorrent = libtorrentVersions.libtorrent_0_13_6;
+    libtorrent = libtorrentPackages.libtorrent_0_13_6;
   };
 
   rtorrent_0_97 = common {
@@ -75,7 +74,7 @@ rec {
     ];
   }
   {
-    libtorrent = libtorrentVersions.libtorrent_0_13_7;
+    libtorrent = libtorrentPackages.libtorrent_0_13_7;
   };
 
   rtorrent_0_98 = common {
@@ -101,7 +100,7 @@ rec {
     ];
   }
   {
-    libtorrent = libtorrentVersions.libtorrent_0_13_8;
+    libtorrent = libtorrentPackages.libtorrent_0_13_8;
   };
 
   # has ipv6 support and other fixes
@@ -132,12 +131,10 @@ rec {
     ];
   }
   {
-    libtorrent = libtorrentVersions.libtorrent_master;
+    libtorrent = libtorrentPackages.libtorrent_master;
     automake = automake111x;
     enableIPv6 = true;
   };
 
   latest = rtorrent_master;
-
-  recurseForDerivations = true;
-}
+})
