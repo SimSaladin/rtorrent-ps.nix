@@ -1,9 +1,8 @@
-{ lib
-, version
+{ version
+, rev ? "v${version}"
+, hash
 , RT_VERSION ? version
 , patches ? [ ]
-, rev ? "v${version}"
-, sha256
 , rtorrent-ps-src
 }@attrs:
 
@@ -38,7 +37,7 @@ let
 
   # supposedly fixes freezes with TCP trackes.
   # https://github.com/rakshasa/rtorrent/issues/180
-  curl' = curl.override ({ c-aresSupport = true; });
+  curl-c-ares = curl.override { c-aresSupport = true; };
 in
 
 stdenv.mkDerivation rec {
@@ -48,7 +47,7 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "rakshasa";
     repo = "rtorrent";
-    inherit rev sha256;
+    inherit rev hash;
   };
 
   inherit patches;
@@ -63,7 +62,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     cppunit
-    curl'
+    curl-c-ares
     libsigcxx
     libtool
     libtorrent
@@ -125,4 +124,11 @@ stdenv.mkDerivation rec {
   #postCheck = ''
   #  rtorrent -h
   #'';
+
+  meta = {
+    description = "Ncurses client for libtorrent, ideal for use with screen, tmux, or dtach";
+    homepage = "https://rakshasa.github.io/rtorrent/";
+    license = lib.licenses.gpl2Plus;
+    mainProgram = "rtorrent";
+  };
 }

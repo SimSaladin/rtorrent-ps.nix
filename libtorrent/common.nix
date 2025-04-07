@@ -1,16 +1,15 @@
-{ lib
-, fetchFromGitHub
-, ps
+{ ps
 , version
 , rev ? "v${version}"
-, sha256 ? hash
-, hash ? sha256
+, hash
 , buildInputs ? [ ]
 , nativeBuildInputs ? [ ]
 , patches ? [ ]
 }:
 
-{ stdenv
+{ lib
+, fetchFromGitHub
+, stdenv
 , pkg-config
 , autoreconfHook
 , cppunit
@@ -44,6 +43,10 @@ stdenv.mkDerivation {
   configureFlags =
     lib.optional withPosixFallocate "--with-posix-fallocate" ++
     lib.optional enableAligned "--enable-aligned";
+
+  passthru = {
+    rtorrentPSVersion = ps.version;
+  };
 
   meta = {
     description = "A BitTorrent library written in C++ for *nix, with focus on high performance and good code";

@@ -12,12 +12,9 @@
     flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus";
   };
 
-  outputs = { self, flake-utils-plus, ... }@inputs:
-    let
-      inherit (flake-utils-plus.lib) mkFlake defaultSystems flattenTree;
-
-      defaultVersion = "PS-1.1-71-gee296b1";
-    in
+  outputs = { self, flake-utils-plus, ... }@inputs: let
+    inherit (flake-utils-plus.lib) mkFlake defaultSystems flattenTree;
+  in
     mkFlake {
       inherit self inputs;
       supportedSystems = defaultSystems;
@@ -27,7 +24,12 @@
         self.overlays.default
       ];
 
-      channels.nixpkgs2111.config = { allowBroken = true; };
+      channels.nixpkgs2111.config = {
+        allowBroken = true;
+        permittedInsecurePackages = [
+          "python2.7-urllib3-1.26.2"
+        ];
+      };
 
       outputsBuilder = channels:
         let
@@ -37,7 +39,7 @@
         {
           packages =
             flattenTree pkgs.rtorrentPSPackages //
-            flattenTree pkgs.rtorrentPSPackages.${defaultVersion} //
+            flattenTree pkgs.rtorrentPSPackages.${pkgs.rtorrentPSPackages.defaultVersion} //
             { default = self.packages.${system}.rtorrent-ps; };
 
           checks = {

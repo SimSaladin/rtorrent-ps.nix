@@ -8,9 +8,7 @@
 , makeWrapper
 , coreutils
 , lsof
-}:
-
-{ rtorrent-ps-src
+, rtorrent-ps-src
 , rtorrent-magnet
 , rtorrent
 , pyrocore
@@ -68,7 +66,7 @@ let
     '';
 
   rtorrent-ps-unwrapped = stdenv.mkDerivation {
-    pname = "rtorrent-ps";
+    pname = "rtorrent-ps-unwrapped";
     inherit (rtorrent-ps-src) version src;
 
     nativeBuildInputs = [
@@ -96,7 +94,9 @@ let
   # smashed together into a single derivation with additional configuration
   # baked in (mostly in the form of wrappers for the relevant executables).
   self = symlinkJoin rec {
-    name = "rtorrent-ps-${rtorrent-ps-unwrapped.version}_${rtorrent.version}";
+    pname = "rtorrent-ps";
+    # The rtorrent version already contains the PS version suffix
+    version = rtorrent.version;
 
     paths = [
       startScript

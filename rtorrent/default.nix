@@ -1,19 +1,39 @@
 { lib
+, pkgsGeneric
 , callPackage
+, automake111x
 , rtorrent-ps-src
 , libtorrentPackages
-, automake111x
 }:
+
 let
   ps = rtorrent-ps-src;
 
-  common = args:
-    callPackage (import ./generic-builder.nix ({ inherit lib rtorrent-ps-src; } // args));
+  callFun = g: f: args: g f (lib.intersectAttrs (lib.functionArgs f) args);
+
+  rtorrentBuild = args0: let
+    args = {
+      inherit rtorrent-ps-src;
+      inherit (pkgsGeneric) stdenv;
+      libtorrent = libtorrentPackages.${args0.libtorrentVersion};
+    } // args0;
+    builder = callFun (f: args: f args) (import ./generic-builder.nix) args;
+    pkg = callFun callPackage builder args;
+  in
+    pkg;
 in
-lib.recurseIntoAttrs (rec {
-  rtorrent_0_96 = common {
+lib.recurseIntoAttrs (lib.fix (self: {
+
+  rtorrent_0_96 = self."0.9.6";
+  rtorrent_0_97 = self."0.9.7";
+  rtorrent_0_98 = self."0.9.8";
+  rtorrent_master = self."0.9.8-20230416";
+  latest = self.rtorrent_master;
+
+  "0.9.6" = rtorrentBuild {
     version = "0.9.6";
-    sha256 = "0iyxmjr1984vs7hrnxkfwgrgckacqml0kv4bhj185w9bhjqvgfnf";
+    libtorrentVersion = "0.13.6";
+    hash = "sha256-zrq3sYQr8YKChIvsCWjFTE328uNudpvh0ZugFLKs3Uc=";
     patches = [
       "${ps.src}/patches/backport_0.9.6_algorithm_median.patch"
       "${ps.src}/patches/ps-close_lowdisk_normal_all.patch"
@@ -40,53 +60,49 @@ lib.recurseIntoAttrs (rec {
       "${ps.src}/patches/pyroscope.patch"
       "${ps.src}/patches/rt-base-cppunit-pkgconfig.patch" # not 0.9.7
       "${ps.src}/patches/ui_pyroscope.patch"
-      ./rt-cxx11-compatibility.patch # Only 0.9.6, not 0.9.7
+      ./patches/rt-cxx11-compatibility.patch # Only 0.9.6, not 0.9.7
     ];
-  }
-  {
-    libtorrent = libtorrentPackages.libtorrent_0_13_6;
   };
 
-  rtorrent_0_97 = common {
+  "0.9.7" = rtorrentBuild {
     version = "0.9.7";
-    sha256 = "sha256-6qEWseLUItDNNPrZvxvPACQf01FVw4eaeseZ8tmYLSk=";
+    libtorrentVersion = "0.13.7";
+    hash = "sha256-6qEWseLUItDNNPrZvxvPACQf01FVw4eaeseZ8tmYLSk=";
     patches = [
-      ./ps-close_lowdisk_normal_all.patch
+      ./patches/ps-close_lowdisk_normal_all.patch
       "${ps.src}/patches/ps-dl-ui-find_all.patch"
       "${ps.src}/patches/ps-event-view_all.patch"
       "${ps.src}/patches/ps-fix-log-xmlrpc-close_all.patch"
       "${ps.src}/patches/ps-import.return_all.patch"
       "${ps.src}/patches/ps-info-pane-is-default_all.patch"
       "${ps.src}/patches/ps-info-pane-xb-sizes_all.patch"
-      ./ps-issue-515_all.patch
+      ./patches/ps-issue-515_all.patch
       "${ps.src}/patches/ps-item-stats-human-sizes_all.patch"
       "${ps.src}/patches/ps-log_messages_all.patch"
       "${ps.src}/patches/ps-max_scgi_size_all.patch"
       "${ps.src}/patches/ps-object_std-map-serialization_all.patch"
       "${ps.src}/patches/ps-silent-catch_all.patch"
-      ./ps-throttle-steps_0.9.7.patch
+      ./patches/ps-throttle-steps_0.9.7.patch
       "${ps.src}/patches/ps-ui_pyroscope_all.patch"
       "${ps.src}/patches/ps-view-filter-by_all.patch"
       "${ps.src}/patches/pyroscope.patch"
-      ./ui_pyroscope_0.9.7.patch
-      ./pyroscope_cxxstd.patch
+      ./patches/ui_pyroscope_0.9.7.patch
+      ./patches/pyroscope_cxxstd.patch
       "${ps.src}/patches/backport_0.9.6_algorithm_median.patch" # rak::median is not in 0.9.7 either
     ];
-  }
-  {
-    libtorrent = libtorrentPackages.libtorrent_0_13_7;
   };
 
-  rtorrent_0_98 = common {
+  "0.9.8" = rtorrentBuild {
     version = "0.9.8";
-    sha256 = "sha256-4gx35bjzjUFdT2E9VGf/so7EQhaLQniUYgKQmVdwikE=";
+    libtorrentVersion = "0.13.8";
+    hash = "sha256-4gx35bjzjUFdT2E9VGf/so7EQhaLQniUYgKQmVdwikE=";
     patches = [
-      ./ps-close_lowdisk_normal_all.patch
-      ./ps-dl-ui-find_0.9.8.patch
+      ./patches/ps-close_lowdisk_normal_all.patch
+      ./patches/ps-dl-ui-find_0.9.8.patch
       "${ps.src}/patches/ps-import.return_all.patch"
       "${ps.src}/patches/ps-info-pane-is-default_all.patch"
       "${ps.src}/patches/ps-info-pane-xb-sizes_all.patch"
-      ./ps-issue-515_all.patch
+      ./patches/ps-issue-515_all.patch
       "${ps.src}/patches/ps-item-stats-human-sizes_all.patch"
       "${ps.src}/patches/ps-log_messages_all.patch"
       "${ps.src}/patches/ps-max_scgi_size_all.patch"
@@ -94,47 +110,40 @@ lib.recurseIntoAttrs (rec {
       "${ps.src}/patches/ps-silent-catch_all.patch"
       "${ps.src}/patches/ps-ui_pyroscope_all.patch"
       "${ps.src}/patches/pyroscope.patch"
-      ./ui_pyroscope_0.9.8.patch
-      ./pyroscope_cxxstd.patch
-      ./better_command_insert_error.patch # TODO add to other versions too
+      ./patches/ui_pyroscope_0.9.8.patch
+      ./patches/pyroscope_cxxstd.patch
+      ./patches/better_command_insert_error.patch # TODO add to other versions too
     ];
-  }
-  {
-    libtorrent = libtorrentPackages.libtorrent_0_13_8;
   };
 
   # has ipv6 support and other fixes
   # In particular: https://github.com/rakshasa/rtorrent/pull/1169
-  rtorrent_master = common {
+  "0.9.8-20230416" = rtorrentBuild {
     version = "0.9.8-20230416";
     rev = "1da0e3476dcabbf74b2e836d6b4c37b4d96bde09"; # Mar 16, 2023
-    sha256 = "sha256-OXOZSMuNAU+VGwNyyfzcmkTRjDJq9HsKUNxZDYpSvFQ=";
+    hash = "sha256-OXOZSMuNAU+VGwNyyfzcmkTRjDJq9HsKUNxZDYpSvFQ=";
     RT_VERSION = "0.9.8";
+    libtorrentVersion = "0.13.8-20230416";
     patches = [
-      ./ps-close_lowdisk_normal_all.patch
-      ./ps-dl-ui-find_0.9.8.patch
+      ./patches/ps-close_lowdisk_normal_all.patch
+      ./patches/ps-dl-ui-find_0.9.8.patch
       "${ps.src}/patches/ps-import.return_all.patch"
       "${ps.src}/patches/ps-info-pane-is-default_all.patch"
       "${ps.src}/patches/ps-info-pane-xb-sizes_all.patch"
-      ./ps-issue-515_all.patch
+      ./patches/ps-issue-515_all.patch
       "${ps.src}/patches/ps-item-stats-human-sizes_all.patch"
       "${ps.src}/patches/ps-log_messages_all.patch"
       "${ps.src}/patches/ps-object_std-map-serialization_all.patch"
       "${ps.src}/patches/ps-silent-catch_all.patch"
       "${ps.src}/patches/ps-ui_pyroscope_all.patch"
       "${ps.src}/patches/pyroscope.patch"
-      ./ui_pyroscope_0.9.8.patch
-      ./pyroscope_cxxstd.patch
-      ./better_command_insert_error.patch # TODO add to other versions too
-      ./fast-session-loading-0.9.8.patch
-      ./rtorrent-ml-fixes-0.9.8.patch
+      ./patches/ui_pyroscope_0.9.8.patch
+      ./patches/pyroscope_cxxstd.patch
+      ./patches/better_command_insert_error.patch # TODO add to other versions too
+      ./patches/fast-session-loading-0.9.8.patch
+      ./patches/rtorrent-ml-fixes-0.9.8.patch
     ];
-  }
-  {
-    libtorrent = libtorrentPackages.libtorrent_master;
     automake = automake111x;
     enableIPv6 = true;
   };
-
-  latest = rtorrent_master;
-})
+}))
