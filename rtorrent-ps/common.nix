@@ -3,6 +3,7 @@
 , substituteAll
 , runCommand
 , symlinkJoin
+, buildEnv
 , installShellFiles
 , writeShellApplication
 , makeWrapper
@@ -101,10 +102,13 @@ let
     paths = [
       startScript
       rtorrent-magnet
-      #pyrocore
-      pyEnv
       rtorrent
       rtorrent-ps-unwrapped
+      (buildEnv {
+        name = "pyrocore-python-env";
+        paths = [ pyEnv ];
+        pathsToLink = [ "/include" "/lib" "/share" ];
+      })
     ];
 
     nativeBuildInputs = [ makeWrapper ];
@@ -118,11 +122,15 @@ let
     ];
 
     postBuild = ''
-      rm -rf $out/EGG-INFO
-
       # Wrap executables with the proper environment
       for exe in $out/bin/*; do
         wrapProgram "$exe" ${makeWrapperArgs}
+      done
+
+      # Wrappers for pyrocore python scripts
+      for exe in ${pyrocore}/bin/*; do
+        baseName=$(basename "$exe")
+        makeWrapper ${pyEnv}/bin/"$baseName" $out/bin/"$baseName" ${makeWrapperArgs}
       done
 
       # Create python-pyrocore: python interpreter with the appropriate packages available.
