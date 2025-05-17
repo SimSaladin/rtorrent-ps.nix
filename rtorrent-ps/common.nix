@@ -107,7 +107,7 @@ let
       (buildEnv {
         name = "pyrocore-python-env";
         paths = [ pyEnv ];
-        pathsToLink = [ "/include" "/lib" "/share" ];
+        pathsToLink = [ "/lib/pyroscope" "/share" ];
       })
     ];
 
