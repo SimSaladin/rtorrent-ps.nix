@@ -17,6 +17,9 @@ rec {
     passthru.createImport = pyrocore-create-imports;
   };
 
+  # Note: unlike the executables in pyrocore, here the python env (NIX_*
+  # variables) is setup correctly so that if setting PYTHONPATH in environment
+  # does not break the executables...
   pyrocore-env = python2.buildEnv.override {
     extraLibs = [ pyrocore ];
     ignoreCollisions = true;

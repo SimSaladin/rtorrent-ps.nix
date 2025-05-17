@@ -101,7 +101,8 @@ let
     paths = [
       startScript
       rtorrent-magnet
-      pyrocore
+      #pyrocore
+      pyEnv
       rtorrent
       rtorrent-ps-unwrapped
     ];

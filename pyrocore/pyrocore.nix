@@ -10,13 +10,13 @@
 , passthru ? { }
 }:
 
-buildPythonPackage {
+buildPythonPackage rec {
   pname = "pyrocore";
   version = "0.6.1";
 
   src = fetchFromGitHub {
     owner = "pyroscope";
-    repo = "pyrocore";
+    repo = pname;
     rev = "9d8737d96ccb75abcc1af313cde7b8278b9d83bb";
     hash = "sha256-uxzLBgk9YRMQMkxgjB+prmS4EcajxQ7sNfPEPR9p6Uw=";
   };
