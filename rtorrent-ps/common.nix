@@ -45,14 +45,14 @@ let
         rtorrentPyroImportRC = "${pyroBaseDir}/rtorrent-pyro.rc";
       };
 
-      mainRC = replaceVarsWith {
+      mainRC = replaceVarsWith rec {
         src = ./templates/main.rtorrent.rc;
         replacements = {
           inherit mainConfigDirImportRC extraConfig;
           colorSchemeRC = "${pyroBaseDir}/color-schemes/${colorScheme}.rc";
         };
         postCheck = ''
-          if [[ ! -e $colorSchemeRC ]]; then
+          if [[ ! -e ${replacements.colorSchemeRC} ]]; then
             echo "error: importable file $colorSchemeRC was not found!" >&2
             exit 1
           fi
