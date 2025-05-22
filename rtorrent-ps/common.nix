@@ -1,6 +1,6 @@
 { lib
 , stdenv
-, substituteAll
+, replaceVarsWith
 , runCommand
 , symlinkJoin
 , buildEnv
@@ -45,10 +45,12 @@ let
         rtorrentPyroImportRC = "${pyroBaseDir}/rtorrent-pyro.rc";
       };
 
-      mainRC = substituteAll {
+      mainRC = replaceVarsWith {
         src = ./templates/main.rtorrent.rc;
-        inherit mainConfigDirImportRC extraConfig;
-        colorSchemeRC = "${pyroBaseDir}/color-schemes/${colorScheme}.rc";
+        replacements = {
+          inherit mainConfigDirImportRC extraConfig;
+          colorSchemeRC = "${pyroBaseDir}/color-schemes/${colorScheme}.rc";
+        };
         postCheck = ''
           if [[ ! -e $colorSchemeRC ]]; then
             echo "error: importable file $colorSchemeRC was not found!" >&2
