@@ -1,7 +1,7 @@
 { lib
 , pkgsGeneric
 , callPackage
-, automake111x
+#, automake111x
 , rtorrent-ps-src
 , libtorrentPackages
 }:
@@ -143,7 +143,7 @@ lib.recurseIntoAttrs (lib.fix (self: {
       ./patches/fast-session-loading-0.9.8.patch
       ./patches/rtorrent-ml-fixes-0.9.8.patch
     ];
-    automake = automake111x;
+    #automake = automake111x;
     enableIPv6 = true;
   };
 }))
