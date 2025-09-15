@@ -24,6 +24,8 @@
         self.overlays.default
       ];
 
+      # Python: downgrade to unsupported Python 2 shit to make things work.
+      # Pin python packages to stable (python 2 support is very broken in unstable currently)
       channels.nixpkgs2111.config = {
         allowBroken = true;
         permittedInsecurePackages = [
@@ -37,9 +39,10 @@
           inherit (pkgs.stdenv.hostPlatform) system;
         in
         {
+          legacyPackages = { inherit (pkgs.rtorrentPS) pyrocore; };
+
           packages =
-            flattenTree pkgs.rtorrentPSPackages //
-            flattenTree pkgs.rtorrentPSPackages.${pkgs.rtorrentPSPackages.defaultVersion} //
+            flattenTree pkgs.rtorrentPS //
             { default = self.packages.${system}.rtorrent-ps; };
 
           checks = {
@@ -47,9 +50,7 @@
           };
         };
 
-      overlays.default = import ./overlay.nix {
-        channels = self.pkgs;
-      };
+      overlays.default = import ./overlay.nix;
 
       hmModules.default = import ./home-manager { };
     };

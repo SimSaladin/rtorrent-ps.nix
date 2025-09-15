@@ -2,8 +2,13 @@
 , rev ? "v${version}"
 , hash
 , RT_VERSION ? version
-, patches ? [ ]
-, rtorrent-ps-src
+, ps
+, files ? {
+  command_pyroscope_cc = ./command_pyroscope.cc;
+  ui_pyroscope_h = "${ps}/patches/ui_pyroscope.h";
+  ui_pyroscope_cc = "${ps}/patches/ui_pyroscope.cc";
+}
+, ...
 }@attrs:
 
 { lib
@@ -13,8 +18,8 @@
 , libtool
 , autoconf
 , autoconf-archive
+, autoreconfHook
 , automake
-#, autoreconfHook
 , cppunit
 , ncurses
 , libsigcxx
@@ -24,8 +29,12 @@
 , xmlrpc_c
 , libxml2
 , libtorrent
-, withDebug ? false
+, enableDebug ? false
 , enableIPv6 ? false # true
+, enableAligned ? true
+, withAutoconfArchive ? !withAutoreconfHook
+, withAutoreconfHook ? false
+, enableLua ? false
 }:
 
 # compiling with non-generic optimizations results in segfaults for some
@@ -33,14 +42,12 @@
 assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
 
 let
-  ps = rtorrent-ps-src;
-
   # supposedly fixes freezes with TCP trackes.
   # https://github.com/rakshasa/rtorrent/issues/180
   curl-c-ares = curl.override { c-aresSupport = true; };
 in
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: removeAttrs attrs [ "files" "rev" "hash" "ps" "RT_VERSION" ] // {
   pname = "rtorrent";
   version = "${attrs.version}-${ps.version}";
 
@@ -50,15 +57,11 @@ stdenv.mkDerivation rec {
     inherit rev hash;
   };
 
-  inherit patches;
-
-  nativeBuildInputs = [
-    autoconf-archive
-    #autoreconfHook
-    autoconf # XXX use autoreconfHook?
-    automake # XXX use autoreconfHook?
-    pkg-config
-  ];
+  nativeBuildInputs = [ pkg-config ]
+  ++ lib.optional withAutoreconfHook autoreconfHook
+  ++ lib.optionals (!withAutoreconfHook) [ autoconf automake ]
+  ++ lib.optional withAutoconfArchive autoconf-archive
+  ++ attrs.nativeBuildInputs or [ ];
 
   buildInputs = [
     cppunit
@@ -71,59 +74,75 @@ stdenv.mkDerivation rec {
     libxml2
     xmlrpc_c
     zlib
-  ];
+  ] ++ attrs.buildInputs or [ ];
 
-  dontStrip = withDebug;
+  dontStrip = enableDebug;
 
   env = {
     inherit RT_VERSION; # TODO clarify why this is needed
-  };
+  } // attrs.env or { };
 
   postUnpack = ''
-    cp ${./command_pyroscope.cc} $sourceRoot/src/command_pyroscope.cc # patched version of "${ps.src}/patches/ui_pyroscope.cc"
-    cp ${ lib.concatStringsSep " " [
-      "${ps.src}/patches/ui_pyroscope.cc"
-      "${ps.src}/patches/ui_pyroscope.h"
-    ]} $sourceRoot/src
+    cp ${files.command_pyroscope_cc} $sourceRoot/src/command_pyroscope.cc # patched version of "${ps}/patches/ui_pyroscope.cc"
+    cp ${files.ui_pyroscope_cc} $sourceRoot/src/ui_pyroscope.cc
+    cp ${files.ui_pyroscope_h} $sourceRoot/src/ui_pyroscope.h
+    ${attrs.postUnpack or ""}
   '';
 
   postPatch = ''
+    export ACLOCAL_PATH=$ACLOCAL_PATH:$PWD/scripts
+
     # Version handling
     RT_HEX_VERSION=$(printf "0x%02X%02X%02X" ''${RT_VERSION//./ })
-    sed -i "s:\\(AC_DEFINE(HAVE_CONFIG_H.*\\):\1 AC_DEFINE(RT_HEX_VERSION, $RT_HEX_VERSION, for CPP if checks):" configure.ac
+    sed -i "/AC_INIT/aAC_DEFINE(RT_HEX_VERSION, $RT_HEX_VERSION, for CPP if checks)" configure.ac
+    # sed -i "s:\\(AC_DEFINE(HAVE_CONFIG_H.*\\):\1 AC_DEFINE(RT_HEX_VERSION, $RT_HEX_VERSION, for CPP if checks):" configure.ac
     grep "AC_DEFINE.*API_VERSION" configure.ac >/dev/null || sed -i "s:\\(AC_DEFINE(HAVE_CONFIG_H.*\\):\1 AC_DEFINE(API_VERSION, 0, api version):" configure.ac
-    sed -i -e 's/rTorrent \" VERSION/rTorrent ${version} " VERSION/' src/ui/download_list.cc
+    sed -i -e 's/rTorrent \" VERSION/rTorrent ${finalAttrs.version} " VERSION/' src/ui/download_list.cc
   '';
 
   preConfigure = ''
     if [[ -x ./autogen.sh ]]; then
       ./autogen.sh
     else
+      :
+      ${lib.optionalString (!withAutoreconfHook) ''
       export ACLOCAL_PATH=$ACLOCAL_PATH:$PWD/scripts
       aclocal --force
       libtoolize --automake --copy --force
       autoheader
       automake --add-missing
       autoconf
+      ''}
     fi
   '';
 
-  configureFlags = [
-    "--with-xmlrpc-c"
-    #"--enable-aligned" # https://github.com/rakshasa/libtorrent/issues/244
-  ] ++ lib.optional enableIPv6 "--enable-ipv6";
+  postAutoreconf = ''
+    automake --add-missing
+    autoconf
+  '';
+
+  configureFlags = [ "--with-xmlrpc-c" ]
+  ++ lib.optional enableIPv6 "--enable-ipv6"
+  ++ lib.optional enableAligned "--enable-aligned=yes"
+  ++ lib.optional enableDebug "--enable-debug"
+  ++ lib.optional (!enableDebug) "--enable-debug=no"
+  ++ lib.optionals enableLua [ "--with-lua" ]
+  ++ attrs.configureFlags or [ ]
+  ;
 
   postInstall = ''
     mkdir -p $out/share/man/man1 $out/share/doc/rtorrent
     mv doc/old/rtorrent.1 $out/share/man/man1/rtorrent.1
     mv doc/rtorrent.rc $out/share/doc/rtorrent/rtorrent.rc
-  '' + lib.optionalString withDebug ''
-    ln -s $src "$out/share/rtorrent-${version}"
+  '' + lib.optionalString enableDebug ''
+    ln -s $src "$out/share/rtorrent-${finalAttrs.version}"
   '';
 
   #postCheck = ''
   #  rtorrent -h
   #'';
+
+  enableParallelBuilding = true;
 
   meta = {
     description = "Ncurses client for libtorrent, ideal for use with screen, tmux, or dtach";
@@ -131,4 +150,4 @@ stdenv.mkDerivation rec {
     license = lib.licenses.gpl2Plus;
     mainProgram = "rtorrent";
   };
-}
+})

@@ -1,65 +1,63 @@
 { lib
 , pkgsGeneric
 , callPackage
-#, automake111x
-, rtorrent-ps-src
+, lua5_4
+, ps
 , libtorrentPackages
 }:
 
 let
-  ps = rtorrent-ps-src;
-
   callFun = g: f: args: g f (lib.intersectAttrs (lib.functionArgs f) args);
 
   rtorrentBuild = args0: let
     args = {
-      inherit rtorrent-ps-src;
+      inherit ps;
       inherit (pkgsGeneric) stdenv;
-      libtorrent = libtorrentPackages.${args0.libtorrentVersion};
+      libtorrent = libtorrentPackages.${
+        lib.versionToName "${args0.libtorrentVersion}/PS${ps.version}"};
     } // args0;
-    builder = callFun (f: args: f args) (import ./generic-builder.nix) args;
-    pkg = callFun callPackage builder args;
+    builder = import ./generic-builder.nix args;
   in
-    pkg;
+    callFun callPackage builder args;
 in
-lib.recurseIntoAttrs (lib.fix (self: {
+lib.recurseIntoAttrs (lib.fix (self: lib.mapSuffix "PS${ps.version}" {
 
-  rtorrent_0_96 = self."0.9.6";
-  rtorrent_0_97 = self."0.9.7";
-  rtorrent_0_98 = self."0.9.8";
-  rtorrent_master = self."0.9.8-20230416";
-  latest = self.rtorrent_master;
+  #rtorrent_0_96 = self."0.9.6";
+  #rtorrent_0_97 = self."0.9.7";
+  #rtorrent_0_98 = self."0.9.8";
+  #rtorrent_master = self."0.9.8-20230416";
+  #latest = self.rtorrent_master;
 
   "0.9.6" = rtorrentBuild {
     version = "0.9.6";
     libtorrentVersion = "0.13.6";
     hash = "sha256-zrq3sYQr8YKChIvsCWjFTE328uNudpvh0ZugFLKs3Uc=";
     patches = [
-      "${ps.src}/patches/backport_0.9.6_algorithm_median.patch"
-      "${ps.src}/patches/ps-close_lowdisk_normal_all.patch"
-      "${ps.src}/patches/ps-dl-ui-find_all.patch"
-      "${ps.src}/patches/ps-event-view_all.patch"
-      "${ps.src}/patches/ps-fix-double-slash-319_all.patch"
-      "${ps.src}/patches/ps-fix-log-xmlrpc-close_all.patch"
-      "${ps.src}/patches/ps-fix-sort-started-stopped-views_all.patch" # not 0.9.7
-      "${ps.src}/patches/ps-fix-throttle-args_all.patch" # not 0.9.7
-      "${ps.src}/patches/ps-handle-sighup-578_all.patch" # not 0.9.7
-      "${ps.src}/patches/ps-import.return_all.patch"
-      "${ps.src}/patches/ps-info-pane-is-default_all.patch"
-      "${ps.src}/patches/ps-info-pane-xb-sizes_all.patch"
-      "${ps.src}/patches/ps-issue-515_all.patch"
-      "${ps.src}/patches/ps-item-stats-human-sizes_all.patch"
-      "${ps.src}/patches/ps-log_messages_all.patch"
-      "${ps.src}/patches/ps-max_scgi_size_all.patch"
-      "${ps.src}/patches/ps-object_std-map-serialization_all.patch"
-      "${ps.src}/patches/ps-silent-catch_all.patch"
-      "${ps.src}/patches/ps-ssl_verify_host_all.patch" # not 0.9.7
-      "${ps.src}/patches/ps-throttle-steps_all.patch"
-      "${ps.src}/patches/ps-ui_pyroscope_all.patch"
-      "${ps.src}/patches/ps-view-filter-by_all.patch"
-      "${ps.src}/patches/pyroscope.patch"
-      "${ps.src}/patches/rt-base-cppunit-pkgconfig.patch" # not 0.9.7
-      "${ps.src}/patches/ui_pyroscope.patch"
+      "${ps}/patches/backport_0.9.6_algorithm_median.patch"
+      "${ps}/patches/ps-close_lowdisk_normal_all.patch"
+      "${ps}/patches/ps-dl-ui-find_all.patch"
+      "${ps}/patches/ps-event-view_all.patch"
+      "${ps}/patches/ps-fix-double-slash-319_all.patch"
+      "${ps}/patches/ps-fix-log-xmlrpc-close_all.patch"
+      "${ps}/patches/ps-fix-sort-started-stopped-views_all.patch" # not 0.9.7
+      "${ps}/patches/ps-fix-throttle-args_all.patch" # not 0.9.7
+      "${ps}/patches/ps-handle-sighup-578_all.patch" # not 0.9.7
+      "${ps}/patches/ps-import.return_all.patch"
+      "${ps}/patches/ps-info-pane-is-default_all.patch"
+      "${ps}/patches/ps-info-pane-xb-sizes_all.patch"
+      "${ps}/patches/ps-issue-515_all.patch"
+      "${ps}/patches/ps-item-stats-human-sizes_all.patch"
+      "${ps}/patches/ps-log_messages_all.patch"
+      "${ps}/patches/ps-max_scgi_size_all.patch"
+      "${ps}/patches/ps-object_std-map-serialization_all.patch"
+      "${ps}/patches/ps-silent-catch_all.patch"
+      "${ps}/patches/ps-ssl_verify_host_all.patch" # not 0.9.7
+      "${ps}/patches/ps-throttle-steps_all.patch"
+      "${ps}/patches/ps-ui_pyroscope_all.patch"
+      "${ps}/patches/ps-view-filter-by_all.patch"
+      "${ps}/patches/pyroscope.patch"
+      "${ps}/patches/rt-base-cppunit-pkgconfig.patch" # not 0.9.7
+      "${ps}/patches/ui_pyroscope.patch"
       ./patches/rt-cxx11-compatibility.patch # Only 0.9.6, not 0.9.7
     ];
   };
@@ -70,25 +68,25 @@ lib.recurseIntoAttrs (lib.fix (self: {
     hash = "sha256-6qEWseLUItDNNPrZvxvPACQf01FVw4eaeseZ8tmYLSk=";
     patches = [
       ./patches/ps-close_lowdisk_normal_all.patch
-      "${ps.src}/patches/ps-dl-ui-find_all.patch"
-      "${ps.src}/patches/ps-event-view_all.patch"
-      "${ps.src}/patches/ps-fix-log-xmlrpc-close_all.patch"
-      "${ps.src}/patches/ps-import.return_all.patch"
-      "${ps.src}/patches/ps-info-pane-is-default_all.patch"
-      "${ps.src}/patches/ps-info-pane-xb-sizes_all.patch"
+      "${ps}/patches/ps-dl-ui-find_all.patch"
+      "${ps}/patches/ps-event-view_all.patch"
+      "${ps}/patches/ps-fix-log-xmlrpc-close_all.patch"
+      "${ps}/patches/ps-import.return_all.patch"
+      "${ps}/patches/ps-info-pane-is-default_all.patch"
+      "${ps}/patches/ps-info-pane-xb-sizes_all.patch"
       ./patches/ps-issue-515_all.patch
-      "${ps.src}/patches/ps-item-stats-human-sizes_all.patch"
-      "${ps.src}/patches/ps-log_messages_all.patch"
-      "${ps.src}/patches/ps-max_scgi_size_all.patch"
-      "${ps.src}/patches/ps-object_std-map-serialization_all.patch"
-      "${ps.src}/patches/ps-silent-catch_all.patch"
+      "${ps}/patches/ps-item-stats-human-sizes_all.patch"
+      "${ps}/patches/ps-log_messages_all.patch"
+      "${ps}/patches/ps-max_scgi_size_all.patch"
+      "${ps}/patches/ps-object_std-map-serialization_all.patch"
+      "${ps}/patches/ps-silent-catch_all.patch"
       ./patches/ps-throttle-steps_0.9.7.patch
-      "${ps.src}/patches/ps-ui_pyroscope_all.patch"
-      "${ps.src}/patches/ps-view-filter-by_all.patch"
-      "${ps.src}/patches/pyroscope.patch"
+      "${ps}/patches/ps-ui_pyroscope_all.patch"
+      "${ps}/patches/ps-view-filter-by_all.patch"
+      "${ps}/patches/pyroscope.patch"
       ./patches/ui_pyroscope_0.9.7.patch
       ./patches/pyroscope_cxxstd.patch
-      "${ps.src}/patches/backport_0.9.6_algorithm_median.patch" # rak::median is not in 0.9.7 either
+      "${ps}/patches/backport_0.9.6_algorithm_median.patch" # rak::median is not in 0.9.7 either
     ];
   };
 
@@ -99,17 +97,17 @@ lib.recurseIntoAttrs (lib.fix (self: {
     patches = [
       ./patches/ps-close_lowdisk_normal_all.patch
       ./patches/ps-dl-ui-find_0.9.8.patch
-      "${ps.src}/patches/ps-import.return_all.patch"
-      "${ps.src}/patches/ps-info-pane-is-default_all.patch"
-      "${ps.src}/patches/ps-info-pane-xb-sizes_all.patch"
+      "${ps}/patches/ps-import.return_all.patch"
+      "${ps}/patches/ps-info-pane-is-default_all.patch"
+      "${ps}/patches/ps-info-pane-xb-sizes_all.patch"
       ./patches/ps-issue-515_all.patch
-      "${ps.src}/patches/ps-item-stats-human-sizes_all.patch"
-      "${ps.src}/patches/ps-log_messages_all.patch"
-      "${ps.src}/patches/ps-max_scgi_size_all.patch"
-      "${ps.src}/patches/ps-object_std-map-serialization_all.patch"
-      "${ps.src}/patches/ps-silent-catch_all.patch"
-      "${ps.src}/patches/ps-ui_pyroscope_all.patch"
-      "${ps.src}/patches/pyroscope.patch"
+      "${ps}/patches/ps-item-stats-human-sizes_all.patch"
+      "${ps}/patches/ps-log_messages_all.patch"
+      "${ps}/patches/ps-max_scgi_size_all.patch"
+      "${ps}/patches/ps-object_std-map-serialization_all.patch"
+      "${ps}/patches/ps-silent-catch_all.patch"
+      "${ps}/patches/ps-ui_pyroscope_all.patch"
+      "${ps}/patches/pyroscope.patch"
       ./patches/ui_pyroscope_0.9.8.patch
       ./patches/pyroscope_cxxstd.patch
       ./patches/better_command_insert_error.patch # TODO add to other versions too
@@ -127,23 +125,51 @@ lib.recurseIntoAttrs (lib.fix (self: {
     patches = [
       ./patches/ps-close_lowdisk_normal_all.patch
       ./patches/ps-dl-ui-find_0.9.8.patch
-      "${ps.src}/patches/ps-import.return_all.patch"
-      "${ps.src}/patches/ps-info-pane-is-default_all.patch"
-      "${ps.src}/patches/ps-info-pane-xb-sizes_all.patch"
+      "${ps}/patches/ps-import.return_all.patch"
+      "${ps}/patches/ps-info-pane-is-default_all.patch"
+      "${ps}/patches/ps-info-pane-xb-sizes_all.patch"
       ./patches/ps-issue-515_all.patch
-      "${ps.src}/patches/ps-item-stats-human-sizes_all.patch"
-      "${ps.src}/patches/ps-log_messages_all.patch"
-      "${ps.src}/patches/ps-object_std-map-serialization_all.patch"
-      "${ps.src}/patches/ps-silent-catch_all.patch"
-      "${ps.src}/patches/ps-ui_pyroscope_all.patch"
-      "${ps.src}/patches/pyroscope.patch"
+      "${ps}/patches/ps-item-stats-human-sizes_all.patch"
+      "${ps}/patches/ps-log_messages_all.patch"
+      "${ps}/patches/ps-object_std-map-serialization_all.patch"
+      "${ps}/patches/ps-silent-catch_all.patch"
+      "${ps}/patches/ps-ui_pyroscope_all.patch"
+      "${ps}/patches/pyroscope.patch"
       ./patches/ui_pyroscope_0.9.8.patch
       ./patches/pyroscope_cxxstd.patch
       ./patches/better_command_insert_error.patch # TODO add to other versions too
       ./patches/fast-session-loading-0.9.8.patch
       ./patches/rtorrent-ml-fixes-0.9.8.patch
     ];
-    #automake = automake111x;
     enableIPv6 = true;
+  };
+
+  "0.16.0-677f8f4" = rtorrentBuild {
+    version = "0.16.0-677f8f4";
+    rev = "677f8f45c841d308df7c77b0b23ce4fd7a8a7a16";
+    hash = "sha256-iC2+gdbh6Rvch7SQhQ8F/zdZuWmJN+KrObN3qBS0bAE=";
+    RT_VERSION = "0.16.0";
+    libtorrentVersion = "0.16.0-5efa83a";
+    enableIPv6 = true;
+    withAutoreconfHook = true;
+    buildInputs = [ lua5_4 ];
+    enableLua = true;
+    configureFlags = [ "LUA=${lua5_4}/bin/lua" ];
+    patches = [
+      "${ps}/patches/ps-import.return_all.patch"
+      ./patches/ps-dl-ui-find_0.16.0.patch
+      "${ps}/patches/pyroscope.patch"
+      "${ps}/patches/ps-ui_pyroscope_all.patch"
+      ./patches/ui_pyroscope_0.16.0.patch
+    ];
+    files = {
+      command_pyroscope_cc = ./command_pyroscope_new.cc;
+      ui_pyroscope_h = ./ui_pyroscope_new.h;
+      ui_pyroscope_cc = ./ui_pyroscope_new.cc;
+    };
+    postUnpack = ''
+      cp -v ${./color_map.h} $sourceRoot/src/display/color_map.h
+    '';
+
   };
 }))

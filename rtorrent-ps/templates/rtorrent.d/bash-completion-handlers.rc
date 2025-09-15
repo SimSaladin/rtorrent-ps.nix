@@ -1,5 +1,0 @@
-# EVENT: Call bash completion handlers
-
-# TODO fix this
-method.set_key = event.download.finished, bash_handlers, \
-    "d.save_resume= ; execute.nothrow = ~/bin/_event.download.finished, $d.hash=, $d.name=, $d.base_path="

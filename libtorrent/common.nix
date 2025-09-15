@@ -5,7 +5,8 @@
 , buildInputs ? [ ]
 , nativeBuildInputs ? [ ]
 , patches ? [ ]
-}:
+, ...
+}@attrs:
 
 { lib
 , fetchFromGitHub
@@ -24,7 +25,7 @@
 # reason.
 assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
 
-stdenv.mkDerivation {
+stdenv.mkDerivation (removeAttrs attrs [ "ps" "rev" "hash" ] // {
   pname = "libtorrent";
   version = "${version}-${ps.version}";
 
@@ -40,6 +41,11 @@ stdenv.mkDerivation {
 
   nativeBuildInputs = [ pkg-config autoreconfHook ] ++ nativeBuildInputs;
 
+  postAutoreconf = ''
+    automake --add-missing
+    autoconf
+  '';
+
   configureFlags =
     lib.optional withPosixFallocate "--with-posix-fallocate" ++
     lib.optional enableAligned "--enable-aligned";
@@ -48,9 +54,11 @@ stdenv.mkDerivation {
     rtorrentPSVersion = ps.version;
   };
 
+  enableParallelBuilding = true;
+
   meta = {
     description = "A BitTorrent library written in C++ for *nix, with focus on high performance and good code";
     homepage = "https://github.com/rakshasa/libtorrent";
     license = lib.licenses.gpl2Plus;
   };
-}
+})

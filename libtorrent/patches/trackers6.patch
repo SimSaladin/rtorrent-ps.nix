@@ -1,0 +1,106 @@
+diff --git c/src/torrent/tracker/tracker_state.h w/src/torrent/tracker/tracker_state.h
+index 4ae2b28f..169ecd2c 100644
+--- c/src/torrent/tracker/tracker_state.h
++++ w/src/torrent/tracker/tracker_state.h
+@@ -29,6 +29,7 @@ public:
+   static constexpr int flag_enabled       = 0x1;
+   static constexpr int flag_extra_tracker = 0x2;
+   static constexpr int flag_scrapable     = 0x4;
++  static constexpr int flag_ipv6          = 0x8;
+ 
+   // TODO: Remove these:
+   // static constexpr int max_flag_size   = 0x10;
+diff --git c/src/tracker/tracker_http.cc w/src/tracker/tracker_http.cc
+index 1c485f14..f3d17fdc 100644
+--- c/src/tracker/tracker_http.cc
++++ w/src/tracker/tracker_http.cc
+@@ -32,7 +32,8 @@ namespace torrent {
+ 
+ TrackerHttp::TrackerHttp(const TrackerInfo& info, int flags)
+   : TrackerWorker(info, utils::uri_can_scrape(info.url) ? (flags | tracker::TrackerState::flag_scrapable) : flags),
+-    m_drop_deliminator(utils::uri_has_query(info.url)) {
++    m_drop_deliminator(utils::uri_has_query(info.url)),
++    m_use_ipv6((flags & tracker::TrackerState::flag_ipv6) > 0) {
+ 
+   m_get.reset(info.url, nullptr);
+ 
+@@ -98,15 +99,15 @@ TrackerHttp::send_event(tracker::TrackerState::event_enum new_state) {
+ 
+   auto local_address = config::network_config()->local_address();
+ 
+-  if (sa_is_any(local_address.get())) {
+-    if (manager->connection_manager()->is_prefer_ipv6()) {
++  if (sa_is_any(local_address.get()) || m_use_ipv6) {
++    if (manager->connection_manager()->is_prefer_ipv6() || m_use_ipv6) {
+       auto ipv6_address = detect_local_sin6_addr();
+ 
+       if (ipv6_address != nullptr) {
+         s << "&ip=" << sin6_addr_str(ipv6_address.get());
+       }
+     }
+-  } else {
++  } else if (!m_use_ipv6) {
+     s << "&ip=" << sa_addr_str(local_address.get());
+   }
+ 
+@@ -141,8 +142,8 @@ TrackerHttp::send_event(tracker::TrackerState::event_enum new_state) {
+   m_get.try_wait_for_close();
+   m_get.reset(request_url, m_data);
+ 
+-  bool is_block_ipv4 = manager->connection_manager()->is_block_ipv4();
+-  bool is_block_ipv6 = manager->connection_manager()->is_block_ipv6();
++  bool is_block_ipv4 = m_use_ipv6 || manager->connection_manager()->is_block_ipv4();
++  bool is_block_ipv6 = (!m_use_ipv6) || manager->connection_manager()->is_block_ipv6();
+   bool is_prefer_ipv6 = manager->connection_manager()->is_prefer_ipv6();
+ 
+   // If both IPv4 and IPv6 are blocked, we cannot send the request.
+diff --git c/src/tracker/tracker_http.h w/src/tracker/tracker_http.h
+index 4c33be67..c1e7778c 100644
+--- c/src/tracker/tracker_http.h
++++ w/src/tracker/tracker_http.h
+@@ -54,6 +54,8 @@ private:
+ 
+   bool                  m_requested_scrape;
+   utils::SchedulerEntry m_delay_scrape;
++
++  bool                  m_use_ipv6;
+ };
+ 
+ } // namespace torrent
+diff --git c/src/tracker/tracker_list.cc w/src/tracker/tracker_list.cc
+index e53dc278..252ded41 100644
+--- c/src/tracker/tracker_list.cc
++++ w/src/tracker/tracker_list.cc
+@@ -4,6 +4,7 @@
+ 
+ #include <functional>
+ #include <random>
++#include <optional>
+ 
+ #include "torrent/exceptions.h"
+ #include "torrent/download_info.h"
+@@ -251,6 +252,7 @@ TrackerList::insert(unsigned int group, const tracker::Tracker& tracker) {
+ void
+ TrackerList::insert_url(unsigned int group, const std::string& url, bool extra_tracker) {
+   TrackerWorker* worker;
++  std::optional<torrent::TrackerHttp*> worker6;
+ 
+   int flags = tracker::TrackerState::flag_enabled;
+ 
+@@ -267,6 +269,7 @@ TrackerList::insert_url(unsigned int group, const std::string& url, bool extra_t
+   if (std::strncmp("http://", url.c_str(), 7) == 0 ||
+       std::strncmp("https://", url.c_str(), 8) == 0) {
+     worker = new TrackerHttp(tracker_info, flags);
++    worker6 = new TrackerHttp(tracker_info, flags | tracker::TrackerState::flag_ipv6);
+ 
+   } else if (std::strncmp("udp://", url.c_str(), 6) == 0) {
+     worker = new TrackerUdp(tracker_info, flags);
+@@ -284,6 +287,8 @@ TrackerList::insert_url(unsigned int group, const std::string& url, bool extra_t
+   }
+ 
+   insert(group, tracker::Tracker(std::shared_ptr<TrackerWorker>(worker)));
++  if (worker6.has_value())
++    insert(group + 100, tracker::Tracker(std::shared_ptr<TrackerWorker>(worker6.value())));
+ }
+ 
+ TrackerList::iterator
