@@ -7,8 +7,6 @@
 }:
 
 let
-  callFun = g: f: args: g f (lib.intersectAttrs (lib.functionArgs f) args);
-
   rtorrentBuild = args0: let
     args = {
       inherit ps;
@@ -16,17 +14,10 @@ let
       libtorrent = libtorrentPackages.${
         lib.versionToName "${args0.libtorrentVersion}/PS${ps.version}"};
     } // args0;
-    builder = import ./generic-builder.nix args;
   in
-    callFun callPackage builder args;
+    callPackage ./generic-builder.nix args;
 in
-lib.recurseIntoAttrs (lib.fix (self: lib.mapSuffix "PS${ps.version}" {
-
-  #rtorrent_0_96 = self."0.9.6";
-  #rtorrent_0_97 = self."0.9.7";
-  #rtorrent_0_98 = self."0.9.8";
-  #rtorrent_master = self."0.9.8-20230416";
-  #latest = self.rtorrent_master;
+lib.recurseIntoAttrs (lib.fix (_self: lib.mapSuffix "PS${ps.version}" {
 
   "0.9.6" = rtorrentBuild {
     version = "0.9.6";
@@ -152,9 +143,8 @@ lib.recurseIntoAttrs (lib.fix (self: lib.mapSuffix "PS${ps.version}" {
     libtorrentVersion = "0.16.0-5efa83a";
     enableIPv6 = true;
     withAutoreconfHook = true;
-    buildInputs = [ lua5_4 ];
     enableLua = true;
-    configureFlags = [ "LUA=${lua5_4}/bin/lua" ];
+    lua = lua5_4;
     patches = [
       "${ps}/patches/ps-import.return_all.patch"
       ./patches/ps-dl-ui-find_0.16.0.patch

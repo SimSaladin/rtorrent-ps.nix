@@ -1,4 +1,5 @@
-{ version
+{ lib
+, version
 , rev ? "v${version}"
 , hash
 , RT_VERSION ? version
@@ -8,10 +9,6 @@
   ui_pyroscope_h = "${ps}/patches/ui_pyroscope.h";
   ui_pyroscope_cc = "${ps}/patches/ui_pyroscope.cc";
 }
-, ...
-}@attrs:
-
-{ lib
 , stdenv
 , fetchFromGitHub
 , pkg-config
@@ -23,19 +20,29 @@
 , cppunit
 , ncurses
 , libsigcxx
+, lua ? null
 , curl
 , zlib
 , openssl
 , xmlrpc_c
 , libxml2
 , libtorrent
+, libtorrentVersion
+, patches ? [ ]
 , enableDebug ? false
 , enableIPv6 ? false # true
 , enableAligned ? true
 , withAutoconfArchive ? !withAutoreconfHook
 , withAutoreconfHook ? false
 , enableLua ? false
+, nativeBuildInputs ? [ ]
+, buildInputs ? [ ]
+, configureFlags ? [ ]
+, env ? { }
+, postUnpack ? ""
 }:
+
+assert enableLua -> lua != null;
 
 # compiling with non-generic optimizations results in segfaults for some
 # reason.
@@ -47,9 +54,9 @@ let
   curl-c-ares = curl.override { c-aresSupport = true; };
 in
 
-stdenv.mkDerivation (finalAttrs: removeAttrs attrs [ "files" "rev" "hash" "ps" "RT_VERSION" ] // {
+stdenv.mkDerivation (finalAttrs: {
   pname = "rtorrent";
-  version = "${attrs.version}-${ps.version}";
+  version = "${version}-${ps.version}";
 
   src = fetchFromGitHub {
     owner = "rakshasa";
@@ -57,15 +64,16 @@ stdenv.mkDerivation (finalAttrs: removeAttrs attrs [ "files" "rev" "hash" "ps" "
     inherit rev hash;
   };
 
+  inherit patches;
+
   nativeBuildInputs = [ pkg-config ]
   ++ lib.optional withAutoreconfHook autoreconfHook
   ++ lib.optionals (!withAutoreconfHook) [ autoconf automake ]
   ++ lib.optional withAutoconfArchive autoconf-archive
-  ++ attrs.nativeBuildInputs or [ ];
+  ++ nativeBuildInputs;
 
   buildInputs = [
     cppunit
-    curl-c-ares
     libsigcxx
     libtool
     libtorrent
@@ -74,19 +82,26 @@ stdenv.mkDerivation (finalAttrs: removeAttrs attrs [ "files" "rev" "hash" "ps" "
     libxml2
     xmlrpc_c
     zlib
-  ] ++ attrs.buildInputs or [ ];
+  ]
+  ++ lib.optional (!lib.versionAtLeast version "0.16") curl-c-ares
+  ++ lib.optional enableLua lua
+  ++ buildInputs;
 
   dontStrip = enableDebug;
 
   env = {
     inherit RT_VERSION; # TODO clarify why this is needed
-  } // attrs.env or { };
+  } // env;
+
+  passthru = {
+    inherit libtorrentVersion;
+  };
 
   postUnpack = ''
     cp ${files.command_pyroscope_cc} $sourceRoot/src/command_pyroscope.cc # patched version of "${ps}/patches/ui_pyroscope.cc"
     cp ${files.ui_pyroscope_cc} $sourceRoot/src/ui_pyroscope.cc
     cp ${files.ui_pyroscope_h} $sourceRoot/src/ui_pyroscope.h
-    ${attrs.postUnpack or ""}
+    ${postUnpack}
   '';
 
   postPatch = ''
@@ -126,9 +141,8 @@ stdenv.mkDerivation (finalAttrs: removeAttrs attrs [ "files" "rev" "hash" "ps" "
   ++ lib.optional enableAligned "--enable-aligned=yes"
   ++ lib.optional enableDebug "--enable-debug"
   ++ lib.optional (!enableDebug) "--enable-debug=no"
-  ++ lib.optionals enableLua [ "--with-lua" ]
-  ++ attrs.configureFlags or [ ]
-  ;
+  ++ lib.optionals enableLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
+  ++ configureFlags;
 
   postInstall = ''
     mkdir -p $out/share/man/man1 $out/share/doc/rtorrent

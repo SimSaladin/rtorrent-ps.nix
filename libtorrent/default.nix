@@ -3,28 +3,19 @@
 , pkgsGeneric
 , openssl
 , udns
-, curl
-, curlpp
-
 , ps
 }:
 let
-  common = args: let
-    mkPkg = import ./common.nix ({ inherit ps; } // args);
-  in
-    callPackage mkPkg { inherit (pkgsGeneric) stdenv; };
+  common = args: callPackage ./common.nix ({
+    inherit (pkgsGeneric) stdenv;
+    inherit ps;
+  } // args);
 in
 lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
-
-  #libtorrent_0_13_6 = self."0.13.6";
-  #libtorrent_0_13_7 = self."0.13.7";
-  #libtorrent_0_13_8 = self."0.13.8";
-  #libtorrent_master = self."0.13.8-20230416";
 
   "0.13.6" = common {
     version = "0.13.6";
     hash = "sha256-lznHPca8nf/VB37CZQg+P7VMTqv/6Wly2laHEdbreec=";
-
     patches = [
       "${ps}/patches/lt-base-cppunit-pkgconfig.patch"
       "${ps}/patches/lt-ps-better-bencode-errors_all.patch"
@@ -36,7 +27,6 @@ lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
   "0.13.7" = common {
     version = "0.13.7";
     hash = "sha256-4E6+N5bHEuDQEZqiesUEeJiC3mXINoQX6LDryLhV+Ag=";
-
     patches = [
       "${ps}/patches/lt-ps-better-bencode-errors_all.patch"
       ./patches/lt-ps-honor_system_file_allocate_0.13.7.patch
@@ -69,18 +59,16 @@ lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
       ./patches/lookup-cache-0.13.8.patch
     ];
     buildInputs = [ udns ];
-  }).override {
     enableAligned = true; # https://github.com/rakshasa/rtorrent/issues/1237
-  };
+  });
 
   "0.16.0-5efa83a" = common {
     version = "0.16.0-5efa83a";
     rev = "5efa83e19aa17a111ae4b9918ffcb330d6496766";
     hash = "sha256-F053OKTcf+mH9Dmo3ZP4SurJs28/MimCnsp2RR1DjWY=";
     patches = [
-      #./patches/trackers6.patch
+      ./patches/trackers6.patch
     ];
-    buildInputs = [ curl curlpp ];
     postInstall = ''
       for file in tracker/tracker_list.h download/download_main.h data/chunk_handle.h data/chunk_list_node.h download/delegator.h net/address_list.h net/data_buffer.h
       do

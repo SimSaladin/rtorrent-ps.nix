@@ -1,14 +1,12 @@
-{ ps
+{ lib
+, ps
 , version
 , rev ? "v${version}"
 , hash
+, patches ? [ ]
 , buildInputs ? [ ]
 , nativeBuildInputs ? [ ]
-, patches ? [ ]
-, ...
-}@attrs:
-
-{ lib
+, postInstall ? null
 , fetchFromGitHub
 , stdenv
 , pkg-config
@@ -17,6 +15,7 @@
 , openssl
 , libsigcxx
 , zlib
+, curl
 , withPosixFallocate ? stdenv.hostPlatform.isLinux
 , enableAligned ? false
 }:
@@ -25,7 +24,11 @@
 # reason.
 assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
 
-stdenv.mkDerivation (removeAttrs attrs [ "ps" "rev" "hash" ] // {
+let
+  curl' = curl.override { c-aresSupport = true; };
+in
+
+stdenv.mkDerivation (_: {
   pname = "libtorrent";
   version = "${version}-${ps.version}";
 
@@ -37,7 +40,9 @@ stdenv.mkDerivation (removeAttrs attrs [ "ps" "rev" "hash" ] // {
 
   inherit patches;
 
-  buildInputs = [ cppunit openssl libsigcxx zlib ] ++ buildInputs;
+  buildInputs = [ cppunit openssl libsigcxx zlib ]
+    ++ lib.optionals (lib.versionAtLeast version "0.16") [ curl' ]
+    ++ buildInputs;
 
   nativeBuildInputs = [ pkg-config autoreconfHook ] ++ nativeBuildInputs;
 
@@ -49,6 +54,8 @@ stdenv.mkDerivation (removeAttrs attrs [ "ps" "rev" "hash" ] // {
   configureFlags =
     lib.optional withPosixFallocate "--with-posix-fallocate" ++
     lib.optional enableAligned "--enable-aligned";
+
+  inherit postInstall;
 
   passthru = {
     rtorrentPSVersion = ps.version;
