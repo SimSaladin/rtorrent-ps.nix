@@ -2,6 +2,7 @@
 , ps
 , version
 , rev ? "v${version}"
+, owner ? "rakshasa"
 , hash
 , patches ? [ ]
 , buildInputs ? [ ]
@@ -18,6 +19,8 @@
 , curl
 , withPosixFallocate ? stdenv.hostPlatform.isLinux
 , enableAligned ? false
+, c-aresSupport ? true
+, derivationArgs ? { }
 }:
 
 # compiling with non-generic optimizations results in segfaults for some
@@ -25,7 +28,7 @@
 assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
 
 let
-  curl' = curl.override { c-aresSupport = true; };
+  curl' = curl.override { inherit c-aresSupport; };
 in
 
 stdenv.mkDerivation (_: {
@@ -33,9 +36,8 @@ stdenv.mkDerivation (_: {
   version = "${version}-${ps.version}";
 
   src = fetchFromGitHub {
-    owner = "rakshasa";
     repo = "libtorrent";
-    inherit rev hash;
+    inherit owner rev hash;
   };
 
   inherit patches;
@@ -68,4 +70,4 @@ stdenv.mkDerivation (_: {
     homepage = "https://github.com/rakshasa/libtorrent";
     license = lib.licenses.gpl2Plus;
   };
-})
+} // derivationArgs)

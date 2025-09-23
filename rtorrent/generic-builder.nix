@@ -1,14 +1,4 @@
 { lib
-, version
-, rev ? "v${version}"
-, hash
-, RT_VERSION ? version
-, ps
-, files ? {
-  command_pyroscope_cc = ./command_pyroscope.cc;
-  ui_pyroscope_h = "${ps}/patches/ui_pyroscope.h";
-  ui_pyroscope_cc = "${ps}/patches/ui_pyroscope.cc";
-}
 , stdenv
 , fetchFromGitHub
 , pkg-config
@@ -26,22 +16,42 @@
 , openssl
 , xmlrpc_c
 , libxml2
-, libtorrent
+
+, version ? "${RT_VERSION}-${lib.substring 0 7 rev}"
+, rev ? "v${version}"
+, hash ? ""
+, RT_VERSION ? version
 , libtorrentVersion
-, patches ? [ ]
+
+, libtorrent
+, ps
+, files ? { }
 , enableDebug ? false
 , enableIPv6 ? false # true
 , enableAligned ? true
 , withAutoconfArchive ? !withAutoreconfHook
 , withAutoreconfHook ? false
-, enableLua ? false
+, enableLua ? lib.versionAtLeast version "0.16" && lua != null
+
 , nativeBuildInputs ? [ ]
 , buildInputs ? [ ]
 , configureFlags ? [ ]
-, env ? { }
 , postUnpack ? ""
+, patches ? [ ]
+, env ? { }
+, doCheck ? true
+, doInstallCheck ? lib.versionAtLeast version "0.16"
 }:
 
+let
+  defaultFiles = {
+    command_pyroscope_cc = ./0.9.6/command_pyroscope.cc;
+    ui_pyroscope_h = "${ps}/patches/ui_pyroscope.h";
+    ui_pyroscope_cc = "${ps}/patches/ui_pyroscope.cc";
+  };
+
+  files' = if files != null then defaultFiles // files else { };
+in
 assert enableLua -> lua != null;
 
 # compiling with non-generic optimizations results in segfaults for some
@@ -64,13 +74,13 @@ stdenv.mkDerivation (finalAttrs: {
     inherit rev hash;
   };
 
-  inherit patches;
+  inherit patches doCheck doInstallCheck;
 
   nativeBuildInputs = [ pkg-config ]
-  ++ lib.optional withAutoreconfHook autoreconfHook
-  ++ lib.optionals (!withAutoreconfHook) [ autoconf automake ]
-  ++ lib.optional withAutoconfArchive autoconf-archive
-  ++ nativeBuildInputs;
+    ++ lib.optional withAutoreconfHook autoreconfHook
+    ++ lib.optionals (!withAutoreconfHook) [ autoconf automake ]
+    ++ lib.optional withAutoconfArchive autoconf-archive
+    ++ nativeBuildInputs;
 
   buildInputs = [
     cppunit
@@ -90,19 +100,17 @@ stdenv.mkDerivation (finalAttrs: {
   dontStrip = enableDebug;
 
   env = {
-    inherit RT_VERSION; # TODO clarify why this is needed
+    # TODO clarify why this is needed
+    RT_VERSION = lib.head (lib.match "([0-9.]*).*" (lib.versions.pad 3 RT_VERSION));
   } // env;
 
   passthru = {
     inherit libtorrentVersion;
+    rtorrentVersion = version;
   };
 
-  postUnpack = ''
-    cp ${files.command_pyroscope_cc} $sourceRoot/src/command_pyroscope.cc # patched version of "${ps}/patches/ui_pyroscope.cc"
-    cp ${files.ui_pyroscope_cc} $sourceRoot/src/ui_pyroscope.cc
-    cp ${files.ui_pyroscope_h} $sourceRoot/src/ui_pyroscope.h
-    ${postUnpack}
-  '';
+  postUnpack = lib.concatMapAttrsStringSep "\n" (n: v: ''cp ${v} $sourceRoot/src/${n}'') files'
+    + postUnpack;
 
   postPatch = ''
     export ACLOCAL_PATH=$ACLOCAL_PATH:$PWD/scripts
@@ -137,12 +145,12 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   configureFlags = [ "--with-xmlrpc-c" ]
-  ++ lib.optional enableIPv6 "--enable-ipv6"
-  ++ lib.optional enableAligned "--enable-aligned=yes"
-  ++ lib.optional enableDebug "--enable-debug"
-  ++ lib.optional (!enableDebug) "--enable-debug=no"
-  ++ lib.optionals enableLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
-  ++ configureFlags;
+    ++ lib.optional enableIPv6 "--enable-ipv6"
+    ++ lib.optional enableAligned "--enable-aligned=yes"
+    ++ lib.optional enableDebug "--enable-debug"
+    ++ lib.optional (!enableDebug) "--enable-debug=no"
+    ++ lib.optionals enableLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
+    ++ configureFlags;
 
   postInstall = ''
     mkdir -p $out/share/man/man1 $out/share/doc/rtorrent

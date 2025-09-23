@@ -12,5 +12,7 @@ final: prev:
       localSystem = final.lib.makeGenericSystem final.stdenv.hostPlatform;
     };
 
-  rtorrentPS = final.callPackage ./packages.nix { };
+  rtorrentPS =
+    let sources = final.callPackage ./sources.nix { }; in
+    final.callPackage ./packages.nix { inherit sources; };
 }

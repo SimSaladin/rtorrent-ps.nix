@@ -80,5 +80,12 @@ lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
     '';
   };
 
-  latest = self."0.16.0-5efa83a";
+  "0.16.0-next" = common {
+    version = "0.16.0-next";
+    owner = "SimSaladin";
+    rev = "f89c6376b0f3ae4f65e1bf87bbad5fc2ed002bdd";
+    hash = "sha256-SwuDnAEHxKbHMiNHkxyOfv5dmnL4tlsN3gHB2fM/IJE=";
+  };
+
+  latest = self."0.16.0-next";
 })))

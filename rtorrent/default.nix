@@ -153,13 +153,26 @@ lib.recurseIntoAttrs (lib.fix (_self: lib.mapSuffix "PS${ps.version}" {
       ./patches/ui_pyroscope_0.16.0.patch
     ];
     files = {
-      command_pyroscope_cc = ./command_pyroscope_new.cc;
-      ui_pyroscope_h = ./ui_pyroscope_new.h;
-      ui_pyroscope_cc = ./ui_pyroscope_new.cc;
+      command_pyroscope_cc = ./0.16.0-677f8f4/command_pyroscope.cc;
+      ui_pyroscope_h = ./0.16.0-677f8f4/ui_pyroscope.h;
+      ui_pyroscope_cc = ./0.16.0-677f8f4/ui_pyroscope.cc;
     };
     postUnpack = ''
-      cp -v ${./color_map.h} $sourceRoot/src/display/color_map.h
+      cp -v ${./0.16.0-677f8f4/color_map.h} $sourceRoot/src/display/color_map.h
     '';
+  };
 
+
+  "0.16.0-next" = rtorrentBuild {
+    version = "0.16.0-next";
+    rev = "b38cf829c3a6ce58c3f67fb0376a095a92d1e8ca";
+    hash = "sha256-VF+R/kkYaYeUl3FjqpcGM7jJrjTXyqWdkrMQQhSqdOY=";
+    libtorrentVersion = "0.16.0-next";
+    enableIPv6 = true;
+    withAutoreconfHook = true;
+    enableLua = true;
+    lua = lua5_4;
+    patches = [ ];
+    files = null;
   };
 }))
