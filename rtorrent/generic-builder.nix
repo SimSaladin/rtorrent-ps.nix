@@ -23,6 +23,8 @@
 , RT_VERSION ? version
 , libtorrentVersion
 
+, owner ? "rakshasa"
+
 , libtorrent
 , ps
 , files ? { }
@@ -69,9 +71,8 @@ stdenv.mkDerivation (finalAttrs: {
   version = "${version}-${ps.version}";
 
   src = fetchFromGitHub {
-    owner = "rakshasa";
     repo = "rtorrent";
-    inherit rev hash;
+    inherit rev hash owner;
   };
 
   inherit patches doCheck doInstallCheck;

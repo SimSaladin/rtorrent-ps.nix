@@ -83,8 +83,11 @@ lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
   "0.16.0-next" = common {
     version = "0.16.0-next";
     owner = "SimSaladin";
-    rev = "f89c6376b0f3ae4f65e1bf87bbad5fc2ed002bdd";
-    hash = "sha256-SwuDnAEHxKbHMiNHkxyOfv5dmnL4tlsN3gHB2fM/IJE=";
+    rev = "015153225fad7bae26dd4e18c897bb735fb39950";
+    hash = "sha256-E5EmtYi+viJMTzVzDWNLecvtFltVup8pDBCrZM8JJyE=";
+
+    #rev = "c33a5cf17455794c1d87a930922b1f567ed06c44";
+    #hash = "sha256-CWYgIWhtd1/1t3xNZ96T3NkN9kw1/8zAkoIWTklEIE4=";
   };
 
   latest = self."0.16.0-next";

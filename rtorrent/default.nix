@@ -165,8 +165,9 @@ lib.recurseIntoAttrs (lib.fix (_self: lib.mapSuffix "PS${ps.version}" {
 
   "0.16.0-next" = rtorrentBuild {
     version = "0.16.0-next";
-    rev = "b38cf829c3a6ce58c3f67fb0376a095a92d1e8ca";
-    hash = "sha256-VF+R/kkYaYeUl3FjqpcGM7jJrjTXyqWdkrMQQhSqdOY=";
+    rev = "b1c03d42fc2f36ba7ee623637ad3613a3a36a79b";
+    hash = "sha256-qFnAVIxdWi+NSNl5P3boUPRlS3eixD4If8lSwMs+bS0=";
+    owner = "SimSaladin";
     libtorrentVersion = "0.16.0-next";
     enableIPv6 = true;
     withAutoreconfHook = true;

@@ -17,6 +17,11 @@ if [[ -z ${RT_HOME-} ]]; then
     echo "warning: RT_HOME not set, defaulting to $RT_HOME" >&2
 fi
 
+if [[ ! -e $RT_HOME ]]; then
+    echo "creating directory: $RT_HOME" >&2
+    mkdir -p "$RT_HOME" || fail "Could not initialize home directory!"
+fi
+
 # Change directory to the base directory.
 cd "$RT_HOME" || fail "RT_HOME ($RT_HOME) directory does not exist or is not accessible"
 RT_HOME=$(pwd -P)

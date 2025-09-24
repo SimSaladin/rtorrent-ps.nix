@@ -2,10 +2,28 @@
 
 set -euo pipefail
 
+usage(){
+    cat <<END
+usage: rtorrent-magnet MAGNET-TEXT
+END
+}
+
+getWatchDirectory(){
+    rtxmlrpc method.get=",cfg.watch"
+}
+
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
 if [[ "$1" =~ xt=urn:btih:([^&/]+) ]]; then
-	watch=$(rtxmlrpc method.get=,cfg.watch)
-	echo "d10:magnet-uri${#1}:${1}e" > "$watch/start/meta-${BASH_REMATCH[1]}.torrent"
+
+	destdir="$(getWatchDirectory)/start"
+    tofile="$destdir/meta-${BASH_REMATCH[1]}.torrent"
+
+    echo "Writing to file: $tofile"
+	echo "d10:magnet-uri${#1}:${1}e" > "$tofile"
 else
 	echo "\"$1\" does not look like a magnet link, ignoring" >&2
-	exit
+	exit 1
 fi
