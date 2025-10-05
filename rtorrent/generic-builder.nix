@@ -17,32 +17,33 @@
 , xmlrpc_c
 , libxml2
 
-, version ? "${RT_VERSION}-${lib.substring 0 7 rev}"
+, version ? null
+, owner ? "rakshasa"
 , rev ? "v${version}"
 , hash ? ""
-, RT_VERSION ? version
-, libtorrentVersion
-
-, owner ? "rakshasa"
 
 , libtorrent
-, ps
+, ps ? libtorrent.ps
 , files ? { }
 , enableDebug ? false
-, enableIPv6 ? false # true
+, enableIPv6 ? false # unused since 0.??.?
 , enableAligned ? true
+, enableLua ? null
 , withAutoconfArchive ? !withAutoreconfHook
 , withAutoreconfHook ? false
-, enableLua ? lib.versionAtLeast version "0.16" && lua != null
 
 , nativeBuildInputs ? [ ]
 , buildInputs ? [ ]
 , configureFlags ? [ ]
 , postUnpack ? ""
+, postInstall ? ""
 , patches ? [ ]
 , env ? { }
 , doCheck ? true
-, doInstallCheck ? lib.versionAtLeast version "0.16"
+, doInstallCheck ? null
+, enableParallelBuilding ? true
+, passthru ? { }
+, meta ? { }
 }:
 
 let
@@ -53,29 +54,37 @@ let
   };
 
   files' = if files != null then defaultFiles // files else { };
-in
-assert enableLua -> lua != null;
 
-# compiling with non-generic optimizations results in segfaults for some
-# reason.
-assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
-
-let
   # supposedly fixes freezes with TCP trackes.
   # https://github.com/rakshasa/rtorrent/issues/180
   curl-c-ares = curl.override { c-aresSupport = true; };
 in
 
-stdenv.mkDerivation (finalAttrs: {
+#assert enableLua -> lua != null;
+
+# compiling with non-generic optimizations results in segfaults for some
+# reason.
+assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
+
+stdenv.mkDerivation (finalAttrs:
+let
+  version' = if isNull version
+    then libtorrent.libtorrentVersion + lib.optionalString (rev != "v${version'}") "+g${lib.substring 0 7 rev}"
+    else version;
+in
+{
   pname = "rtorrent";
-  version = "${version}-${ps.version}";
+  version = version' + "+ps${ps.version}";
 
   src = fetchFromGitHub {
     repo = "rtorrent";
     inherit rev hash owner;
   };
 
-  inherit patches doCheck doInstallCheck;
+  inherit patches doCheck enableParallelBuilding;
+
+  enableLua = if isNull enableLua then lib.versionAtLeast version "0.16" else enableLua;
+  doInstallCheck = if isNull doInstallCheck then lib.versionAtLeast version "0.16" else doInstallCheck;
 
   nativeBuildInputs = [ pkg-config ]
     ++ lib.optional withAutoreconfHook autoreconfHook
@@ -87,41 +96,44 @@ stdenv.mkDerivation (finalAttrs: {
     cppunit
     libsigcxx
     libtool
-    libtorrent
     ncurses
     openssl
     libxml2
     xmlrpc_c
     zlib
+    libtorrent
   ]
-  ++ lib.optional (!lib.versionAtLeast version "0.16") curl-c-ares
-  ++ lib.optional enableLua lua
+  ++ lib.optional (!lib.versionAtLeast finalAttrs.finalPackage.version "0.16") curl-c-ares
+  ++ lib.optional finalAttrs.enableLua lua
   ++ buildInputs;
 
   dontStrip = enableDebug;
 
   env = {
     # TODO clarify why this is needed
-    RT_VERSION = lib.head (lib.match "([0-9.]*).*" (lib.versions.pad 3 RT_VERSION));
+    RT_VERSION = lib.head (lib.match "([0-9.]+).*" (lib.versions.pad 3
+    finalAttrs.finalPackage.version));
   } // env;
 
   passthru = {
-    inherit libtorrentVersion;
-    rtorrentVersion = version;
-  };
+    rtorrentVersion = finalAttrs.finalPackage.version;
+    psVersion = ps.version;
+    inherit (libtorrent) ps apiVersion libtorrentVersion;
+  } // passthru;
 
-  postUnpack = lib.concatMapAttrsStringSep "\n" (n: v: ''cp ${v} $sourceRoot/src/${n}'') files'
-    + postUnpack;
+  postUnpack = lib.concatMapAttrsStringSep "\n" (n: v: "cp ${v} $sourceRoot/src/${n}") files' + postUnpack;
 
   postPatch = ''
-    export ACLOCAL_PATH=$ACLOCAL_PATH:$PWD/scripts
-
     # Version handling
     RT_HEX_VERSION=$(printf "0x%02X%02X%02X" ''${RT_VERSION//./ })
+
     sed -i "/AC_INIT/aAC_DEFINE(RT_HEX_VERSION, $RT_HEX_VERSION, for CPP if checks)" configure.ac
-    # sed -i "s:\\(AC_DEFINE(HAVE_CONFIG_H.*\\):\1 AC_DEFINE(RT_HEX_VERSION, $RT_HEX_VERSION, for CPP if checks):" configure.ac
-    grep "AC_DEFINE.*API_VERSION" configure.ac >/dev/null || sed -i "s:\\(AC_DEFINE(HAVE_CONFIG_H.*\\):\1 AC_DEFINE(API_VERSION, 0, api version):" configure.ac
-    sed -i -e 's/rTorrent \" VERSION/rTorrent ${finalAttrs.version} " VERSION/' src/ui/download_list.cc
+    if ! grep "AC_DEFINE.*API_VERSION" configure.ac >/dev/null; then
+      sed -i "s:\\(AC_DEFINE(HAVE_CONFIG_H.*\\):\1 AC_DEFINE(API_VERSION, 0, api version):" configure.ac
+    fi
+
+    sed -i -e 's/rTorrent \" /rTorrent ${finalAttrs.version} " /' \
+      src/ui/download_list.cc
   '';
 
   preConfigure = ''
@@ -150,7 +162,7 @@ stdenv.mkDerivation (finalAttrs: {
     ++ lib.optional enableAligned "--enable-aligned=yes"
     ++ lib.optional enableDebug "--enable-debug"
     ++ lib.optional (!enableDebug) "--enable-debug=no"
-    ++ lib.optionals enableLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
+    ++ lib.optionals finalAttrs.enableLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
     ++ configureFlags;
 
   postInstall = ''
@@ -159,18 +171,16 @@ stdenv.mkDerivation (finalAttrs: {
     mv doc/rtorrent.rc $out/share/doc/rtorrent/rtorrent.rc
   '' + lib.optionalString enableDebug ''
     ln -s $src "$out/share/rtorrent-${finalAttrs.version}"
-  '';
+  '' + postInstall;
 
   #postCheck = ''
   #  rtorrent -h
   #'';
-
-  enableParallelBuilding = true;
 
   meta = {
     description = "Ncurses client for libtorrent, ideal for use with screen, tmux, or dtach";
     homepage = "https://rakshasa.github.io/rtorrent/";
     license = lib.licenses.gpl2Plus;
     mainProgram = "rtorrent";
-  };
+  } // meta;
 })

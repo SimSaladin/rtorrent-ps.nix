@@ -11,7 +11,7 @@
 , rtorrent-config
 , rtorrent
 , pyrocore
-, ps
+, ps ? rtorrent.ps
 , RT_HOME ? "\"$HOME/.rtorrent\""
 , RT_SOCKET ? "\"$RT_HOME/.scgi_local\""
 , pyroConfigDir ? "${pyrocore}/lib/pyroscope"
@@ -36,6 +36,7 @@ let
     src = ps;
 
     inherit pyroConfigDir RT_HOME RT_SOCKET;
+
     initRc = rtorrent-config.createRtorrentRC {
       inherit colorScheme;
       extraConfig = ''
@@ -55,20 +56,16 @@ let
     startScript = writeShellApplication {
       name = fa.pname;
       text = ''
-        export PYRO_CONFIG_DIR=${fa.pyroConfigDir}
-        export RT_INITRC=${fa.initRc}/rtorrent.rc
         export RT_HOME=''${RT_HOME-${fa.RT_HOME}}
         export RT_SOCKET=''${RT_SOCKET-${fa.RT_SOCKET}}
-
         ${builtins.readFile ./start.sh}
       '';
       runtimeInputs = [ coreutils lsof ];
       runtimeEnv = {
-        RT_BIN = "${rtorrent}/bin/rtorrent";
+        RT_BIN = lib.getExe rtorrent;
+        RT_INITRC = fa.initRc + "/rtorrent.rc";
+        PYRO_CONFIG_DIR = fa.pyroConfigDir;
       };
-    };
-
-    rtorrentMagnet = rtorrent-magnet.overrideAttrs {
     };
 
     nativeBuildInputs = [
@@ -79,11 +76,11 @@ let
     ];
 
     postBuild = ''
-      install -Dm0755 ${fa.startScript}/bin/rtorrent-ps $out/bin/rtorrent-ps
+      install -Dm0755 ${lib.getExe fa.startScript} $out/bin/${fa.pname}
 
-      makeWrapper ${rtorrent-magnet}/bin/rtorrent-magnet $out/bin/rtorrent-magnet ${fa.makeWrapperArgs}
+      makeWrapper ${lib.getExe fa.finalPackage.rtorrentMagnet} $out/bin/rtorrent-magnet ${fa.makeWrapperArgs}
 
-      makeWrapper ${rtorrent}/bin/rtorrent $out/bin/rtorrent ${fa.makeWrapperArgs}
+      makeWrapper ${lib.getExe rtorrent} $out/bin/rtorrent ${fa.makeWrapperArgs}
 
       # Create python-pyrocore: python interpreter with the appropriate packages available.
       makeWrapper ${pyEnv.interpreter} $out/bin/python-pyrocore ${fa.makeWrapperArgs}
@@ -118,6 +115,7 @@ let
 
     passthru = {
       inherit (fa) initRc;
+      rtorrentMagnet = rtorrent-magnet.overrideAttrs { };
     };
   });
 

@@ -2,9 +2,9 @@
 # you should disable them.
 
 # Standard watch directories
-schedule2 = watch_dirs, 121, 10,\
+schedule2 = watch_dirs, 121, 10, \
   ((import, "@out@/watch-dirs.rc.include"))
 
 # Reload watch directory configuration automatically
-schedule2 = watch_user_config, 0, 30,\
+schedule2 = watch_user_config, 0, 30, \
   ((try_import_existing, (cat, (cfg.basedir), "watch-dirs.rc")))

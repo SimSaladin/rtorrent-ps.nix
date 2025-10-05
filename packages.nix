@@ -16,7 +16,7 @@ lib.recurseIntoAttrs (lib.makeScope pkgs.newScope (self: {
   rtorrent-magnet = self.callPackage ./rtorrent-magnet { };
   rtorrent-config = self.callPackage ./rtorrent-config { };
 
-  rtorrent-ps = self.rtorrentPSPackages.${lib.versionToName "latest/PS${sources.defaults.rtorrent-ps}"};
+  #rtorrent-ps = self.rtorrentPSPackages.${lib.versionToName "latest/PS${sources.defaults.rtorrent-ps}"};
 }
 //
 lib.fold lib.recursiveUpdate { } (lib.map (mkPackages self) sources.rtorrent-ps)))

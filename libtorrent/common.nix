@@ -1,6 +1,6 @@
 { lib
 , ps
-, version
+, version ? null
 , rev ? "v${version}"
 , owner ? "rakshasa"
 , hash
@@ -20,54 +20,75 @@
 , withPosixFallocate ? stdenv.hostPlatform.isLinux
 , enableAligned ? false
 , c-aresSupport ? true
-, derivationArgs ? { }
+, configureFlags ? [ ]
+, doCheck ? null
+, doInstallCheck ? null
+, passthru ? { }
+, meta ? { }
+, enableParallelBuilding ? true
 }:
+
+let
+  getSrcVersion = src: lib.pipe (src + "/configure.ac") [
+    lib.fileContents
+    (lib.match ".*AC_INIT...libtorrent..,..([0-9.]+).*")
+    lib.head
+  ];
+in
 
 # compiling with non-generic optimizations results in segfaults for some
 # reason.
 assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
 
-let
-  curl' = curl.override { inherit c-aresSupport; };
-in
+stdenv.mkDerivation (finalAttrs:
 
-stdenv.mkDerivation (_: {
+let
+  srcVersion = getSrcVersion finalAttrs.finalPackage.src;
+
+  version' = (if isNull version then srcVersion else version)
+    + lib.optionalString (version == null || rev != "v${version}") "+g${lib.substring 0 7 rev}";
+in
+{
   pname = "libtorrent";
-  version = "${version}-${ps.version}";
+  version = version' + "+PS" + ps.version;
 
   src = fetchFromGitHub {
     repo = "libtorrent";
     inherit owner rev hash;
   };
 
-  inherit patches;
+  configureFlags =
+    lib.optional withPosixFallocate "--with-posix-fallocate" ++
+    lib.optional enableAligned "--enable-aligned" ++
+    configureFlags;
 
   buildInputs = [ cppunit openssl libsigcxx zlib ]
-    ++ lib.optionals (lib.versionAtLeast version "0.16") [ curl' ]
+    ++ lib.optional (lib.versionAtLeast finalAttrs.finalPackage.version "0.16") (if c-aresSupport then curl.override { c-aresSupport = true; } else curl)
     ++ buildInputs;
 
   nativeBuildInputs = [ pkg-config autoreconfHook ] ++ nativeBuildInputs;
+
+  inherit patches postInstall enableParallelBuilding;
+
+  doCheck = if isNull doCheck then lib.versionAtLeast finalAttrs.finalPackage.version "0.16" else doCheck;
+
+  doInstallCheck = if isNull doInstallCheck then lib.versionAtLeast finalAttrs.finalPackage.version "0.16" else doInstallCheck;
 
   postAutoreconf = ''
     automake --add-missing
     autoconf
   '';
 
-  configureFlags =
-    lib.optional withPosixFallocate "--with-posix-fallocate" ++
-    lib.optional enableAligned "--enable-aligned";
-
-  inherit postInstall;
-
   passthru = {
+    inherit ps;
+    apiVersion = srcVersion;
+    libtorrentVersion = version';
     rtorrentPSVersion = ps.version;
-  };
-
-  enableParallelBuilding = true;
+  } // passthru;
 
   meta = {
     description = "A BitTorrent library written in C++ for *nix, with focus on high performance and good code";
     homepage = "https://github.com/rakshasa/libtorrent";
     license = lib.licenses.gpl2Plus;
-  };
-} // derivationArgs)
+  } // meta;
+})

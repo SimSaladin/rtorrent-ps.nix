@@ -9,11 +9,11 @@
 let
   rtorrentBuild = args0: let
     args = {
-      inherit ps;
       inherit (pkgsGeneric) stdenv;
       libtorrent = libtorrentPackages.${
-        lib.versionToName "${args0.libtorrentVersion}/PS${ps.version}"};
-    } // args0;
+        lib.versionToName "${args0.libtorrentVersion}/PS${ps.version}"
+      };
+    } // lib.removeAttrs args0 [ "libtorrentVersion" ];
   in
     callPackage ./generic-builder.nix args;
 in
@@ -111,7 +111,6 @@ lib.recurseIntoAttrs (lib.fix (_self: lib.mapSuffix "PS${ps.version}" {
     version = "0.9.8-20230416";
     rev = "1da0e3476dcabbf74b2e836d6b4c37b4d96bde09"; # Mar 16, 2023
     hash = "sha256-OXOZSMuNAU+VGwNyyfzcmkTRjDJq9HsKUNxZDYpSvFQ=";
-    RT_VERSION = "0.9.8";
     libtorrentVersion = "0.13.8-20230416";
     patches = [
       ./patches/ps-close_lowdisk_normal_all.patch
@@ -139,7 +138,6 @@ lib.recurseIntoAttrs (lib.fix (_self: lib.mapSuffix "PS${ps.version}" {
     version = "0.16.0-677f8f4";
     rev = "677f8f45c841d308df7c77b0b23ce4fd7a8a7a16";
     hash = "sha256-iC2+gdbh6Rvch7SQhQ8F/zdZuWmJN+KrObN3qBS0bAE=";
-    RT_VERSION = "0.16.0";
     libtorrentVersion = "0.16.0-5efa83a";
     enableIPv6 = true;
     withAutoreconfHook = true;
@@ -165,8 +163,8 @@ lib.recurseIntoAttrs (lib.fix (_self: lib.mapSuffix "PS${ps.version}" {
 
   "0.16.0-next" = rtorrentBuild {
     version = "0.16.0-next";
-    rev = "b1c03d42fc2f36ba7ee623637ad3613a3a36a79b";
-    hash = "sha256-qFnAVIxdWi+NSNl5P3boUPRlS3eixD4If8lSwMs+bS0=";
+    rev = "a5fbcc2e2cf71bed2a9757183556c4a6101a2db2";
+    hash = "sha256-QrM8j+IRqpp6nSy73WpI5kgkpovohH70t0+t90emJ5k=";
     owner = "SimSaladin";
     libtorrentVersion = "0.16.0-next";
     enableIPv6 = true;

@@ -1,0 +1,26 @@
+# vim:set ft=rtorrent:
+
+log.open_file = tracker_log, "/tmp/rt-tracker.log"
+log.add_output = tracker_dump, tracker_log
+log.add_output = tracker_events, tracker_log
+log.add_output = tracker_requests, tracker_log
+log.add_output = net_dns, tracker_log
+log.add_output = peer_debug, tracker_log
+log.add_output = connection_bind, tracker_log
+log.add_output = connection_listen, tracker_log
+log.add_output = socket_debug, tracker_log
+
+# ???
+log.add_output = debug, tracker_log
+
+# TODO this doesn't seem to work with the new syntax...
+## A function for reporting major important values on startup and after.
+#method.insert = debug.print_current_config_values, simple|const, \
+#   ((cat, "INFO: (some) config values are currently:",\
+#     " cfg.basedir='",  (cfg.basedir),  "'",\
+#     " cfg.watch='",    (cfg.watch),    "'",\
+#     " cfg.logs='",     (cfg.logs),     "'",\
+#     " session.path='", (session.path), "'"))
+#
+## Print the config values at startup
+#print = (debug.print_current_config_values)

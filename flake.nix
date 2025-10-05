@@ -42,11 +42,12 @@
           legacyPackages = { inherit (pkgs.rtorrentPS) pyrocore; };
 
           packages =
-            flattenTree pkgs.rtorrentPS //
-            { default = self.packages.${system}.rtorrent-ps; };
+            flattenTree pkgs.rtorrentPS
+            #// { default = self.packages.${system}.rtorrent-ps; }
+            ;
 
           checks = {
-            test-rtorrent-ps = self.packages.${system}.rtorrent-ps;
+            #test-rtorrent-ps = self.packages.${system}.rtorrent-ps;
           };
         };
 

@@ -20,8 +20,12 @@ method.insert = execute.capture_system_nothrow, simple, "string.rstrip = \
 # os.path.exists = <path> >> bool (0 or 1)
 #   Check if <<path>> exists.
 method.insert = os.path.exists, simple, "string.equals = 0, \
-  (execute.capture_system, \"test -e \\\"$1\\\"; echo $?\", (argument.0))"
+  (execute.capture_system, \"set +e; test -e \\\"$1\\\"; echo $?\", (argument.0))"
+
+# check if path is a readable file
+method.insert = os.path.readable, simple, "string.equals = 0, \
+  (execute.capture_system, \"set +e; test -r \\\"$1\\\"; echo $?\", (argument.0))"
 
 # Attempt to import the argument when it's a file
 method.insert = try_import_existing, simple, "branch = \
-  (os.path.exists, (argument.0)), (try_import, (argument.0))"
+  (os.path.readable, (argument.0)), (try_import, (argument.0))"
