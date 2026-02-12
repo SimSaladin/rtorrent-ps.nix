@@ -1,6 +1,8 @@
+attrs:
+
 final: prev:
 
-{
+attrs // {
   lib = prev.lib.extend (import ./functions.nix);
 
   # C/C++: Force generic GCC to avoid segfaults with unstable features.
