@@ -54,7 +54,7 @@
         };
 
       overlays.default = import ./overlay.nix {
-        nixpkgs2111 = import inputs.nixpkgs2111 {
+        pkgs2111 = import inputs.nixpkgs2111 {
           system = "x86_64-linux"; # XXX
           config = nixpkgs2111Config;
         };
