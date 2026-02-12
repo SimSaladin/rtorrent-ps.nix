@@ -14,6 +14,13 @@
 
   outputs = { self, flake-utils-plus, ... }@inputs: let
     inherit (flake-utils-plus.lib) mkFlake defaultSystems flattenTree;
+
+    nixpkgs2111Config = {
+      allowBroken = true;
+      permittedInsecurePackages = [
+        "python2.7-urllib3-1.26.2"
+      ];
+    };
   in
     mkFlake {
       inherit self inputs;
@@ -26,17 +33,12 @@
 
       # Python: downgrade to unsupported Python 2 shit to make things work.
       # Pin python packages to stable (python 2 support is very broken in unstable currently)
-      channels.nixpkgs2111.config = {
-        allowBroken = true;
-        permittedInsecurePackages = [
-          "python2.7-urllib3-1.26.2"
-        ];
-      };
+      channels.nixpkgs2111.config = nixpkgs2111Config;
 
       outputsBuilder = channels:
         let
           pkgs = channels.nixpkgs;
-          inherit (pkgs.stdenv.hostPlatform) system;
+          #inherit (pkgs.stdenv.hostPlatform) system;
         in
         {
           legacyPackages = { inherit (pkgs.rtorrentPS) pyrocore; };
@@ -51,7 +53,12 @@
           };
         };
 
-      overlays.default = import ./overlay.nix;
+      overlays.default = import ./overlay.nix {
+        nixpkgs2111 = import inputs.nixpkgs2111 {
+          system = "x86_64-linux"; # XXX
+          config = nixpkgs2111Config;
+        };
+      };
 
       hmModules.default = import ./home-manager { };
     };
