@@ -174,4 +174,19 @@ lib.recurseIntoAttrs (lib.fix (_self: lib.mapSuffix "PS${ps.version}" {
     patches = [ ];
     files = null;
   };
+
+  "0.16.9-next" = rtorrentBuild {
+    version = "0.16.9-next";
+    rev = "450d43ae2e1ce5fe9b45fea3437a1e76d4a9bee0"; #"86a0e45cfa9e3a9a7d41c4c0206201d4a369f332"; # dd066781adfde8267ad00078c24b8100bca3b3b2";
+    hash = "sha256-Tl61PBxnbpvSmPv07AngkcOIJANSVKkj77czWQ475Dg=";
+    owner = "SimSaladin";
+    libtorrentVersion = "0.16.9-next";
+    enableSystemd = true;
+    enableIPv6 = true;
+    withAutoreconfHook = true;
+    enableLua = true;
+    lua = lua5_4;
+    patches = [ ];
+    files = null;
+  };
 }))

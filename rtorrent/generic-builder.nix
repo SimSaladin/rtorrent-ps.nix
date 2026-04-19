@@ -16,6 +16,7 @@
 , openssl
 , xmlrpc_c
 , libxml2
+, systemd
 
 , version ? null
 , owner ? "rakshasa"
@@ -29,6 +30,7 @@
 , enableIPv6 ? false # unused since 0.??.?
 , enableAligned ? true
 , enableLua ? null
+, enableSystemd ? false
 , withAutoconfArchive ? !withAutoreconfHook
 , withAutoreconfHook ? false
 
@@ -105,6 +107,7 @@ in
   ]
   ++ lib.optional (!lib.versionAtLeast finalAttrs.finalPackage.version "0.16") curl-c-ares
   ++ lib.optional finalAttrs.enableLua lua
+  ++ lib.optional enableSystemd systemd
   ++ buildInputs;
 
   dontStrip = enableDebug;
@@ -163,6 +166,7 @@ in
     ++ lib.optional enableDebug "--enable-debug"
     ++ lib.optional (!enableDebug) "--enable-debug=no"
     ++ lib.optionals finalAttrs.enableLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
+    ++ lib.optional enableSystemd "--with-systemd"
     ++ configureFlags;
 
   postInstall = ''

@@ -4,6 +4,7 @@ log.open_file = tracker_log, "/tmp/rt-tracker.log"
 log.add_output = tracker_dump, tracker_log
 log.add_output = tracker_events, tracker_log
 log.add_output = tracker_requests, tracker_log
+log.add_output = storage_debug, tracker_log
 log.add_output = net_dns, tracker_log
 log.add_output = peer_debug, tracker_log
 log.add_output = connection_bind, tracker_log
