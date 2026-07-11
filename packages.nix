@@ -1,22 +1,18 @@
-{ lib, pkgs, sources }:
+{ lib, pkgs }:
 
-let
-  mkPackages = self: ps:
-    lib.makeScope self.newScope (self: {
-      libtorrentPackages = self.callPackage ./libtorrent { ps = ps; };
-      rtorrentPackages = self.callPackage ./rtorrent { ps = ps; };
-      rtorrentPSPackages = self.callPackage ./rtorrent-ps { ps = ps; };
-    });
-in
 lib.recurseIntoAttrs (lib.makeScope pkgs.newScope (self: {
 
-  inherit sources;
+  lib = lib.extend (import ./functions.nix);
 
   pyrocore = self.callPackage ./pyrocore { };
+
   rtorrent-magnet = self.callPackage ./rtorrent-magnet { };
+
   rtorrent-config = self.callPackage ./rtorrent-config { };
 
-  #rtorrent-ps = self.rtorrentPSPackages.${lib.versionToName "latest/PS${sources.defaults.rtorrent-ps}"};
-}
-//
-lib.fold lib.recursiveUpdate { } (lib.map (mkPackages self) sources.rtorrent-ps)))
+  libtorrentVersions = lib.callPackagesWith (pkgs // self) ./libtorrent { };
+
+  rtorrentVersions = lib.callPackagesWith (pkgs // self) ./rtorrent { };
+
+  rtorrent-ps = lib.callPackagesWith (pkgs // self) ./rtorrent-ps { };
+}))

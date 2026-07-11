@@ -1,0 +1,30 @@
+commit 92c04fb
+Author: Samuli Thomasson <samuli.thomasson@5gsystems.com>
+Date:   Sat Jul 11 18:44:24 2026 +0200
+
+    fix xmlrpc calls fake argument type
+    
+    Signed-off-by: Samuli Thomasson <samuli.thomasson@5gsystems.com>
+
+diff --git a/src/pyrocore/util/xmlrpc.py b/src/pyrocore/util/xmlrpc.py
+index 96ea4cd..60bcebc 100755
+--- a/src/pyrocore/util/xmlrpc.py
++++ b/src/pyrocore/util/xmlrpc.py
+@@ -109,7 +109,7 @@ class RTorrentMethod(object):
+             if not self._proxy._use_deprecated:
+                 if self._method_name.endswith(".multicall") or self._method_name.endswith(".multicall.filtered"):
+                     if self._method_name in ("d.multicall", "d.multicall.filtered"):
+-                        args = (0,) + args
++                        args = ('',) + args
+                     if config.debug:
+                         self._proxy.LOG.debug("BEFORE MAPPING: %r" % (args,))
+                     if self._method_name == "system.multicall":
+@@ -120,7 +120,7 @@ class RTorrentMethod(object):
+                     if config.debug:
+                         self._proxy.LOG.debug("AFTER MAPPING: %r" % (args,))
+                 elif self._method_name in self.NEEDS_FAKE_TARGET:
+-                    args = (0,) + args
++                    args = ('',) + args
+ 
+             # Prepare request
+             xmlreq = xmlrpclib.dumps(args, self._proxy._map_call(self._method_name))

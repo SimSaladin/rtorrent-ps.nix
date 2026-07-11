@@ -15,6 +15,8 @@
   outputs = { self, flake-utils-plus, ... }@inputs: let
     inherit (flake-utils-plus.lib) mkFlake defaultSystems flattenTree;
 
+    lib = inputs.nixpkgs.lib;
+
     nixpkgs2111Config = {
       allowBroken = true;
       permittedInsecurePackages = [
@@ -25,6 +27,8 @@
     mkFlake {
       inherit self inputs;
       supportedSystems = defaultSystems;
+
+      debug = true;
 
       channels.nixpkgs.overlaysBuilder = channels: [
         (_: _: { pkgs2111 = channels.nixpkgs2111; })
@@ -38,10 +42,12 @@
       outputsBuilder = channels:
         let
           pkgs = channels.nixpkgs;
-          #inherit (pkgs.stdenv.hostPlatform) system;
         in
         {
-          legacyPackages = { inherit (pkgs.rtorrentPS) pyrocore; };
+          legacyPackages = {
+            inherit (pkgs.rtorrentPS) pyrocore;
+            inherit (pkgs) rtorrentPS;
+          };
 
           packages =
             flattenTree pkgs.rtorrentPS
@@ -53,11 +59,40 @@
           };
         };
 
-      overlays.default = import ./overlay.nix {
-        pkgs2111 = import inputs.nixpkgs2111 {
-          system = "x86_64-linux"; # XXX
-          config = nixpkgs2111Config;
+      overlays = {
+        python2-available = final: prev: {
+          pkgs2111 = import inputs.nixpkgs2111 {
+            system = prev.system;
+            config = nixpkgs2111Config;
+          };
         };
+
+        rtorrent-ps = final: prev: {
+          rtorrentPS = final.callPackage ./packages.nix { };
+        };
+
+        pkgs-generic = final: prev: {
+          # C/C++: Force generic GCC to avoid segfaults with unstable features.
+          pkgsGeneric = let
+            isGenericSystem = sys:
+              (sys.isx86_64 && sys.gcc ? arch) -> sys.gcc.arch == "x86-64" || sys.gcc.arch == "generic";
+
+            makeGenericSystem = sys:
+              if sys.isx86_64 then lib.systems.elaborate sys.system else sys;
+          in
+            if prev ? pkgsGeneric then prev.pkgsGeneric else
+            if isGenericSystem final.stdenv.hostPlatform then final else
+            import prev.path {
+              inherit (final) config overlays;
+              localSystem = makeGenericSystem final.stdenv.hostPlatform;
+            };
+        };
+
+        default = lib.composeManyExtensions [
+          self.overlays.python2-available
+          self.overlays.pkgs-generic
+          self.overlays.rtorrent-ps
+        ];
       };
 
       hmModules.default = import ./home-manager { };

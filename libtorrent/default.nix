@@ -3,17 +3,18 @@
 , pkgsGeneric
 , openssl
 , udns
-, ps
+, rtorrent-ps
 }:
 let
-  common = args: callPackage ./common.nix ({
+  ps = rtorrent-ps.src;
+  builder = args: callPackage ./generic-builder.nix ({
     inherit (pkgsGeneric) stdenv;
     inherit ps;
   } // args);
 in
-lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
+rec {
 
-  "0.13.6" = common {
+  libtorrent_0_13_6 = builder {
     version = "0.13.6";
     hash = "sha256-lznHPca8nf/VB37CZQg+P7VMTqv/6Wly2laHEdbreec=";
     patches = [
@@ -24,7 +25,7 @@ lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
     ] ++ lib.optional (lib.versions.majorMinor openssl.version == "1.1") "${ps}/patches/lt-open-ssl-1.1.patch";
   };
 
-  "0.13.7" = common {
+  libtorrent_0_13_7 = builder {
     version = "0.13.7";
     hash = "sha256-4E6+N5bHEuDQEZqiesUEeJiC3mXINoQX6LDryLhV+Ag=";
     patches = [
@@ -34,7 +35,7 @@ lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
     ] ++ lib.optional (lib.versions.majorMinor openssl.version == "1.1") "${ps}/patches/lt-open-ssl-1.1.patch";
   };
 
-  "0.13.8" = common {
+  libtorrent_0_13_8 = builder {
     version = "0.13.8";
     hash = "sha256-uSDzOU53i0aKm0C27In+zLAAHeKMu5av90DoN5YyvsA=";
     patches = [
@@ -47,7 +48,7 @@ lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
   # - memory crash fixes
   # - udns
   # - scanf crash fix
-  "0.13.8-20230416" = (common {
+  libtorrent_0_13_8-20230416 = (builder {
     version = "0.13.8-20230416";
     rev = "91f8cf4b0358d9b4480079ca7798fa7d9aec76b5";
     hash = "sha256-mEIrMwpWMCAA70Qb/UIOg8XTfg71R/2F4kb3QG38duU=";
@@ -62,7 +63,7 @@ lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
     enableAligned = true; # https://github.com/rakshasa/rtorrent/issues/1237
   });
 
-  "0.16.0-5efa83a" = common {
+  libtorrent_0_16_0-5efa83a = builder {
     version = "0.16.0-5efa83a";
     rev = "5efa83e19aa17a111ae4b9918ffcb330d6496766";
     hash = "sha256-F053OKTcf+mH9Dmo3ZP4SurJs28/MimCnsp2RR1DjWY=";
@@ -80,21 +81,17 @@ lib.recurseIntoAttrs (lib.mapSuffix "PS${ps.version}" (lib.fix (self: {
     '';
   };
 
-  "0.16.0-next" = common {
+  libtorrent_0_16_0-next = builder {
     owner = "SimSaladin";
     rev = "590b47224dd3ead2ff69f71f6d97ccc768c7c31e";
     hash = "sha256-AyEfY4038B7qEdM5V21s/xXAY2qOtuH8KhFRUrJ0lHE=";
-    #rev = "015153225fad7bae26dd4e18c897bb735fb39950";
-    #hash = "sha256-E5EmtYi+viJMTzVzDWNLecvtFltVup8pDBCrZM8JJyE=";
-    #rev = "c33a5cf17455794c1d87a930922b1f567ed06c44";
-    #hash = "sha256-CWYgIWhtd1/1t3xNZ96T3NkN9kw1/8zAkoIWTklEIE4=";
   };
 
-  "0.16.9-next" = common {
+  libtorrent_0_16_9-next = builder {
     owner = "SimSaladin";
     rev = "e774d858ae81c8a46b1db2ec2d8044c0d5aa2b67";
     hash = "sha256-4NTHOrXvk08B1biPMd9SkE1pw7YF0VQQKp7fxuF8mOk=";
   };
 
-  latest = self."0.16.9-next";
-})))
+  latest = libtorrent_0_16_9-next;
+}

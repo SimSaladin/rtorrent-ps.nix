@@ -71,7 +71,7 @@ assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" 
 stdenv.mkDerivation (finalAttrs:
 let
   version' = if isNull version
-    then libtorrent.libtorrentVersion + lib.optionalString (rev != "v${version'}") "+g${lib.substring 0 7 rev}"
+    then libtorrent.version + lib.optionalString (rev != "v${version'}") "+g${lib.substring 0 7 rev}"
     else version;
 in
 {
@@ -121,7 +121,9 @@ in
   passthru = {
     rtorrentVersion = finalAttrs.finalPackage.version;
     psVersion = ps.version;
-    inherit (libtorrent) ps apiVersion libtorrentVersion;
+    inherit ps;
+    inherit (libtorrent) apiVersion;
+    libtorrentVersion = libtorrent.version;
   } // passthru;
 
   postUnpack = lib.concatMapAttrsStringSep "\n" (n: v: "cp ${v} $sourceRoot/src/${n}") files' + postUnpack;

@@ -1,4 +1,4 @@
-#############################################################################
+########################################################## vim:set ft=rtorrent:
 # Standard PyroScope rTorrent Configuration
 #
 # To include THIS file into your main "~/.rtorrent.rc", add these commands to it:
