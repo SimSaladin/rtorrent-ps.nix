@@ -1,15 +1,49 @@
 { lib
 , callPackage
+, coreutils
 , fetchFromGitHub
+, installShellFiles
+, lndir
+, lsof
+, makeWrapper
+, pyrocore
+, stdenv
 , writeShellApplication
+
 , rtorrentVersions
 , rtorrent-config
-, coreutils
-, lsof
-}:
+, rtorrent-magnet
+
+, RT_HOME ? "\"$HOME/.rtorrent\""
+, RT_SOCKET ? "\"$RT_HOME/.scgi_local\""
+, PYRO_CONFIG_DIR ? "${pyrocore}/lib/pyroscope"
+, colorScheme ? "solarized-blue"
+}@args:
 
 let
-  builder = args: callPackage ./generic-builder.nix args;
+  builder =
+    { version
+    , src
+    , rtorrent
+    , writeInitRc
+    , writeStartScript
+    }@bargs:
+    let
+      initRc = writeInitRc { inherit colorScheme; };
+    in
+    import ./unwrapped.nix (args // bargs // {
+      version = "${version}+${rtorrent.version}";
+
+      inherit initRc;
+
+      startScript = { pname, ... }:
+        writeStartScript {
+          inherit pname;
+          inherit initRc;
+          inherit rtorrent RT_HOME RT_SOCKET PYRO_CONFIG_DIR;
+        };
+    })
+    ;
 
 in
 lib.recurseIntoAttrs rec {
