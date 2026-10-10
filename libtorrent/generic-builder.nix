@@ -14,7 +14,7 @@
 , autoreconfHook
 , cppunit
 , openssl
-, libsigcxx
+, libsigcxx_2_0
 , zlib
 , curl
 , withPosixFallocate ? stdenv.hostPlatform.isLinux
@@ -62,7 +62,7 @@ in
     lib.optional enableAligned "--enable-aligned" ++
     configureFlags;
 
-  buildInputs = [ cppunit openssl libsigcxx zlib ]
+  buildInputs = [ cppunit openssl libsigcxx_2_0 zlib ]
     ++ lib.optional (lib.versionAtLeast finalAttrs.finalPackage.version "0.16") (if c-aresSupport then curl.override { c-aresSupport = true; } else curl)
     ++ buildInputs;
 

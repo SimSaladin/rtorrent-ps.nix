@@ -9,7 +9,7 @@
 , automake
 , cppunit
 , ncurses
-, libsigcxx
+, libsigcxx_2_0
 , lua ? null
 , curl
 , zlib
@@ -96,7 +96,7 @@ in
 
   buildInputs = [
     cppunit
-    libsigcxx
+    libsigcxx_2_0
     libtool
     ncurses
     openssl

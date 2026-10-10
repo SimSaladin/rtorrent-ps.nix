@@ -26,7 +26,7 @@
   in
     mkFlake {
       inherit self inputs;
-      supportedSystems = defaultSystems;
+      supportedSystems = lib.subtractLists [ "x86_64-darwin" ] defaultSystems;
 
       debug = true;
 
@@ -42,6 +42,7 @@
       outputsBuilder = channels:
         let
           pkgs = channels.nixpkgs;
+          system = pkgs.stdenv.hostPlatform.system;
         in
         {
           legacyPackages = {
@@ -49,26 +50,29 @@
             inherit (pkgs) rtorrentPS;
           };
 
-          packages =
-            flattenTree pkgs.rtorrentPS
-            #// { default = self.packages.${system}.rtorrent-ps; }
-            ;
+          packages = {
+            default = self.packages.${system}."rtorrent-ps/latest";
+          } // flattenTree pkgs.rtorrentPS;
 
-          checks = {
-            #test-rtorrent-ps = self.packages.${system}.rtorrent-ps;
-          };
+          #checks = test-rtorrent-ps = self.packages.${system}.rtorrent-ps;
         };
 
       overlays = {
+        default = lib.composeManyExtensions [
+          self.overlays.python2-available
+          self.overlays.pkgs-generic
+          self.overlays.rtorrent-ps
+        ];
+
+        rtorrent-ps = final: prev: {
+          rtorrentPS = final.callPackage ./packages.nix { };
+        };
+
         python2-available = final: prev: {
           pkgs2111 = import inputs.nixpkgs2111 {
             system = prev.system;
             config = nixpkgs2111Config;
           };
-        };
-
-        rtorrent-ps = final: prev: {
-          rtorrentPS = final.callPackage ./packages.nix { };
         };
 
         pkgs-generic = final: prev: {
@@ -87,12 +91,6 @@
               localSystem = makeGenericSystem final.stdenv.hostPlatform;
             };
         };
-
-        default = lib.composeManyExtensions [
-          self.overlays.python2-available
-          self.overlays.pkgs-generic
-          self.overlays.rtorrent-ps
-        ];
       };
 
       hmModules.default = import ./home-manager { };
