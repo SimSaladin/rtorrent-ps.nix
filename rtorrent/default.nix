@@ -7,12 +7,13 @@
 }:
 
 let
-  ps = rtorrent-ps.src;
+  ps = rtorrent-ps;
 
   builder = args0: let
     args = {
       inherit (pkgsGeneric) stdenv;
       inherit ps;
+      rtorrentPSVersion = ps.rtorrentPSVersion;
     } // args0;
   in
     callPackage ./generic-builder.nix args;

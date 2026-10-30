@@ -6,13 +6,14 @@
 , rtorrent-ps
 }:
 let
-  ps = rtorrent-ps.src;
+  ps = rtorrent-ps.latest;
   builder = args: callPackage ./generic-builder.nix ({
     inherit (pkgsGeneric) stdenv;
     inherit ps;
+    rtorrentPSVersion = rtorrent-ps.rtorrentPSVersion;
   } // args);
 in
-rec {
+lib.recurseIntoAttrs rec {
 
   libtorrent_0_13_6 = builder {
     version = "0.13.6";

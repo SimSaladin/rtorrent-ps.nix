@@ -1,5 +1,6 @@
 { lib
 , ps
+, rtorrentPSVersion
 , version ? null
 , rev ? "v${version}"
 , owner ? "rakshasa"
@@ -34,6 +35,7 @@ let
     (lib.match ".*AC_INIT...libtorrent..,..([0-9.]+).*")
     lib.head
   ];
+
 in
 
 # compiling with non-generic optimizations results in segfaults for some
@@ -50,7 +52,7 @@ let
 in
 {
   pname = "libtorrent";
-  version = version' + "+PS" + ps.version;
+  version = version' + "+PS" + rtorrentPSVersion;
 
   src = fetchFromGitHub {
     repo = "libtorrent";
@@ -83,7 +85,7 @@ in
     inherit ps;
     apiVersion = srcVersion;
     libtorrentVersion = version';
-    rtorrentPSVersion = ps.version;
+    inherit rtorrentPSVersion;
   } // passthru;
 
   meta = {

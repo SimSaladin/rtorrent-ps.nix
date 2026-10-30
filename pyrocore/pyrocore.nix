@@ -6,12 +6,11 @@
 , ProxyTypes
 , pyrobase
 , installShellFiles
-
 , fetchFromGitHub
-
 , makeWrapperArgs ? [ ]
 , passthru ? { }
 }:
+
 buildPythonPackage {
   pname = "pyrocore";
   version = "0.6.1";
@@ -23,7 +22,11 @@ buildPythonPackage {
     hash = "sha256-uxzLBgk9YRMQMkxgjB+prmS4EcajxQ7sNfPEPR9p6Uw=";
   };
 
-  inherit makeWrapperArgs passthru;
+  makeWrapperArgs = [
+    "--set-default PYRO_CONFIG_DIR $out/lib/pyroscope"
+  ] ++ makeWrapperArgs;
+
+  inherit passthru;
 
   patches = [
     ./patches/read_config_values_from_env.patch

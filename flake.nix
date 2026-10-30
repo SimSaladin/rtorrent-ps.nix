@@ -46,35 +46,26 @@
         in
         {
           legacyPackages = {
-            inherit (pkgs.rtorrentPS) pyrocore;
             inherit (pkgs) rtorrentPS;
           };
 
-          packages = {
+          packages = flattenTree pkgs.rtorrentPS // {
             default = self.packages.${system}."rtorrent-ps/latest";
-          } // flattenTree pkgs.rtorrentPS;
+          };
 
           #checks = test-rtorrent-ps = self.packages.${system}.rtorrent-ps;
         };
 
       overlays = {
-        default = lib.composeManyExtensions [
-          self.overlays.python2-available
-          self.overlays.pkgs-generic
-          self.overlays.rtorrent-ps
-        ];
-
         rtorrent-ps = final: prev: {
           rtorrentPS = final.callPackage ./packages.nix { };
         };
-
         python2-available = final: prev: {
           pkgs2111 = import inputs.nixpkgs2111 {
             system = prev.system;
             config = nixpkgs2111Config;
           };
         };
-
         pkgs-generic = final: prev: {
           # C/C++: Force generic GCC to avoid segfaults with unstable features.
           pkgsGeneric = let
@@ -91,6 +82,11 @@
               localSystem = makeGenericSystem final.stdenv.hostPlatform;
             };
         };
+        default = lib.composeManyExtensions [
+          self.overlays.python2-available
+          self.overlays.pkgs-generic
+          self.overlays.rtorrent-ps
+        ];
       };
 
       hmModules.default = import ./home-manager { };

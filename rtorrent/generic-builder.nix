@@ -25,6 +25,7 @@
 
 , libtorrent
 , ps ? libtorrent.ps
+, rtorrentPSVersion
 , files ? { }
 , enableDebug ? false
 , enableIPv6 ? false # unused since 0.??.?
@@ -76,7 +77,7 @@ let
 in
 {
   pname = "rtorrent";
-  version = version' + "+ps${ps.version}";
+  version = version' + "+ps${rtorrentPSVersion}";
 
   src = fetchFromGitHub {
     repo = "rtorrent";

@@ -16,6 +16,7 @@ let
     inherit pyrobase ProxyTypes;
     inherit fetchFromGitHub;
     inherit makeWrapperArgs;
+
     passthru = passthru // {
       inherit createImport;
 
