@@ -2,7 +2,7 @@
 
 # File handle limits (keep sum around 950, unless you raise the system limits)
 #network.http.max_open.set = 64
-network.max_open_files.set = 600
+#network.max_open_files.set = 600
 network.max_open_sockets.set = 1000
 
 # Per item and global slot limits
