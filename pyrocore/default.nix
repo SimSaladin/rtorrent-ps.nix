@@ -44,6 +44,11 @@ let
           fi
         done
         ${pyrocore}/bin/pyroadmin -q --create-import "$out/*.rc"
+
+        # Since 0.16.27
+        for f in $out/*.rc; do
+          sed -i -e 's/schedule2/schedule/g' "$f"
+        done
       '';
     in
     "${dir}/.import.rc";

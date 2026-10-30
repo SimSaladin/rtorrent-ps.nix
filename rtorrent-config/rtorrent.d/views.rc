@@ -2,7 +2,7 @@
 # but are a matter of preference, so you may choose to disable them.
 
 # UI/VIEW: Bind 'hashing' also to the '#' key
-branch = (pyro.extended), ((schedule2, bind_hashing, 0, 0, "ui.bind_key=download_list,#,ui.current_view.set=hashing"))
+branch = (pyro.extended), ((schedule, bind_hashing, 0, 0, "ui.bind_key=download_list,#,ui.current_view.set=hashing"))
 
 # UI/VIEW: Sort "seeding" by ratio
 view.sort_current = seeding, greater=d.ratio=
@@ -20,5 +20,5 @@ view.filter_on = main, event.download.finished, event.download.inserted_new
 #   Within each group, they're sorted by download and then upload speed.
 branch = (pyro.extended), false=, "view.sort_current = active,greater=d.up.rate="
 branch = (pyro.extended), "view.sort_current = active, \"compare=----,d.is_open=,d.complete=,d.down.rate=,d.up.rate=\""
-schedule2 = filter_active, 12, 20, \
+schedule = filter_active, 12, 20, \
     "view.filter = active, \"or={d.up.rate=,d.down.rate=,not=$d.complete=}\" ;view.sort = active"

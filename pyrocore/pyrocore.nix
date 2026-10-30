@@ -73,5 +73,10 @@ buildPythonPackage {
   postFixup = ''
     # Pyrocore import for RT
     $out/bin/pyroadmin -q --create-import "$out/lib/pyroscope/rtorrent.d/*.rc"
+
+    # Since 0.16.27
+    for f in $out/lib/pyroscope/rtorrent.d/*.rc; do
+      sed -i -e 's/schedule2/schedule/g' "$f"
+    done
   '';
 }

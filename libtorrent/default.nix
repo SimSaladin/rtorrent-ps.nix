@@ -93,5 +93,21 @@ rec {
     hash = "sha256-4NTHOrXvk08B1biPMd9SkE1pw7YF0VQQKp7fxuF8mOk=";
   };
 
-  latest = libtorrent_0_16_9-next;
+  libtorrent_0_16_27 = builder {
+    version = "0.16.27";
+    hash = "sha256-m7nQb02VvYneprCW3X5Qg27NWw33DihrKxA7nCjq5DI=";
+    #owner = "SimSaladin";
+    #rev = "5184dbaab3be11a47a206d1de3a11c9ea683d7f0";
+    #hash = "sha256-++aFUrGF7XKvJbFXOAI8MnNqxd0b4DJSTo2zCzIK8y8=";
+    #owner = "SimSaladin";
+    #rev = "5184dbaab3be11a47a206d1de3a11c9ea683d7f0";
+    #hash = "sha256-++aFUrGF7XKvJbFXOAI8MnNqxd0b4DJSTo2zCzIK8y8=";
+    #version = "0.16.27";
+    #src = builtins.fetchTree {
+    #  type = "path";
+    #  path = /home/sim/_/libtorrent;
+    #};
+  };
+
+  latest = libtorrent_0_16_27;
 }

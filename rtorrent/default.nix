@@ -190,5 +190,22 @@ lib.recurseIntoAttrs rec {
     files = null;
   };
 
-  latest = rtorrent_0_16_9-next;
+  rtorrent_0_16_27 = builder {
+    version = "0.16.27";
+    rev = "3aa8dc95cdb95dbe84b666bd69067ec614b1c733";
+    hash = "sha256-IL3RVrzshw4PCtpgmf4Eo5oc9O4QWjYDMfYb+jc5d6Y=";
+    #rev = "e6ac52e2414a066a9c02bc05bb9ac4505101f679";
+    #hash = "sha256-Y6464ixQo0KQcH7cQbrPIbIOpuY17gk7z8t3/SkxT30=";
+    owner = "SimSaladin";
+    libtorrent = libtorrentVersions.libtorrent_0_16_27;
+    enableSystemd = true;
+    enableIPv6 = true;
+    withAutoreconfHook = true;
+    enableLua = true;
+    lua = lua5_4;
+    patches = [ ];
+    files = null;
+  };
+
+  latest = rtorrent_0_16_27;
 }

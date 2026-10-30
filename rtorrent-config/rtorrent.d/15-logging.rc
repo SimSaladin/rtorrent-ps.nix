@@ -51,15 +51,15 @@ method.set_key = pyro.log_rotate, ~main, "log.open_file = log, (pyro.logfile_pat
 
 # Logrotate schedule (rotating shortly after 1AM, so DST shenanigans
 # are taken care of, and rotation is always near the begin of the next day)
-schedule2 = pyro_daily_log_rotate, 01:05:00, 24:00:00, ((pyro.log_rotate))
+schedule = pyro_daily_log_rotate, 01:05:00, 24:00:00, ((pyro.log_rotate))
 
-schedule2 = pyro_logfile_archival, 01:10:00, 24:00:00, \
+schedule = pyro_logfile_archival, 01:10:00, 24:00:00, \
     "execute.nothrow = sh, -c, (pmb._logfile_find_cmd, log, (pyro.log_archival.days), gzip)"
 
-schedule2 = pyro_logfile_pruning, 01:20:00, 24:00:00, \
+schedule = pyro_logfile_pruning, 01:20:00, 24:00:00, \
     "execute.nothrow = sh, -c, (pmb._logfile_find_cmd, log.gz, (pyro.log_retention.days), rm)"
 
-schedule2 = pyro_startup_log_xmlrpc_open, 7, 0, \
+schedule = pyro_startup_log_xmlrpc_open, 7, 0, \
     "branch = (pyro.log.xmlrpc.enabled), ((log.xmlrpc, (pyro.logfile_path, xmlrpc)))"
 
 # Open logs initially on startup

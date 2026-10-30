@@ -12,4 +12,4 @@ import = @rtorrentPyroImportRC@
 # Must be activated by touching the "$RT_HOME/run/pyrotorque" file!
 # Set the second argument of 'pyro.watchdog' to "-v" or "-q" to change
 # log verbosity.
-schedule2 = pyro_watchdog, 30, 300, ((pyro.watchdog, (cfg.basedir)))
+schedule = pyro_watchdog, 30, 300, ((pyro.watchdog, (cfg.basedir)))

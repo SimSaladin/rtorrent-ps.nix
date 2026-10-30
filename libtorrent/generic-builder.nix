@@ -3,7 +3,7 @@
 , version ? null
 , rev ? "v${version}"
 , owner ? "rakshasa"
-, hash
+, hash ? null
 , patches ? [ ]
 , buildInputs ? [ ]
 , nativeBuildInputs ? [ ]
