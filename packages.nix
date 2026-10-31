@@ -4,15 +4,12 @@ lib.recurseIntoAttrs (lib.makeScope pkgs.newScope (self: {
 
   lib = lib.extend (import ./functions.nix);
 
-  pyrocore = self.callPackage ./pyrocore { };
+  rtorrent-ps = import ./rtorrent-ps { inherit lib pkgs self; };
+  rtorrentVersions = import ./rtorrent { inherit pkgs self; };
+  libtorrentVersions = import ./libtorrent { inherit pkgs self; };
 
-  rtorrent-magnet = self.callPackage ./rtorrent-magnet { };
+  pyrocore = import ./pyrocore { inherit pkgs; };
 
   rtorrent-config = self.callPackage ./rtorrent-config { };
-
-  libtorrentVersions = lib.callPackagesWith (pkgs // self) ./libtorrent { };
-
-  rtorrentVersions = lib.callPackagesWith (pkgs // self) ./rtorrent { };
-
-  rtorrent-ps = lib.callPackagesWith (pkgs // self) ./rtorrent-ps { };
+  rtorrent-magnet = self.callPackage ./rtorrent-magnet { };
 }))

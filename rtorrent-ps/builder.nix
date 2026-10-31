@@ -7,7 +7,6 @@
 , lndir
 , coreutils
 , lsof
-
 , src
 , rtorrentPSVersion
 , rtorrent
@@ -16,36 +15,39 @@
 , RT_HOME ? "\"$HOME/.rtorrent\""
 , RT_SOCKET ? "\"$RT_HOME/.scgi_local\""
 , PYRO_CONFIG_DIR ? "${pyrocore}/lib/pyroscope"
-
 , colorScheme ? "solarized-blue"
 , extraConfig ? ''
         ui.color.odd.set = "on 0"
         ui.color.even.set = ""
       ''
-, ...
+, initRc ? rtorrent-config.createRtorrentRC {
+  inherit colorScheme extraConfig;
+}
 }:
+
 stdenv.mkDerivation (fa: {
   pname = "rtorrent-ps";
   version = "${rtorrentPSVersion}+${rtorrent.version}";
 
-  inherit src;
-
+  inherit src initRc;
   inherit PYRO_CONFIG_DIR RT_HOME RT_SOCKET;
 
-  makeWrapperArgs = lib.concatStringsSep " " ([
+  RT_INITRC = fa.initRc + "/rtorrent.rc";
+
+  makeWrapperArgs = lib.concatStringsSep " " [
     "--prefix PATH : $out/bin"
     "--set-default PYRO_CONFIG_DIR ${fa.PYRO_CONFIG_DIR}"
     "--run 'export RT_HOME=\${RT_HOME-${fa.RT_HOME}}'"
     "--run 'export RT_SOCKET=\${RT_SOCKET-${fa.RT_SOCKET}}'"
-  ]
-  ++ lib.optional (!isNull fa.initRc) "--set-default RT_INITRC ${fa.initRc}/rtorrent.rc"
-  );
+    "--set-default RT_INITRC ${fa.RT_INITRC}"
+  ];
 
   pyrocoreThis = pyrocore.override {
     makeWrapperArgs = [
       "--prefix PATH : $out/bin"
       "--run 'export RT_HOME=\${RT_HOME-${fa.RT_HOME}}'"
       "--run 'export RT_SOCKET=\${RT_SOCKET-${fa.RT_SOCKET}}'"
+      "--set-default RT_INITRC ${fa.RT_INITRC}"
     ];
   };
 
@@ -58,18 +60,9 @@ stdenv.mkDerivation (fa: {
       runtimeInputs = [ coreutils lsof ];
       runtimeEnv = {
         RT_BIN = lib.getExe rtorrent;
-        RT_INITRC = fa.initRc + "/rtorrent.rc";
-        PYRO_CONFIG_DIR = PYRO_CONFIG_DIR;
+        inherit (fa) PYRO_CONFIG_DIR RT_INITRC;
       };
     };
-
-  initRc = rtorrent-config.createRtorrentRC {
-    inherit colorScheme extraConfig;
-  };
-
-  passthru = {
-    inherit rtorrentPSVersion;
-  };
 
   nativeBuildInputs = [
     lndir
@@ -83,28 +76,24 @@ stdenv.mkDerivation (fa: {
     make -C docs html man
 
     # Create python-pyrocore: python interpreter with the appropriate packages available.
+    # Also create wrappers for the pyrocore python scripts.
     makeWrapper ${fa.pyEnv.interpreter} $out/bin/python-pyrocore ${fa.makeWrapperArgs}
-
-    # Wrappers for pyrocore python scripts
     for exe in ${fa.pyrocoreThis}/bin/*; do
       baseName=$(basename "$exe")
       makeWrapper ${fa.pyEnv}/bin/"$baseName" $out/bin/"$baseName" ${fa.makeWrapperArgs}
     done
-
     makeWrapper ${lib.getExe rtorrent-magnet} $out/bin/rtorrent-magnet ${fa.makeWrapperArgs}
-  ''
-  + lib.optionalString (!isNull fa.startScript) ''
     makeWrapper ${lib.getExe fa.startScript} $out/bin/${fa.pname} ${fa.makeWrapperArgs}
   ''
   ;
 
   postInstall = ''
-    # man page
+    # man:rtorrent-ps(1)
     installManPage docs/build/man/rtorrent-ps.1
 
     # HTML docs
     mkdir -p $out/share/doc/rtorrent-ps/
-    mv docs/build/html $out/share/doc/rtorrent-ps/
+    cp -ar docs/build/html $out/share/doc/rtorrent-ps/
 
     for dir in share lib/pyroscope; do
       mkdir -p $out/$dir
@@ -115,4 +104,8 @@ stdenv.mkDerivation (fa: {
       done
     done
   '';
+
+  passthru = {
+    inherit rtorrentPSVersion;
+  };
 })

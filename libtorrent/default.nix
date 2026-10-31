@@ -1,19 +1,27 @@
-{ lib
-, callPackage
-, pkgsGeneric
-, openssl
-, udns
-, rtorrent-ps
+{ lib ? self.lib
+, pkgs
+, self
+, pkgsGeneric ? pkgs.pkgsGeneric
+, openssl ? pkgs.openssl
+, udns ? pkgs.udns
+, rtorrent-ps ? self.rtorrent-ps
+, rtorrentPSVersion ? rtorrent-ps.rtorrentPSVersion
+, ps ? rtorrent-ps.latest
 }:
 let
-  ps = rtorrent-ps.latest;
-  builder = args: callPackage ./generic-builder.nix ({
+  builder = args: self.callPackage ./generic-builder.nix ({
     inherit (pkgsGeneric) stdenv;
-    inherit ps;
-    rtorrentPSVersion = rtorrent-ps.rtorrentPSVersion;
+    inherit ps rtorrentPSVersion;
   } // args);
 in
 lib.recurseIntoAttrs rec {
+
+  latest = libtorrent_0_16_27;
+
+  libtorrent_0_16_27 = builder {
+    version = "0.16.27";
+    hash = "sha256-m7nQb02VvYneprCW3X5Qg27NWw33DihrKxA7nCjq5DI=";
+  };
 
   libtorrent_0_13_6 = builder {
     version = "0.13.6";
@@ -81,34 +89,4 @@ lib.recurseIntoAttrs rec {
       done
     '';
   };
-
-  libtorrent_0_16_0-next = builder {
-    owner = "SimSaladin";
-    rev = "590b47224dd3ead2ff69f71f6d97ccc768c7c31e";
-    hash = "sha256-AyEfY4038B7qEdM5V21s/xXAY2qOtuH8KhFRUrJ0lHE=";
-  };
-
-  libtorrent_0_16_9-next = builder {
-    owner = "SimSaladin";
-    rev = "e774d858ae81c8a46b1db2ec2d8044c0d5aa2b67";
-    hash = "sha256-4NTHOrXvk08B1biPMd9SkE1pw7YF0VQQKp7fxuF8mOk=";
-  };
-
-  libtorrent_0_16_27 = builder {
-    version = "0.16.27";
-    hash = "sha256-m7nQb02VvYneprCW3X5Qg27NWw33DihrKxA7nCjq5DI=";
-    #owner = "SimSaladin";
-    #rev = "5184dbaab3be11a47a206d1de3a11c9ea683d7f0";
-    #hash = "sha256-++aFUrGF7XKvJbFXOAI8MnNqxd0b4DJSTo2zCzIK8y8=";
-    #owner = "SimSaladin";
-    #rev = "5184dbaab3be11a47a206d1de3a11c9ea683d7f0";
-    #hash = "sha256-++aFUrGF7XKvJbFXOAI8MnNqxd0b4DJSTo2zCzIK8y8=";
-    #version = "0.16.27";
-    #src = builtins.fetchTree {
-    #  type = "path";
-    #  path = /home/sim/_/libtorrent;
-    #};
-  };
-
-  latest = libtorrent_0_16_27;
 }

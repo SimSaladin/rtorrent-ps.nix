@@ -1,57 +1,22 @@
-{ pkgs2111
-, runCommand
-, fetchFromGitHub
-, makeWrapperArgs ? [ ]
-, passthru ? { }
+{ lib ? pkgs.lib
+, pkgs
+, pkgs2111 ? pkgs.pkgs2111
 }:
 
 let
   inherit (pkgs2111) python2; /* Must have sufficiently old sphinx */
 
-  pyrobase = python2.pkgs.callPackage ./pyrobase.nix { };
+  # callPackage so that missing python2 pkgs are taken from old pkgset,
+  # while everything else is from the default pkgset.
+  callOldPythonPackage = lib.callPackageWith (pkgs // python2.pkgs // {
+    inherit python2; });
 
-  ProxyTypes = python2.pkgs.callPackage ./ProxyTypes.nix { };
+  pyrobase = callOldPythonPackage ./pyrobase.nix { };
 
-  pyrocore = python2.pkgs.callPackage ./pyrocore.nix {
+  ProxyTypes = callOldPythonPackage ./ProxyTypes.nix { };
+
+  pyrocore = callOldPythonPackage ./pyrocore.nix {
     inherit pyrobase ProxyTypes;
-    inherit fetchFromGitHub;
-    inherit makeWrapperArgs;
-
-    passthru = passthru // {
-      inherit createImport;
-
-      # Note: unlike the executables in pyrocore, here the python env (NIX_*
-      # variables) is setup correctly so that if setting PYTHONPATH in environment
-      # does not break the executables...
-      pyEnv = python2.buildEnv.override {
-        extraLibs = [ pyrocore ];
-        ignoreCollisions = true;
-      };
-    };
   };
-
-  # NOTE: args should have non-null src
-  createImport = args:
-    let
-      dir = runCommand "pyrocore-create-imports" args ''
-        mkdir -p $out
-
-        for infile in $src/*.rc{,.include}; do
-          outfile=$out/$(basename "$infile")
-          substituteAll "$infile" "$outfile"
-          if found=$(grep -o '^[^#]*\(@[A-Za-z][A-Za-z0-9_]*@\)' "$outfile"); then
-            echo "error: placeholder '$found' was not substituted in file '$infile' (value not found)." >&2
-            exit 1
-          fi
-        done
-        ${pyrocore}/bin/pyroadmin -q --create-import "$out/*.rc"
-
-        # Since 0.16.27
-        for f in $out/*.rc; do
-          sed -i -e 's/schedule2/schedule/g' "$f"
-        done
-      '';
-    in
-    "${dir}/.import.rc";
 in
   pyrocore

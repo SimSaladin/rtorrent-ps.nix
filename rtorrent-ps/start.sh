@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
-#
 # rTorrent startup script
-#
 
 fail() {
-    echo "rtorrent-ps: error: $*" >&2
-    exit 1
+    echo "rtorrent-ps: error: ${1:-unspecified}" >&2
+    exit "${2:-1}"
 }
 
 export LANG=en_US.UTF-8
@@ -18,12 +16,17 @@ if [[ -z ${RT_HOME-} ]]; then
 fi
 
 if [[ ! -e $RT_HOME ]]; then
-    echo "creating directory: $RT_HOME" >&2
-    mkdir -p "$RT_HOME" || fail "Could not initialize home directory!"
+    echo >&2 "warning: the instance directory doesn't exist yet ($RT_HOME)." \
+        "Attempting to create it..."
+    if mkdir -p "$RT_HOME"; then
+        :
+    else
+        fail "Could not initialize home directory!" "$?"
+    fi
 fi
 
 # Change directory to the base directory.
-cd "$RT_HOME" || fail "RT_HOME ($RT_HOME) directory does not exist or is not accessible"
+cd "$RT_HOME" || fail "Instance directory inaccessible: $RT_HOME"
 RT_HOME=$(pwd -P)
 export RT_HOME
 
@@ -35,22 +38,34 @@ LimitNOFILE=${LimitNOFILE-500000}
 
 # Set resource limits
 if [[ -n $LimitNOFILE ]]; then
-    ulimit -n "$LimitNOFILE" || fail "Failed to raise open files limit (-n) of process"
+    if ulimit -n "$LimitNOFILE"; then
+        :
+    else
+        fail "Failed to raise open files limit (-n) of process" "$?"
+    fi
 fi
 if [[ -n $LimitFSIZE ]]; then
-    ulimit -f "$LimitFSIZE" || fail "Failed to set FSIZE limit to $LimitFSIZE"
+    if ulimit -f "$LimitFSIZE"; then
+        :
+    else
+        fail "Failed to set FSIZE limit to $LimitFSIZE" "$?"
+    fi
 fi
 
 # Setup TERM properly in some corner case.
 if [[ ${TERM-} =~ ^(xterm|tmux|screen)$ ]]; then
-    export TERM="$TERM-256color"
+    export TERM=$TERM-256color
 fi
 
 # Exit if socket in use or delete if obsolete.
 if [[ -e $RT_SOCKET ]]; then
-    [[ -S $RT_SOCKET ]] || fail "Socket file $RT_SOCKET exists, but it is not a socket!"
+    if ! [[ -S $RT_SOCKET ]]; then
+        fail "Socket file $RT_SOCKET exists, but it is not a socket!"
+    fi
     # TODO the lsof check fails with network namespaces
-    ! lsof -w -- "$RT_SOCKET" >/dev/null || fail "already running (socket in use)"
+    if ! lsof -w -- "$RT_SOCKET" >/dev/null; then
+        fail "already running (socket in use)"
+    fi
     rm -v "$RT_SOCKET"
 fi
 

@@ -1,22 +1,21 @@
-{ lib
-, pkgsGeneric
-, callPackage
-, lua5_4
-, libtorrentVersions
-, rtorrent-ps
+{ lib ? self.lib
+, self
+, pkgs
+, pkgsGeneric ? pkgs.pkgsGeneric
+, lua5_4 ? pkgs.lua5_4
+, libtorrentVersions ? self.libtorrentVersions
+, ps ? self.rtorrent-ps
+, rtorrentPSVersion ? ps.rtorrentPSVersion
 }:
 
 let
-  ps = rtorrent-ps;
-
-  builder = args0: let
-    args = {
+  builder = args0:
+  let args = {
       inherit (pkgsGeneric) stdenv;
-      inherit ps;
-      rtorrentPSVersion = ps.rtorrentPSVersion;
-    } // args0;
+      inherit ps rtorrentPSVersion;
+    };
   in
-    callPackage ./generic-builder.nix args;
+    self.callPackage ./generic-builder.nix (args // args0);
 in
 lib.recurseIntoAttrs rec {
 

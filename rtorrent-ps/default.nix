@@ -1,16 +1,7 @@
-{ lib
-, callPackage
-, fetchFromGitHub
-, rtorrentVersions
-}@args:
+{ lib, pkgs, self }:
 
 let
-  builder =
-    { src
-    , rtorrent
-    , ...
-    }@bargs:
-    callPackage ./builder.nix (args // bargs);
+  builder = bargs: self.callPackage ./builder.nix bargs;
 
 in
 lib.recurseIntoAttrs rec {
@@ -18,13 +9,13 @@ lib.recurseIntoAttrs rec {
 
   rtorrent-ps_1_1-71-gee296b1 = builder {
     inherit rtorrentPSVersion;
-    src = fetchFromGitHub {
+    src = pkgs.fetchFromGitHub {
       owner = "pyroscope";
       repo = "rtorrent-ps";
       rev = "ee296b11fb3d609dfdba97ded57f89782f18e4ad";
       hash = "sha256-DUPZ1oUqtWxJYO6z1rmcVSeutpTX5W9jhhdinN4wK5E=";
     };
-    rtorrent = rtorrentVersions.latest;
+    rtorrent = self.rtorrentVersions.latest;
   };
 
   latest = rtorrent-ps_1_1-71-gee296b1;
