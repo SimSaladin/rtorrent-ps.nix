@@ -19,12 +19,17 @@ method.insert = execute.capture_system_nothrow, simple, "string.rstrip = \
 
 # os.path.exists = <path> >> bool (0 or 1)
 #   Check if <<path>> exists.
-method.insert = os.path.exists, simple, "string.equals = 0, \
-  (execute.capture_system, \"set +e; test -e \\\"$1\\\"; echo $?\", (argument.0))"
+method.insert.simple = os.path.exists, \
+    ((string.equals, 0, ((execute.capture_system, "set +e; test -e \"$1\"; echo $?", ((argument.0))))))
 
 # check if path is a readable file
-method.insert = os.path.readable, simple, "string.equals = 0, \
-  (execute.capture_system, \"set +e; test -r \\\"$1\\\"; echo $?\", (argument.0))"
+method.insert.simple = os.path.readable, \
+    ((string.equals, 0, ((execute.capture_system, "set +e; test -r \"$1\"; echo $?", ((argument.0))))))
 
 # Attempt to import the argument when it's a file
-method.insert.simple = try_import_existing_N, ((if, ((os.path.readable, ((argument.0)))), ((try_import, ((argument.0))))))
+method.insert.simple = try_import_existing, "branch=(os.path.readable, (argument.0)), ((try_import, ((argument.0))))"
+
+# Takes a path to a torrent file. If it exists, loads and starts it.
+method.insert = load.start_verbose_torrent, simple, \
+  "branch = (and, (string.endswith, (argument.0), \".torrent\"), (os.path.exists, (argument.0))), \
+            ((load.start_verbose, (argument.0)))"

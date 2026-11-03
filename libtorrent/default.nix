@@ -5,13 +5,13 @@
 , openssl ? pkgs.openssl
 , udns ? pkgs.udns
 , rtorrent-ps ? self.rtorrent-ps
-, rtorrentPSVersion ? rtorrent-ps.rtorrentPSVersion
+#, rtorrentPSVersion ? rtorrent-ps.rtorrentPSVersion
 , ps ? rtorrent-ps.latest
 }:
 let
   builder = args: self.callPackage ./generic-builder.nix ({
     inherit (pkgsGeneric) stdenv;
-    inherit ps rtorrentPSVersion;
+    #inherit ps rtorrentPSVersion;
   } // args);
 in
 lib.recurseIntoAttrs rec {
@@ -21,6 +21,7 @@ lib.recurseIntoAttrs rec {
   libtorrent_0_16_27 = builder {
     version = "0.16.27";
     hash = "sha256-m7nQb02VvYneprCW3X5Qg27NWw33DihrKxA7nCjq5DI=";
+    enableAligned = true; # https://github.com/rakshasa/rtorrent/issues/1237
   };
 
   libtorrent_0_13_6 = builder {
@@ -57,7 +58,7 @@ lib.recurseIntoAttrs rec {
   # - memory crash fixes
   # - udns
   # - scanf crash fix
-  libtorrent_0_13_8-20230416 = (builder {
+  libtorrent_0_13_8-20230416 = builder {
     version = "0.13.8-20230416";
     rev = "91f8cf4b0358d9b4480079ca7798fa7d9aec76b5";
     hash = "sha256-mEIrMwpWMCAA70Qb/UIOg8XTfg71R/2F4kb3QG38duU=";
@@ -70,23 +71,5 @@ lib.recurseIntoAttrs rec {
     ];
     buildInputs = [ udns ];
     enableAligned = true; # https://github.com/rakshasa/rtorrent/issues/1237
-  });
-
-  libtorrent_0_16_0-5efa83a = builder {
-    version = "0.16.0-5efa83a";
-    rev = "5efa83e19aa17a111ae4b9918ffcb330d6496766";
-    hash = "sha256-F053OKTcf+mH9Dmo3ZP4SurJs28/MimCnsp2RR1DjWY=";
-    patches = [
-      ./patches/trackers6.patch
-    ];
-    postInstall = ''
-      for file in tracker/tracker_list.h download/download_main.h data/chunk_handle.h data/chunk_list_node.h download/delegator.h net/address_list.h net/data_buffer.h
-      do
-        install -Dm0644 $src/src/$file $out/include/$file
-      done
-      for file in rak/socket_address.h; do
-        install -Dm0644 $src/$file $out/include/$file
-      done
-    '';
   };
 }

@@ -3,10 +3,12 @@
 # Regarding options to change 'pyrocore' configuration defaults,
 # see the comments in the files located in this directory:
 #
-#   @pyroscope@/rtorrent.d
+#   @pyrocore@/lib/pyroscope/rtorrent.d
 
 # Import "pyrocore" defaults
-import = @rtorrentPyroImportRC@
+import = "@rtorrentPyroRC@"
+
+print = "Imported pyrocore configs"
 
 # TORQUE: Daemon watchdog schedule
 # Must be activated by touching the "$RT_HOME/run/pyrotorque" file!

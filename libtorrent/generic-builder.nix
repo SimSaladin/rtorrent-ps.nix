@@ -1,14 +1,10 @@
 { lib
-, ps
-, rtorrentPSVersion
 , version ? null
 , rev ? "v${version}"
 , owner ? "rakshasa"
 , hash ? null
 , patches ? [ ]
 , buildInputs ? [ ]
-, nativeBuildInputs ? [ ]
-, postInstall ? null
 , fetchFromGitHub
 , stdenv
 , pkg-config
@@ -20,13 +16,9 @@
 , curl
 , withPosixFallocate ? stdenv.hostPlatform.isLinux
 , enableAligned ? false
+, enableStatic ? false
 , c-aresSupport ? true
 , configureFlags ? [ ]
-, doCheck ? null
-, doInstallCheck ? null
-, passthru ? { }
-, meta ? { }
-, enableParallelBuilding ? true
 }:
 
 let
@@ -52,7 +44,7 @@ let
 in
 {
   pname = "libtorrent";
-  version = version' + "+PS" + rtorrentPSVersion;
+  version = version';
 
   src = fetchFromGitHub {
     repo = "libtorrent";
@@ -62,19 +54,21 @@ in
   configureFlags =
     lib.optional withPosixFallocate "--with-posix-fallocate" ++
     lib.optional enableAligned "--enable-aligned" ++
+    lib.optional enableStatic "--enable-static" ++
     configureFlags;
 
   buildInputs = [ cppunit openssl libsigcxx_2_0 zlib ]
     ++ lib.optional (lib.versionAtLeast finalAttrs.finalPackage.version "0.16") (if c-aresSupport then curl.override { c-aresSupport = true; } else curl)
     ++ buildInputs;
 
-  nativeBuildInputs = [ pkg-config autoreconfHook ] ++ nativeBuildInputs;
+  nativeBuildInputs = [ pkg-config autoreconfHook ];
 
-  inherit patches postInstall enableParallelBuilding;
+  inherit patches;
+  enableParallelBuilding = true;
 
-  doCheck = if isNull doCheck then lib.versionAtLeast finalAttrs.finalPackage.version "0.16" else doCheck;
+  doCheck = lib.versionAtLeast finalAttrs.finalPackage.version "0.16";
 
-  doInstallCheck = if isNull doInstallCheck then lib.versionAtLeast finalAttrs.finalPackage.version "0.16" else doInstallCheck;
+  doInstallCheck = lib.versionAtLeast finalAttrs.finalPackage.version "0.16";
 
   postAutoreconf = ''
     automake --add-missing
@@ -82,15 +76,12 @@ in
   '';
 
   passthru = {
-    inherit ps;
-    apiVersion = srcVersion;
     libtorrentVersion = version';
-    inherit rtorrentPSVersion;
-  } // passthru;
+  };
 
   meta = {
     description = "A BitTorrent library written in C++ for *nix, with focus on high performance and good code";
     homepage = "https://github.com/rakshasa/libtorrent";
     license = lib.licenses.gpl2Plus;
-  } // meta;
+  };
 })

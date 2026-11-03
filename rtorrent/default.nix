@@ -9,6 +9,11 @@
 }:
 
 let
+  #defaultFiles = {
+  #  command_pyroscope_cc = ./0.9.6/command_pyroscope.cc;
+  #  ui_pyroscope_h = "${ps}/patches/ui_pyroscope.h";
+  #  ui_pyroscope_cc = "${ps}/patches/ui_pyroscope.cc";
+  #};
   builder = args0:
   let args = {
       inherit (pkgsGeneric) stdenv;
@@ -18,6 +23,20 @@ let
     self.callPackage ./generic-builder.nix (args // args0);
 in
 lib.recurseIntoAttrs rec {
+
+  latest = rtorrent_0_16_27;
+
+  rtorrent_0_16_27 = builder {
+    version = "0.16.27";
+    rev = "e5689c47ef734233cc677de55afab4e449e42e2d";
+    hash = "sha256-4jv1igY2KtB++2ksE7j1wahEpmo9WAwTciVifHwcX8k=";
+    owner = "SimSaladin";
+    libtorrent = libtorrentVersions.libtorrent_0_16_27;
+    enableSystemd = true;
+    withAutoreconfHook = true;
+    enableLua = true;
+    lua = lua5_4;
+  };
 
   #rtorrent_0_9_6 = builder {
   #  version = "0.9.6";
@@ -159,53 +178,4 @@ lib.recurseIntoAttrs rec {
   #    cp -v ${./0.16.0-677f8f4/color_map.h} $sourceRoot/src/display/color_map.h
   #  '';
   #};
-
-
-  #rtorrent_0_16_0-next = builder {
-  #  version = "0.16.0-next";
-  #  rev = "a5fbcc2e2cf71bed2a9757183556c4a6101a2db2";
-  #  hash = "sha256-QrM8j+IRqpp6nSy73WpI5kgkpovohH70t0+t90emJ5k=";
-  #  owner = "SimSaladin";
-  #  libtorrentVersion = "0.16.0-next";
-  #  enableIPv6 = true;
-  #  withAutoreconfHook = true;
-  #  enableLua = true;
-  #  lua = lua5_4;
-  #  patches = [ ];
-  #  files = null;
-  #};
-
-  rtorrent_0_16_9-next = builder {
-    version = "0.16.9-next";
-    rev = "450d43ae2e1ce5fe9b45fea3437a1e76d4a9bee0";
-    hash = "sha256-Tl61PBxnbpvSmPv07AngkcOIJANSVKkj77czWQ475Dg=";
-    owner = "SimSaladin";
-    libtorrent = libtorrentVersions.libtorrent_0_16_9-next;
-    enableSystemd = true;
-    enableIPv6 = true;
-    withAutoreconfHook = true;
-    enableLua = true;
-    lua = lua5_4;
-    patches = [ ];
-    files = null;
-  };
-
-  rtorrent_0_16_27 = builder {
-    version = "0.16.27";
-    rev = "3aa8dc95cdb95dbe84b666bd69067ec614b1c733";
-    hash = "sha256-IL3RVrzshw4PCtpgmf4Eo5oc9O4QWjYDMfYb+jc5d6Y=";
-    #rev = "e6ac52e2414a066a9c02bc05bb9ac4505101f679";
-    #hash = "sha256-Y6464ixQo0KQcH7cQbrPIbIOpuY17gk7z8t3/SkxT30=";
-    owner = "SimSaladin";
-    libtorrent = libtorrentVersions.libtorrent_0_16_27;
-    enableSystemd = true;
-    enableIPv6 = true;
-    withAutoreconfHook = true;
-    enableLua = true;
-    lua = lua5_4;
-    patches = [ ];
-    files = null;
-  };
-
-  latest = rtorrent_0_16_27;
 }

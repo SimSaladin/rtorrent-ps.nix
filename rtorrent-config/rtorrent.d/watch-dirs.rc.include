@@ -1,8 +1,11 @@
 # Standard watch directories
 
 # Simple watches that load items started or closed
-load.start_verbose = (cat, (cfg.watch), "start/*.torrent")
-load.verbose = (cat, (cfg.watch), "load/*.torrent")
+#load.start_verbose = (cat, (cfg.watch), "start/*.torrent")
+#load.verbose = (cat, (cfg.watch), "load/*.torrent")
+
+directory.watch.added = (cat, (cfg.watch), "start"), load.start_verbose
+directory.watch.added = (cat, (cfg.watch), "load"), load.verbose
 
 # Load item and delete the metafile from the watch dir
 load.verbose = (cat, (cfg.watch), "cleaned/*.torrent"), "d.delete_tied=", "d.watch.startable="

@@ -41,13 +41,18 @@ method.insert = pmb._logfile_find_cmd, simple|private, \
 # (Re-)open all logs with a current time stamp; the main log file
 # is just opened, you need to add some logging scopes yourself!
 method.insert  = pyro.log_rotate, multi|rlookup|static
-method.set_key = pyro.log_rotate, !stamp, "pyro.log_stamp.current.set = (pyro.date_iso.log_stamp)"
-method.set_key = pyro.log_rotate, execute, "log.execute = (pyro.logfile_path, execute)"
-method.set_key = pyro.log_rotate, messages, "pyro.log.messages = (pyro.logfile_path, messages)"
+method.set_key = pyro.log_rotate, !stamp, ((pyro.log_stamp.current.set, ((pyro.date_iso.log_stamp))))
+method.set_key = pyro.log_rotate, execute, ((log.execute, ((pyro.logfile_path, execute))))
+method.set_key = pyro.log_rotate, messages, ((pyro.log.messages, ((pyro.logfile_path, messages))))
 method.set_key = pyro.log_rotate, xmlrpc, "branch = (pyro.log.xmlrpc.enabled), \
     ((log.xmlrpc, (pyro.logfile_path, xmlrpc))), \
     ((log.xmlrpc, (pyro._log.xmlrpc.closing)))"
-method.set_key = pyro.log_rotate, ~main, "log.open_file = log, (pyro.logfile_path, rtorrent)"
+method.set_key = pyro.log_rotate, ~main, ((do,\
+    ((log.open_file, log, ((pyro.logfile_path, rtorrent)))),\
+    ((log.add_output, errors, log)),\
+    ((log.add_output, events, log)),\
+    ((log.add_output, system, log))\
+    ))
 
 # Logrotate schedule (rotating shortly after 1AM, so DST shenanigans
 # are taken care of, and rotation is always near the begin of the next day)
@@ -60,7 +65,7 @@ schedule = pyro_logfile_pruning, 01:20:00, 24:00:00, \
     ((execute.nothrow, sh, -c, ((pmb._logfile_find_cmd, log.gz, ((pyro.log_retention.days)), rm))))
 
 schedule = pyro_startup_log_xmlrpc_open, 7, 0, \
-    ((if, ((pyro.log.xmlrpc.enabled)), ((log.xmlrpc, ((pyro.logfile_path, xmlrpc)) ))))
+    "branch = (pyro.log.xmlrpc.enabled), ((log.xmlrpc, ((pyro.logfile_path, xmlrpc)) ))"
 
 # Open logs initially on startup
 pyro.log_rotate=

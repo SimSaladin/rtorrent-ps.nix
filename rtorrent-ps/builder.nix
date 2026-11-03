@@ -27,12 +27,12 @@
 
 stdenv.mkDerivation (fa: {
   pname = "rtorrent-ps";
-  version = "${rtorrentPSVersion}+${rtorrent.version}";
+  version = "${rtorrent.version}";
 
-  inherit src initRc;
+  inherit src;
   inherit PYRO_CONFIG_DIR RT_HOME RT_SOCKET;
 
-  RT_INITRC = fa.initRc + "/rtorrent.rc";
+  RT_INITRC = toString initRc;
 
   makeWrapperArgs = lib.concatStringsSep " " [
     "--prefix PATH : $out/bin"
@@ -42,33 +42,26 @@ stdenv.mkDerivation (fa: {
     "--set-default RT_INITRC ${fa.RT_INITRC}"
   ];
 
-  pyrocoreThis = pyrocore.override {
-    makeWrapperArgs = [
-      "--prefix PATH : $out/bin"
-      "--run 'export RT_HOME=\${RT_HOME-${fa.RT_HOME}}'"
-      "--run 'export RT_SOCKET=\${RT_SOCKET-${fa.RT_SOCKET}}'"
-      "--set-default RT_INITRC ${fa.RT_INITRC}"
-    ];
-  };
+  passthru = {
+    inherit rtorrentPSVersion;
+    inherit (pyrocore.passthru) pyEnv;
 
-  inherit (fa.pyrocoreThis.passthru) pyEnv;
-
-  startScript =
-    writeShellApplication {
-      name = fa.pname;
-      text = builtins.readFile ./start.sh;
-      runtimeInputs = [ coreutils lsof ];
-      runtimeEnv = {
-        RT_BIN = lib.getExe rtorrent;
-        inherit (fa) PYRO_CONFIG_DIR RT_INITRC;
+    startScript =
+      writeShellApplication {
+        name = fa.pname;
+        text = builtins.readFile ./start.sh;
+        runtimeInputs = [ coreutils lsof ];
+        runtimeEnv = {
+          RT_BIN = lib.getExe rtorrent;
+        };
       };
-    };
+  };
 
   nativeBuildInputs = [
     lndir
     makeWrapper
     installShellFiles
-    (fa.pyEnv.python.withPackages (ps: with ps; [ sphinx sphinx_rtd_theme ]))
+    (fa.passthru.pyEnv.python.withPackages (ps: with ps; [ sphinx sphinx_rtd_theme ]))
   ];
 
   postBuild = ''
@@ -77,13 +70,14 @@ stdenv.mkDerivation (fa: {
 
     # Create python-pyrocore: python interpreter with the appropriate packages available.
     # Also create wrappers for the pyrocore python scripts.
-    makeWrapper ${fa.pyEnv.interpreter} $out/bin/python-pyrocore ${fa.makeWrapperArgs}
-    for exe in ${fa.pyrocoreThis}/bin/*; do
+    makeWrapper ${fa.passthru.pyEnv.interpreter} $out/bin/python-pyrocore ${fa.makeWrapperArgs}
+    for exe in ${pyrocore}/bin/*; do
       baseName=$(basename "$exe")
-      makeWrapper ${fa.pyEnv}/bin/"$baseName" $out/bin/"$baseName" ${fa.makeWrapperArgs}
+      makeWrapper ${fa.passthru.pyEnv}/bin/"$baseName" $out/bin/"$baseName" ${fa.makeWrapperArgs}
     done
     makeWrapper ${lib.getExe rtorrent-magnet} $out/bin/rtorrent-magnet ${fa.makeWrapperArgs}
-    makeWrapper ${lib.getExe fa.startScript} $out/bin/${fa.pname} ${fa.makeWrapperArgs}
+
+    makeWrapper ${lib.getExe fa.passthru.startScript} $out/bin/${fa.pname} ${fa.makeWrapperArgs}
   ''
   ;
 
@@ -97,15 +91,11 @@ stdenv.mkDerivation (fa: {
 
     for dir in share lib/pyroscope; do
       mkdir -p $out/$dir
-      for drv in ${rtorrent} ${fa.pyEnv}; do
+      for drv in ${rtorrent} ${fa.passthru.pyEnv}; do
         if [[ -e $drv/$dir ]]; then
           lndir $drv/$dir $out/$dir
         fi
       done
     done
   '';
-
-  passthru = {
-    inherit rtorrentPSVersion;
-  };
 })

@@ -28,14 +28,13 @@ execute.throw = mkdir, -p, --, \
     (cat, (cfg.watch), "load"), \
     (cat, (cfg.watch), "start")
 
-# TODO this doesn't seem to work with the new syntax...
 ## A function for reporting major important values on startup and after.
-#method.insert = debug.print_current_config_values, simple|const, \
-#   ((cat, "INFO: (some) config values are currently:",\
-#     " cfg.basedir='",  (cfg.basedir),  "'",\
-#     " cfg.watch='",    (cfg.watch),    "'",\
-#     " cfg.logs='",     (cfg.logs),     "'",\
-#     " session.path='", (session.path), "'"))
-#
-## Print the config values at startup
-#print = (debug.print_current_config_values)
+method.insert.simple = debug.print_current_config_values, \
+   ((cat, "INFO: (some) config values are currently:",\
+     " cfg.basedir='",  (cfg.basedir),  "'",\
+     " cfg.watch='",    (cfg.watch),    "'",\
+     " cfg.logs='",     (cfg.logs),     "'",\
+     " session.path='", (session.path), "'"))
+
+# Print the config values at startup
+print = (debug.print_current_config_values)

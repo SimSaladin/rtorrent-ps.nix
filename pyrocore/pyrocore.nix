@@ -104,8 +104,10 @@ lib.fix (finalPackage:
         ignoreCollisions = true;
       };
 
+      rtorrentPyroRC = "${finalPackage}/lib/pyroscope/rtorrent-pyro.rc";
+
       createImport = { src, env ? { } }:
-        "${runCommand "create-import" { inherit src env; } ''${lib.getExe create-pyrocore-import} $src $out''}/.import.rc";
+        "${runCommand "create-import" { inherit src env; } ''${lib.getExe create-import} $src $out''}/.import.rc";
 
       # Writes a $out/.import.rc which can be imported.
       #
@@ -113,14 +115,10 @@ lib.fix (finalPackage:
       #
       #   import = @rtorrentPyroImportRC@
       #
-      create-pyrocore-import = writeShellApplication {
-        name = "create-pyrocore-import";
+      create-import = writeShellApplication {
+        name = "pyrocore-create-import";
         runtimeInputs = [ finalPackage ];
         text = ''
-          export pyrocore=${finalPackage}
-          export pyroscope=$pyrocore
-          export rtorrentPyroImportRC=$pyrocore/lib/pyroscope/rtorrent-pyro.rc
-
           export SRC=''${1?Source directory missing}
           export DEST=''${2?Destination directory missing}
           mkdir -p "$DEST"
