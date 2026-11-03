@@ -52,17 +52,16 @@
           packages = flattenTree pkgs.rtorrentPS // {
             default = self.packages.${system}."rtorrent-ps/latest";
           };
-
-          #checks = test-rtorrent-ps = self.packages.${system}.rtorrent-ps;
         };
 
       overlays = {
-        rtorrent-ps = final: prev: {
+        rtorrent-ps = final: _: {
           rtorrentPS = final.callPackage ./packages.nix { };
+          rtorrent-ps = final.rtorrentPS.rtorrent-ps.latest;
         };
-        python2-available = final: prev: {
+        python2-available = _: prev: {
           pkgs2111 = import inputs.nixpkgs2111 {
-            system = prev.system;
+            inherit (prev.stdenv.hostPlatform) system;
             config = nixpkgs2111Config;
           };
         };
@@ -75,12 +74,12 @@
             makeGenericSystem = sys:
               if sys.isx86_64 then lib.systems.elaborate sys.system else sys;
           in
-            if prev ? pkgsGeneric then prev.pkgsGeneric else
-            if isGenericSystem final.stdenv.hostPlatform then final else
+            prev.pkgsGeneric or
+            (if isGenericSystem final.stdenv.hostPlatform then final else
             import prev.path {
               inherit (final) config overlays;
               localSystem = makeGenericSystem final.stdenv.hostPlatform;
-            };
+            });
         };
         default = lib.composeManyExtensions [
           self.overlays.python2-available

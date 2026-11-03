@@ -25,7 +25,6 @@
 , hash ? ""
 
 , libtorrent
-, ps ? libtorrent.ps
 , rtorrentPSVersion
 , files ? { }
 , enableDebug ? false
@@ -99,7 +98,6 @@ stdenv.mkDerivation (finalAttrs: {
   passthru = {
     libtorrentVersion = libtorrent.version;
     rtorrentVersion = finalAttrs.finalPackage.version;
-    inherit ps;
   };
 
   postUnpack = lib.concatMapAttrsStringSep "\n" (n: v: "cp ${v} $sourceRoot/src/${n}") files;

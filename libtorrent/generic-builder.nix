@@ -3,8 +3,6 @@
 , rev ? "v${version}"
 , owner ? "rakshasa"
 , hash ? null
-, patches ? [ ]
-, buildInputs ? [ ]
 , fetchFromGitHub
 , stdenv
 , pkg-config
@@ -18,7 +16,6 @@
 , enableAligned ? false
 , enableStatic ? false
 , c-aresSupport ? true
-, configureFlags ? [ ]
 }:
 
 let
@@ -54,16 +51,13 @@ in
   configureFlags =
     lib.optional withPosixFallocate "--with-posix-fallocate" ++
     lib.optional enableAligned "--enable-aligned" ++
-    lib.optional enableStatic "--enable-static" ++
-    configureFlags;
+    lib.optional enableStatic "--enable-static";
 
   buildInputs = [ cppunit openssl libsigcxx_2_0 zlib ]
-    ++ lib.optional (lib.versionAtLeast finalAttrs.finalPackage.version "0.16") (if c-aresSupport then curl.override { c-aresSupport = true; } else curl)
-    ++ buildInputs;
+    ++ lib.optional (lib.versionAtLeast finalAttrs.finalPackage.version "0.16") (if c-aresSupport then curl.override { c-aresSupport = true; } else curl);
 
   nativeBuildInputs = [ pkg-config autoreconfHook ];
 
-  inherit patches;
   enableParallelBuilding = true;
 
   doCheck = lib.versionAtLeast finalAttrs.finalPackage.version "0.16";

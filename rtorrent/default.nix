@@ -4,8 +4,7 @@
 , pkgsGeneric ? pkgs.pkgsGeneric
 , lua5_4 ? pkgs.lua5_4
 , libtorrentVersions ? self.libtorrentVersions
-, ps ? self.rtorrent-ps
-, rtorrentPSVersion ? ps.rtorrentPSVersion
+, rtorrentPSVersion ? self.rtorrent-ps.rtorrentPSVersion
 }:
 
 let
@@ -17,14 +16,14 @@ let
   builder = args0:
   let args = {
       inherit (pkgsGeneric) stdenv;
-      inherit ps rtorrentPSVersion;
+      inherit rtorrentPSVersion;
     };
   in
     self.callPackage ./generic-builder.nix (args // args0);
 in
-lib.recurseIntoAttrs rec {
+lib.makeExtensible (self': lib.recurseIntoAttrs {
 
-  latest = rtorrent_0_16_27;
+  latest = self'.rtorrent_0_16_27;
 
   rtorrent_0_16_27 = builder {
     version = "0.16.27";
@@ -178,4 +177,4 @@ lib.recurseIntoAttrs rec {
   #    cp -v ${./0.16.0-677f8f4/color_map.h} $sourceRoot/src/display/color_map.h
   #  '';
   #};
-}
+})

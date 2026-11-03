@@ -24,7 +24,8 @@ in
       type = types.nullOr types.str;
       default = null;
       description = ''
-        The rTorrent base directory to use. Defaults to `~/.rtorrent` (set to `null`).
+        The rTorrent base directory to use.
+        Defaults to `~/.rtorrent` (when `null`).
       '';
     };
 

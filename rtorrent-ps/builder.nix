@@ -1,4 +1,5 @@
 { lib
+, fetchFromGitHub
 , stdenv
 , installShellFiles
 , writeShellApplication
@@ -7,7 +8,8 @@
 , lndir
 , coreutils
 , lsof
-, src
+, rev
+, hash
 , rtorrentPSVersion
 , rtorrent
 , rtorrent-magnet
@@ -29,7 +31,11 @@ stdenv.mkDerivation (fa: {
   pname = "rtorrent-ps";
   version = "${rtorrent.version}";
 
-  inherit src;
+  src = fetchFromGitHub {
+    owner = "pyroscope";
+    repo = "rtorrent-ps";
+    inherit rev hash;
+  };
   inherit PYRO_CONFIG_DIR RT_HOME RT_SOCKET;
 
   RT_INITRC = toString initRc;

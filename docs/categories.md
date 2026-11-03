@@ -8,7 +8,7 @@ Configure watch directories in `$RT_HOME/watch-dirs.rc` (automatically reloaded)
   items.
 - Define categories: `pyro.category.add = hdtv`.
 
-```
+```rtorrent
 # "Other" category for empty labels
 pyro.category.add = (cat,)
 ```
@@ -19,7 +19,7 @@ pyro.category.add = (cat,)
 - Get category: `d.custom = category`
 
 ```bash
-# The category is stored in the custom_1 attribute of items.
+# The category is in the custom_1 attribute of items.
 rtcontrol custom_1=\! -qo custom_1
 
 # Set category of all items that have the tracker 'foobar':
@@ -30,15 +30,20 @@ rtcontrol tracker=foobar --exec="d.category.set=asdf"
 
 Named like `category_<category>`
 
-- List category views:              `python-pyrocore -m pyrocore.ui.categories -l`
-- Rotate to next view (key `>`):      `python-pyrocore -m pyrocore.ui.categories -qn`
-- Rotate to previous view (key `<`):  `python-pyrocore -m pyrocore.ui.categories -qp`
-- Re-filter current view (key `|`):   `python-pyrocore -m pyrocore.ui.categories -qu`
+- List category views:
+  `python-pyrocore -m pyrocore.ui.categories -l`
+- Rotate to next view (key `>`):
+  `python-pyrocore -m pyrocore.ui.categories -qn`
+- Rotate to previous view (key `<`):
+  `python-pyrocore -m pyrocore.ui.categories -qp`
+- Re-filter current view (key `<pipe>`):
+  `python-pyrocore -m pyrocore.ui.categories -qu`
 
 ## Load categorized items
 
-- `load.category = <category>`: Load categorized items (sets the ruTorrent label, and define a view).
-- `load.category.normal = <category>`: only load categorized items.
+- `load.category = <category>`: Load categorized items
+  (sets the ruTorrent label, and define a view).
+- `load.category.normal = <category>`: load categorized items.
 - `load.category.start = <category>`: load and start categorized items.
 
 Categorized items are loaded from `<watch_dir>/<category>/*.torrent`.
@@ -53,7 +58,7 @@ Categorized items are loaded from `<watch_dir>/<category>/*.torrent`.
 
 Add in `$RT_HOME/watch-dirs.rc`:
 
-```
+```rtorrent
 pyro.category.add = hdtv
 schedule2 = watch_hdtv, 10, 10, ((load.category, hdtv))
 ```

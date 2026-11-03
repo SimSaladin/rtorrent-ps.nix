@@ -1,22 +1,16 @@
-{ lib ? self.lib
+{ self
+, lib ? self.lib
 , pkgs
-, self
 , pkgsGeneric ? pkgs.pkgsGeneric
-, openssl ? pkgs.openssl
-, udns ? pkgs.udns
-, rtorrent-ps ? self.rtorrent-ps
-#, rtorrentPSVersion ? rtorrent-ps.rtorrentPSVersion
-, ps ? rtorrent-ps.latest
 }:
 let
   builder = args: self.callPackage ./generic-builder.nix ({
     inherit (pkgsGeneric) stdenv;
-    #inherit ps rtorrentPSVersion;
   } // args);
 in
-lib.recurseIntoAttrs rec {
+lib.makeExtensible (self': lib.recurseIntoAttrs {
 
-  latest = libtorrent_0_16_27;
+  latest = self'.libtorrent_0_16_27;
 
   libtorrent_0_16_27 = builder {
     version = "0.16.27";
@@ -24,52 +18,52 @@ lib.recurseIntoAttrs rec {
     enableAligned = true; # https://github.com/rakshasa/rtorrent/issues/1237
   };
 
-  libtorrent_0_13_6 = builder {
-    version = "0.13.6";
-    hash = "sha256-lznHPca8nf/VB37CZQg+P7VMTqv/6Wly2laHEdbreec=";
-    patches = [
-      "${ps}/patches/lt-base-cppunit-pkgconfig.patch"
-      "${ps}/patches/lt-ps-better-bencode-errors_all.patch"
-      "${ps}/patches/lt-ps-honor_system_file_allocate_all.patch"
-      "${ps}/patches/lt-ps-log_open_file-reopen_all.patch"
-    ] ++ lib.optional (lib.versions.majorMinor openssl.version == "1.1") "${ps}/patches/lt-open-ssl-1.1.patch";
-  };
+  #libtorrent_0_13_6 = builder {
+  #  version = "0.13.6";
+  #  hash = "sha256-lznHPca8nf/VB37CZQg+P7VMTqv/6Wly2laHEdbreec=";
+  #  patches = [
+  #    "${ps}/patches/lt-base-cppunit-pkgconfig.patch"
+  #    "${ps}/patches/lt-ps-better-bencode-errors_all.patch"
+  #    "${ps}/patches/lt-ps-honor_system_file_allocate_all.patch"
+  #    "${ps}/patches/lt-ps-log_open_file-reopen_all.patch"
+  #  ] ++ lib.optional (lib.versions.majorMinor openssl.version == "1.1") "${ps}/patches/lt-open-ssl-1.1.patch";
+  #};
 
-  libtorrent_0_13_7 = builder {
-    version = "0.13.7";
-    hash = "sha256-4E6+N5bHEuDQEZqiesUEeJiC3mXINoQX6LDryLhV+Ag=";
-    patches = [
-      "${ps}/patches/lt-ps-better-bencode-errors_all.patch"
-      ./patches/lt-ps-honor_system_file_allocate_0.13.7.patch
-      "${ps}/patches/lt-ps-log_open_file-reopen_all.patch"
-    ] ++ lib.optional (lib.versions.majorMinor openssl.version == "1.1") "${ps}/patches/lt-open-ssl-1.1.patch";
-  };
+  #libtorrent_0_13_7 = builder {
+  #  version = "0.13.7";
+  #  hash = "sha256-4E6+N5bHEuDQEZqiesUEeJiC3mXINoQX6LDryLhV+Ag=";
+  #  patches = [
+  #    "${ps}/patches/lt-ps-better-bencode-errors_all.patch"
+  #    ./patches/lt-ps-honor_system_file_allocate_0.13.7.patch
+  #    "${ps}/patches/lt-ps-log_open_file-reopen_all.patch"
+  #  ] ++ lib.optional (lib.versions.majorMinor openssl.version == "1.1") "${ps}/patches/lt-open-ssl-1.1.patch";
+  #};
 
-  libtorrent_0_13_8 = builder {
-    version = "0.13.8";
-    hash = "sha256-uSDzOU53i0aKm0C27In+zLAAHeKMu5av90DoN5YyvsA=";
-    patches = [
-      "${ps}/patches/lt-ps-better-bencode-errors_all.patch"
-      ./patches/lt-ps-honor_system_file_allocate_0.13.7.patch
-    ];
-  };
+  #libtorrent_0_13_8 = builder {
+  #  version = "0.13.8";
+  #  hash = "sha256-uSDzOU53i0aKm0C27In+zLAAHeKMu5av90DoN5YyvsA=";
+  #  patches = [
+  #    "${ps}/patches/lt-ps-better-bencode-errors_all.patch"
+  #    ./patches/lt-ps-honor_system_file_allocate_0.13.7.patch
+  #  ];
+  #};
 
-  # - ipv6 support
-  # - memory crash fixes
-  # - udns
-  # - scanf crash fix
-  libtorrent_0_13_8-20230416 = builder {
-    version = "0.13.8-20230416";
-    rev = "91f8cf4b0358d9b4480079ca7798fa7d9aec76b5";
-    hash = "sha256-mEIrMwpWMCAA70Qb/UIOg8XTfg71R/2F4kb3QG38duU=";
-    patches = [
-      "${ps}/patches/lt-ps-better-bencode-errors_all.patch"
-      ./patches/lt-ps-honor_system_file_allocate_0.13.7.patch
-      ./patches/libtorrent-udns-0.13.8.patch # from https://github.com/swizzin/swizzin
-      ./patches/libtorrent-scanf-0.13.8.patch # from https://github.com/swizzin/swizzin
-      ./patches/lookup-cache-0.13.8.patch
-    ];
-    buildInputs = [ udns ];
-    enableAligned = true; # https://github.com/rakshasa/rtorrent/issues/1237
-  };
-}
+  ## - ipv6 support
+  ## - memory crash fixes
+  ## - udns
+  ## - scanf crash fix
+  #libtorrent_0_13_8-20230416 = builder {
+  #  version = "0.13.8-20230416";
+  #  rev = "91f8cf4b0358d9b4480079ca7798fa7d9aec76b5";
+  #  hash = "sha256-mEIrMwpWMCAA70Qb/UIOg8XTfg71R/2F4kb3QG38duU=";
+  #  patches = [
+  #    "${ps}/patches/lt-ps-better-bencode-errors_all.patch"
+  #    ./patches/lt-ps-honor_system_file_allocate_0.13.7.patch
+  #    ./patches/libtorrent-udns-0.13.8.patch # from https://github.com/swizzin/swizzin
+  #    ./patches/libtorrent-scanf-0.13.8.patch # from https://github.com/swizzin/swizzin
+  #    ./patches/lookup-cache-0.13.8.patch
+  #  ];
+  #  buildInputs = [ udns ];
+  #  enableAligned = true; # https://github.com/rakshasa/rtorrent/issues/1237
+  #};
+})
