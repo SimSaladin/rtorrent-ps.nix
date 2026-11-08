@@ -1,3 +1,4 @@
+# vim: set ft=rtorrent:
 # Tracker domain display aliases.
 #
 # Note that you need a rTorrent-PS version compiled on or after 2017-03-11 for this!
@@ -10,4 +11,5 @@ trackers.alias.set_key = linuxtracker.org, LinuxTracker
 trackers.alias.set_key = files2.publicdomaintorrents.com, "PD Torrents"
 
 # Load user configuration
-try_import = (cat, (cfg.basedir), "tracker-aliases.rc")
+schedule = watch_user_aliases_config, 0, 300, \
+  ((try_import_existing, (cat, (cfg.basedir), "tracker-aliases.rc")))

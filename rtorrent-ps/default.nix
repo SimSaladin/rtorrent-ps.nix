@@ -1,7 +1,7 @@
 { self, lib ? self.lib }:
 
 let
-  builder = bargs: self.callPackage ./builder.nix bargs;
+  builder = self.callPackage ./builder.nix;
 
 in
 lib.makeExtensible (self': lib.recurseIntoAttrs {

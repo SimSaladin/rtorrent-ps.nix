@@ -52,6 +52,8 @@
           packages = flattenTree pkgs.rtorrentPS // {
             default = self.packages.${system}."rtorrent-ps/latest";
           };
+
+          checks = import ./tests { inherit self pkgs; };
         };
 
       overlays = {
@@ -88,6 +90,8 @@
         ];
       };
 
-      hmModules.default = import ./home-manager { };
+      nixosModules.default = import ./modules/nixos-module.nix { };
+
+      hmModules.default = import ./modules/home-module.nix { };
     };
 }

@@ -1,3 +1,4 @@
+# vim: set ft=rtorrent:
 # SCHEDULE: Monitor disk space
 
 branch = (not, (system.has, "close_low_diskspace.normal=")), \

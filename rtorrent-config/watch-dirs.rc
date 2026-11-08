@@ -1,10 +1,11 @@
+# vim:set ft=rtorrent:
 # This file defines standard watch directories. If you use `pyrotorque`,
 # you should disable them.
 
 # Standard watch directories
-schedule = watch_dirs, 121, 10, \
-  ((import, "@out@/watch-dirs.rc.include"))
+directory.watch.added = (cat, (cfg.watch), "start"), load.start_verbose
+directory.watch.added = (cat, (cfg.watch), "load"), load.verbose
 
 # Reload watch directory configuration automatically
-schedule = watch_user_config, 0, 30, \
+schedule = watch_user_watchdirs_config, 0, 600, \
   ((try_import_existing, (cat, (cfg.basedir), "watch-dirs.rc")))

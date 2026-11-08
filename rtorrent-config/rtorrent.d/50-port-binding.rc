@@ -1,4 +1,0 @@
-# Range for listening port
-
-network.listen.port.range.set = 64333-64666
-network.listen.port.random.set = no

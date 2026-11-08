@@ -1,8 +1,13 @@
-# rTorrent-PS Extended Canvas Configuration: Canvas v2 Custom Columns
+# rTorrent-PS Extended Canvas Configuration               vim:set ft=rtorrent:
 #
-# This file gets included by the main file only if the "import.return" command is present
-# (i.e. newer builds with canvas_v2 and related features on board).
+# You can also disable specific columns, by calling 'ui.column.hide'
+# with just the index, *after* this include in your main config, like so:
 #
+#   ui.column.hide = 42
+#
+
+# Provide dummy multi-methods for plain rTorrent
+branch=(not, (pyro.extended)), ((method.insert, ui.column.render, multi|rlookup|static))
 
 # Throttle name (see "_rtlocal.rc" for matching throttle definitions)
 method.set_key = ui.column.render, "800:?3:⋉  ",\

@@ -31,12 +31,13 @@ lib.fix (finalPackage:
 
     makeWrapperArgs = [
       "--set-default PYRO_CONFIG_DIR $out/lib/pyroscope"
+      "--prefix PATH : $out/bin"
     ] ++ makeWrapperArgs;
 
     patches = [
       ./patches/read_config_values_from_env.patch
       ./patches/rtxmlrpc-history-file.patch
-      ./fake-argument-fix.patch
+      ./patches/fake-argument-fix.patch
       # Should not be applied when prompt-toolkit is sufficiently old (lol)
       #./patches/fix_prompt_toolkit_import.patch
     ];
@@ -81,7 +82,7 @@ lib.fix (finalPackage:
       substitute ${./config.tpl.ini} $out/lib/pyroscope/config.ini \
         --subst-var-by pyroscope $out/lib/pyroscope
       substitute ${./rtorrent-pyro.rc} $out/lib/pyroscope/rtorrent-pyro.rc \
-        --subst-var-by rtorrent_d $out/lib/pyroscope/rtorrent.d
+        --subst-var-by pyroscope $out/lib/pyroscope
     '';
 
     postFixup = ''
@@ -103,6 +104,10 @@ lib.fix (finalPackage:
         extraLibs = [ finalPackage ];
         ignoreCollisions = true;
       };
+
+      rtorrentConfigString = ''
+        ${lib.fileContents "${finalPackage}/lib/pyroscope/rtorrent.d/.import.rc"}
+      '';
 
       rtorrentPyroRC = "${finalPackage}/lib/pyroscope/rtorrent-pyro.rc";
 

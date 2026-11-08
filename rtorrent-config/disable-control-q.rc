@@ -1,0 +1,8 @@
+# vim: set ft=rtorrent:
+# Stupid ^Q be gone!
+
+method.insert.simple = quit, ((execute.throw, kill, -INT, (system.pid)))
+method.insert.simple = q, ((quit))
+
+method.insert.simple = pmb._print_noquit, ((print, "^Q is disabled, use '^X quit='"))
+pyro.bind_key = no_quit, ^q, "pmb._print_noquit="

@@ -42,10 +42,8 @@ stdenv.mkDerivation (fa: {
 
   makeWrapperArgs = lib.concatStringsSep " " [
     "--prefix PATH : $out/bin"
-    "--set-default PYRO_CONFIG_DIR ${fa.PYRO_CONFIG_DIR}"
     "--run 'export RT_HOME=\${RT_HOME-${fa.RT_HOME}}'"
     "--run 'export RT_SOCKET=\${RT_SOCKET-${fa.RT_SOCKET}}'"
-    "--set-default RT_INITRC ${fa.RT_INITRC}"
   ];
 
   passthru = {
@@ -59,8 +57,14 @@ stdenv.mkDerivation (fa: {
         runtimeInputs = [ coreutils lsof ];
         runtimeEnv = {
           RT_BIN = lib.getExe rtorrent;
+          RT_INITRC = initRc;
         };
       };
+
+    rtorrentConfigString = ''
+      # Load pyrocore settings
+      ${pyrocore.passthru.rtorrentConfigString}
+    '';
   };
 
   nativeBuildInputs = [

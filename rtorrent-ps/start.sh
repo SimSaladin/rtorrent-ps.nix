@@ -8,8 +8,6 @@ fail() {
 
 export LANG=en_US.UTF-8
 
-umask 0027
-
 if [[ -z ${RT_HOME-} ]]; then
     RT_HOME=${HOME:-$PWD}/.rtorrent
     echo "warning: RT_HOME not set, defaulting to $RT_HOME" >&2
@@ -18,11 +16,7 @@ fi
 if [[ ! -e $RT_HOME ]]; then
     echo >&2 "warning: the instance directory doesn't exist yet ($RT_HOME)." \
         "Attempting to create it..."
-    if mkdir -p "$RT_HOME"; then
-        :
-    else
-        fail "Could not initialize home directory!" "$?"
-    fi
+    mkdir -p "$RT_HOME"
 fi
 
 # Change directory to the base directory.
@@ -38,18 +32,12 @@ LimitNOFILE=${LimitNOFILE-500000}
 
 # Set resource limits
 if [[ -n $LimitNOFILE ]]; then
-    if ulimit -n "$LimitNOFILE"; then
-        :
-    else
-        fail "Failed to raise open files limit (-n) of process" "$?"
-    fi
+    echo >&2 "Setting ulimit -n $LimitNOFILE"
+    ulimit -n "$LimitNOFILE"
 fi
 if [[ -n $LimitFSIZE ]]; then
-    if ulimit -f "$LimitFSIZE"; then
-        :
-    else
-        fail "Failed to set FSIZE limit to $LimitFSIZE" "$?"
-    fi
+    echo >&2 "Setting ulimit -f $LimitNOFILE"
+    ulimit -f "$LimitFSIZE"
 fi
 
 # Setup TERM properly in some corner case.
@@ -63,25 +51,25 @@ if [[ -e $RT_SOCKET ]]; then
         fail "Socket file $RT_SOCKET exists, but it is not a socket!"
     fi
     # TODO the lsof check fails with network namespaces
-    if ! lsof -w -- "$RT_SOCKET" >/dev/null; then
+    if lsof -t -- "$RT_SOCKET" >/dev/null; then
         fail "already running (socket in use)"
     fi
     rm -v "$RT_SOCKET"
 fi
 
 # Make sure necessary directories exist
-mkdir -p "$RT_HOME"/{.session,work,watch/{start,load},log}
+mkdir -p "$RT_HOME"/work
 
 # Exit signal handler
 _at_exit() {
     stty sane
-    #test ! -e "$RT_SOCKET" || rm "$RT_SOCKET"
-    test -z "${TMUX-}" || tmux set-w automatic-rename on >/dev/null || :
+    test -z "${TMUX-}" || tmux set-window-option -t "$TMUX_PANE" \
+        automatic-rename on >/dev/null || :
 }
 trap _at_exit TERM EXIT
 
 # Set tmux window title
-test -z "${TMUX-}" || tmux rename-w "rTorrent-PS" || :
+test -z "${TMUX-}" || tmux rename-window -t "$TMUX_PANE" "rTorrent-PS" || :
 
 # Note: not exec'ing so that the shell trap is run when rtorrent exits
-"${RT_BIN:-rtorrent}" "${RT_OPTIONS[@]}" "$@"
+${RT_START_EXEC+exec} "${RT_BIN:-rtorrent}" "${RT_OPTIONS[@]}" "$@"

@@ -1,4 +1,33 @@
-# Resource usage and processing modes
+# vim: set ft=rtorrent:
+# General settings
+
+system.umask.set = 0027
+
+keys.layout.set = dvorak
+
+network.listen.port.range.set = 64333-64666
+network.listen.port.random.set = no
+
+pieces.memory.max.set = 1200M
+network.xmlrpc.size_limit.set = 16M
+
+throttle.global_up.max_rate.set_kb = 115000
+throttle.global_down.max_rate.set_kb = 115000
+
+throttle.min_peers.normal.set = 20
+throttle.max_peers.normal.set = 60
+
+throttle.min_peers.seed.set = 30
+throttle.max_peers.seed.set = 80
+
+trackers.numwant.set = 80
+protocol.encryption.set = handshake_prefer,stream_prefer
+
+catch = network.http.ssl_verify_peer.set=0
+catch = network.http.ssl_verify_host.set=0
+catch = network.http.dns_cache_timeout.set=25
+
+# Resource usage and processing modes                                     {{{1
 
 # File handle limits (keep sum around 950, unless you raise the system limits)
 #network.http.max_open.set = 64

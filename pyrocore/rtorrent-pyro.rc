@@ -12,4 +12,6 @@
 # you actually run that patched version of rTorrent!
 #
 
-import = @rtorrent_d@/.import.rc
+print = (cat, "[pyrocore] Loading pyroscope configuration from @pyroscope@")
+
+import = "@pyroscope@/rtorrent.d/.import.rc"
