@@ -28,7 +28,9 @@
 , rtorrentPSVersion
 , files ? { }
 , enableDebug ? false
-, enableLua ? null
+, enableShared ? true
+, enableStatic ? false
+, withLua ? null
 , enableSystemd ? false
 , withAutoconfArchive ? !withAutoreconfHook
 , withAutoreconfHook ? false
@@ -40,7 +42,7 @@ let
   curl-c-ares = curl.override { c-aresSupport = true; };
 in
 
-assert enableLua -> lua != null;
+assert withLua -> lua != null;
 
 # compiling with non-generic optimizations results in segfaults for some
 # reason.
@@ -64,7 +66,7 @@ stdenv.mkDerivation (finalAttrs: {
   enableParallelBuilding = true;
   doCheck = true;
 
-  enableLua = if isNull enableLua then lib.versionAtLeast version "0.16" else enableLua;
+  withLua = if isNull withLua then lib.versionAtLeast version "0.16" else withLua;
   doInstallCheck = lib.versionAtLeast version "0.16";
 
   nativeBuildInputs = [ pkg-config installShellFiles ]
@@ -84,7 +86,7 @@ stdenv.mkDerivation (finalAttrs: {
     libtorrent
   ]
   ++ lib.optional (!lib.versionAtLeast finalAttrs.finalPackage.version "0.16") curl-c-ares
-  ++ lib.optional finalAttrs.enableLua lua
+  ++ lib.optional finalAttrs.withLua lua
   ++ lib.optional enableSystemd systemd;
 
   dontStrip = enableDebug;
@@ -136,16 +138,20 @@ stdenv.mkDerivation (finalAttrs: {
     autoconf
   '';
 
-  configureFlags = [ "--with-xmlrpc-c" ]
+  configureFlags = [
+    "--disable-dependency-tracking"
+    "--with-xmlrpc-c"
+  ]
+    ++ lib.optional enableShared "--enable-shared"
+    ++ lib.optional enableStatic "--enable-static"
     ++ lib.optional enableDebug "--enable-debug"
     ++ lib.optional (!enableDebug) "--enable-debug=no"
-    ++ lib.optionals finalAttrs.enableLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
+    ++ lib.optionals finalAttrs.withLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
     ++ lib.optional enableSystemd "--with-systemd";
 
   postInstall = ''
     installManPage doc/old/rtorrent.1
-    mkdir -p $out/share/doc/rtorrent
-    mv doc/rtorrent.rc $out/share/doc/rtorrent/rtorrent.rc
+    mv doc/rtorrent.rc $out/share/rtorrent/rtorrent.rc
   '' + lib.optionalString enableDebug ''
     ln -s $src "$out/share/rtorrent-${finalAttrs.version}"
   '';

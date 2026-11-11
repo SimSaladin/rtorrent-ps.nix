@@ -31,24 +31,18 @@ in
 # reason.
 assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
 
-stdenv.mkDerivation (finalAttrs:
-
-let
-  srcVersion = getSrcVersion finalAttrs.finalPackage.src;
-
-  version' = (if isNull version then srcVersion else version)
-    + lib.optionalString (version == null || rev != "v${version}") "+g${lib.substring 0 7 rev}";
-in
-{
+stdenv.mkDerivation (finalAttrs: {
   pname = "libtorrent";
-  version = version';
+  version =
+    (if isNull version then getSrcVersion finalAttrs.finalPackage.src else version)
+    + lib.optionalString (version == null || rev != "v${version}") "+g${lib.substring 0 7 rev}";
 
   src = fetchFromGitHub {
     repo = "libtorrent";
     inherit owner rev hash;
   };
 
-  configureFlags =
+  configureFlags = [ "--disable-dependency-tracking" ] ++
     lib.optional withPosixFallocate "--with-posix-fallocate" ++
     lib.optional enableAligned "--enable-aligned" ++
     lib.optional enableStatic "--enable-static";
@@ -68,10 +62,6 @@ in
     automake --add-missing
     autoconf
   '';
-
-  passthru = {
-    libtorrentVersion = version';
-  };
 
   meta = {
     description = "A BitTorrent library written in C++ for *nix, with focus on high performance and good code";

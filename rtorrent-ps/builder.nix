@@ -96,8 +96,8 @@ stdenv.mkDerivation (fa: {
     installManPage docs/build/man/rtorrent-ps.1
 
     # HTML docs
-    mkdir -p $out/share/doc/rtorrent-ps/
-    cp -ar docs/build/html $out/share/doc/rtorrent-ps/
+    mkdir -p $out/share/rtorrent-ps/
+    cp -ar docs/build/html $out/share/rtorrent-ps/
 
     for dir in share lib/pyroscope; do
       mkdir -p $out/$dir

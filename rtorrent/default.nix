@@ -8,11 +8,6 @@
 }:
 
 let
-  #defaultFiles = {
-  #  command_pyroscope_cc = ./0.9.6/command_pyroscope.cc;
-  #  ui_pyroscope_h = "${ps}/patches/ui_pyroscope.h";
-  #  ui_pyroscope_cc = "${ps}/patches/ui_pyroscope.cc";
-  #};
   builder = args0:
   let args = {
       inherit (pkgsGeneric) stdenv;
@@ -23,81 +18,31 @@ let
 in
 lib.makeExtensible (self': lib.recurseIntoAttrs {
 
-  latest = self'.rtorrent_0_16_27;
+  latest = self'.rtorrent_0_16_28;
+
+  rtorrent_0_16_28 = builder {
+    version = "0.16.28";
+    rev = "6c330134d01084143afb3104c8ff11fd8f9e2146";
+    hash = "sha256-6JGtVDzZiVkja77bcppqY+bolav9fF0gMniaOBHBeZI=";
+    owner = "SimSaladin";
+    libtorrent = libtorrentVersions.libtorrent_0_16_28;
+    enableSystemd = true;
+    withAutoreconfHook = true;
+    withLua = true;
+    lua = lua5_4;
+  };
 
   rtorrent_0_16_27 = builder {
     version = "0.16.27";
-    rev = "e5689c47ef734233cc677de55afab4e449e42e2d";
-    hash = "sha256-4jv1igY2KtB++2ksE7j1wahEpmo9WAwTciVifHwcX8k=";
+    rev = "5444fad5fdd33018d4f8e3e06df2d3805f765ee0";
+    hash = "sha256-fyI9K9BDlh1O16DWKggyXBSpfqUc2D3o9XBcajOYyqc=";
     owner = "SimSaladin";
     libtorrent = libtorrentVersions.libtorrent_0_16_27;
     enableSystemd = true;
     withAutoreconfHook = true;
-    enableLua = true;
+    withLua = true;
     lua = lua5_4;
   };
-
-  #rtorrent_0_9_6 = builder {
-  #  version = "0.9.6";
-  #  libtorrentVersion = "0.13.6";
-  #  hash = "sha256-zrq3sYQr8YKChIvsCWjFTE328uNudpvh0ZugFLKs3Uc=";
-  #  patches = [
-  #    "${ps}/patches/backport_0.9.6_algorithm_median.patch"
-  #    "${ps}/patches/ps-close_lowdisk_normal_all.patch"
-  #    "${ps}/patches/ps-dl-ui-find_all.patch"
-  #    "${ps}/patches/ps-event-view_all.patch"
-  #    "${ps}/patches/ps-fix-double-slash-319_all.patch"
-  #    "${ps}/patches/ps-fix-log-xmlrpc-close_all.patch"
-  #    "${ps}/patches/ps-fix-sort-started-stopped-views_all.patch" # not 0.9.7
-  #    "${ps}/patches/ps-fix-throttle-args_all.patch" # not 0.9.7
-  #    "${ps}/patches/ps-handle-sighup-578_all.patch" # not 0.9.7
-  #    "${ps}/patches/ps-import.return_all.patch"
-  #    "${ps}/patches/ps-info-pane-is-default_all.patch"
-  #    "${ps}/patches/ps-info-pane-xb-sizes_all.patch"
-  #    "${ps}/patches/ps-issue-515_all.patch"
-  #    "${ps}/patches/ps-item-stats-human-sizes_all.patch"
-  #    "${ps}/patches/ps-log_messages_all.patch"
-  #    "${ps}/patches/ps-max_scgi_size_all.patch"
-  #    "${ps}/patches/ps-object_std-map-serialization_all.patch"
-  #    "${ps}/patches/ps-silent-catch_all.patch"
-  #    "${ps}/patches/ps-ssl_verify_host_all.patch" # not 0.9.7
-  #    "${ps}/patches/ps-throttle-steps_all.patch"
-  #    "${ps}/patches/ps-ui_pyroscope_all.patch"
-  #    "${ps}/patches/ps-view-filter-by_all.patch"
-  #    "${ps}/patches/pyroscope.patch"
-  #    "${ps}/patches/rt-base-cppunit-pkgconfig.patch" # not 0.9.7
-  #    "${ps}/patches/ui_pyroscope.patch"
-  #    ./patches/rt-cxx11-compatibility.patch # Only 0.9.6, not 0.9.7
-  #  ];
-  #};
-
-  #rtorrent_0_9_7 = builder {
-  #  version = "0.9.7";
-  #  libtorrentVersion = "0.13.7";
-  #  hash = "sha256-6qEWseLUItDNNPrZvxvPACQf01FVw4eaeseZ8tmYLSk=";
-  #  patches = [
-  #    ./patches/ps-close_lowdisk_normal_all.patch
-  #    "${ps}/patches/ps-dl-ui-find_all.patch"
-  #    "${ps}/patches/ps-event-view_all.patch"
-  #    "${ps}/patches/ps-fix-log-xmlrpc-close_all.patch"
-  #    "${ps}/patches/ps-import.return_all.patch"
-  #    "${ps}/patches/ps-info-pane-is-default_all.patch"
-  #    "${ps}/patches/ps-info-pane-xb-sizes_all.patch"
-  #    ./patches/ps-issue-515_all.patch
-  #    "${ps}/patches/ps-item-stats-human-sizes_all.patch"
-  #    "${ps}/patches/ps-log_messages_all.patch"
-  #    "${ps}/patches/ps-max_scgi_size_all.patch"
-  #    "${ps}/patches/ps-object_std-map-serialization_all.patch"
-  #    "${ps}/patches/ps-silent-catch_all.patch"
-  #    ./patches/ps-throttle-steps_0.9.7.patch
-  #    "${ps}/patches/ps-ui_pyroscope_all.patch"
-  #    "${ps}/patches/ps-view-filter-by_all.patch"
-  #    "${ps}/patches/pyroscope.patch"
-  #    ./patches/ui_pyroscope_0.9.7.patch
-  #    ./patches/pyroscope_cxxstd.patch
-  #    "${ps}/patches/backport_0.9.6_algorithm_median.patch" # rak::median is not in 0.9.7 either
-  #  ];
-  #};
 
   #rtorrent_0_9_8 = builder {
   #  version = "0.9.8";
@@ -150,31 +95,5 @@ lib.makeExtensible (self': lib.recurseIntoAttrs {
   #    ./patches/rtorrent-ml-fixes-0.9.8.patch
   #  ];
   #  enableIPv6 = true;
-  #};
-
-  #rtorrent_0_16_0-677f8f4 = builder {
-  #  version = "0.16.0-677f8f4";
-  #  rev = "677f8f45c841d308df7c77b0b23ce4fd7a8a7a16";
-  #  hash = "sha256-iC2+gdbh6Rvch7SQhQ8F/zdZuWmJN+KrObN3qBS0bAE=";
-  #  libtorrentVersion = "0.16.0-5efa83a";
-  #  enableIPv6 = true;
-  #  withAutoreconfHook = true;
-  #  enableLua = true;
-  #  lua = lua5_4;
-  #  patches = [
-  #    "${ps}/patches/ps-import.return_all.patch"
-  #    ./patches/ps-dl-ui-find_0.16.0.patch
-  #    "${ps}/patches/pyroscope.patch"
-  #    "${ps}/patches/ps-ui_pyroscope_all.patch"
-  #    ./patches/ui_pyroscope_0.16.0.patch
-  #  ];
-  #  files = {
-  #    command_pyroscope_cc = ./0.16.0-677f8f4/command_pyroscope.cc;
-  #    ui_pyroscope_h = ./0.16.0-677f8f4/ui_pyroscope.h;
-  #    ui_pyroscope_cc = ./0.16.0-677f8f4/ui_pyroscope.cc;
-  #  };
-  #  postUnpack = ''
-  #    cp -v ${./0.16.0-677f8f4/color_map.h} $sourceRoot/src/display/color_map.h
-  #  '';
   #};
 })

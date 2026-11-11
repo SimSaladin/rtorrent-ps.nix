@@ -12,6 +12,12 @@ lib.makeExtensible (self': lib.recurseIntoAttrs {
 
   latest = self'.libtorrent_0_16_27;
 
+  libtorrent_0_16_28 = builder {
+    version = "0.16.28";
+    hash = "sha256-nRoo5yZQAE4zW7D7DMCg783bVYUGP31uW+GXvbpaiFw=";
+    enableAligned = true; # https://github.com/rakshasa/rtorrent/issues/1237
+  };
+
   libtorrent_0_16_27 = builder {
     version = "0.16.27";
     hash = "sha256-m7nQb02VvYneprCW3X5Qg27NWw33DihrKxA7nCjq5DI=";
