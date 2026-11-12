@@ -34,6 +34,14 @@ in
         '';
       };
 
+      workDir = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        description = ''
+          Override RT_DOWNLOAD_PATH
+        '';
+      };
+
       settings = mkOption {
         type = types.submodule (import ./rtorrent-options.nix { inherit lib; });
         default = { };
@@ -68,6 +76,7 @@ in
         # could just set RT_HOME in the session env
         finalPackage = programCfg.package.override (
           optionalAttrs (!isNull programCfg.baseDir) { RT_HOME = programCfg.baseDir; } //
+          optionalAttrs (!isNull programCfg.workDir) { RT_DOWNLOAD_PATH = programCfg.workDir; } //
           optionalAttrs (!isNull serviceCfg.scgiLocal && serviceCfg.enable) { RT_SOCKET = serviceCfg.scgiLocal; }
         );
       };

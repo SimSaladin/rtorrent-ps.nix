@@ -222,6 +222,7 @@ in
       keys.layout = "dvorak";
       protocol.pex = true;
       trackers.numwant = 80;
+      nnetwork.prefer.ipv6 = true;
     };
 
     throttle = {

@@ -18,15 +18,16 @@
 , rtorrent-config
 , RT_HOME ? "$HOME/.rtorrent"
 , RT_SOCKET ? "$RT_HOME/.scgi_local"
+, RT_DOWNLOAD_PATH ? null
 , PYRO_CONFIG_DIR ? "$RT_HOME/pyroscope"
 , colorScheme ? "solarized-blue"
 , extraConfig ? ''
-        ui.color.odd.set = "on 0"
-        ui.color.even.set = ""
-      ''
+    ui.color.odd.set = "on 0"
+    ui.color.even.set = ""
+  ''
 , initRc ? rtorrent-config.createRtorrentRC {
-  inherit extraConfig;
-}
+    inherit extraConfig;
+  }
 }:
 
 stdenv.mkDerivation (fa: {
@@ -42,12 +43,14 @@ stdenv.mkDerivation (fa: {
 
   RT_INITRC = toString initRc;
 
-  makeWrapperArgs = lib.concatStringsSep " " [
+  makeWrapperArgs = lib.concatStringsSep " " ([
     "--prefix PATH : $out/bin:${dnsutils}/bin:${curl}/bin"
     "--run 'export RT_HOME=\${RT_HOME-\"${fa.RT_HOME}\"}'"
     "--run 'export RT_SOCKET=\${RT_SOCKET-\"${fa.RT_SOCKET}\"}'"
     "--run 'export PYRO_CONFIG_DIR=\${PYRO_CONFIG_DIR:-\"${fa.PYRO_CONFIG_DIR}\"}'"
-  ];
+  ]
+  ++ lib.optional (!isNull RT_DOWNLOAD_PATH) "--set-default RT_DOWNLOAD_PATH ${RT_DOWNLOAD_PATH}"
+  );
 
   passthru = {
     inherit rtorrentPSVersion;
