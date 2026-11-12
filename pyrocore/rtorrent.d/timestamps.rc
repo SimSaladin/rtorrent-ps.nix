@@ -38,7 +38,7 @@ method.set_key = event.download.inserted_new, set_downloaded_date, ((pyro._tm_do
 
 # SCHEDULE: Set "last_active" custom timestamp field for items that have peers
 method.insert.simple = d.timestamp.last_active,\
-    ((if,((d.peers_connected)),((cat,((system.time)),((d.custom,last_active))))))
+    "if=$d.peers_connected=,$cat=$system.time=,$d.custom=last_active"
 method.insert.simple = d.timestamp.last_active.update,\
     "d.custom.set=last_active,$cat=$system.time= ; branch=argument.0=,d.save_resume="
 
