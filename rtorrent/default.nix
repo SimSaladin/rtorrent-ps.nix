@@ -22,8 +22,8 @@ lib.makeExtensible (self': lib.recurseIntoAttrs {
 
   rtorrent_0_16_28 = builder {
     version = "0.16.28";
-    rev = "535497bddf0c5a003c09ba724a1c8f2d36d01d41";
-    hash = "sha256-+MYFoqrXGh4hmUPjF8U1rq5gHIcVEJcsbo9yo77j4WI=";
+    rev = "8c51efdbda036a7abdb8e894c44968437b3df250";
+    hash = "sha256-k8jgTE+88kyM1FJjiVXcSS6XQU6Cr5D0J4R1JDqYXsM=";
     owner = "SimSaladin";
     libtorrent = libtorrentVersions.libtorrent_0_16_28;
     enableSystemd = true;
