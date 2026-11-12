@@ -43,7 +43,7 @@ method.insert.simple = d.timestamp.last_active.update,\
     "d.custom.set=last_active,$cat=$system.time= ; branch=argument.0=,d.save_resume="
 
 schedule = pyro_update_last_active, 24, 42,\
-    ((d.multicall2,started,"branch=$d.peers_connected=,d.timestamp.last_active.update="))
+    ((d.multicall2, started, "branch=$d.peers_connected=,d.timestamp.last_active.update="))
 
 method.set_key = event.download.resumed, !last_active,\
     "branch=\"or={d.peers_connected=,not=$d.custom=last_active}\", d.timestamp.last_active.update=1"

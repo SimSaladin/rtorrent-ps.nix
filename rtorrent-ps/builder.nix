@@ -21,13 +21,7 @@
 , RT_DOWNLOAD_PATH ? null
 , PYRO_CONFIG_DIR ? "$RT_HOME/pyroscope"
 , colorScheme ? "solarized-blue"
-, extraConfig ? ''
-    ui.color.odd.set = "on 0"
-    ui.color.even.set = ""
-  ''
-, initRc ? rtorrent-config.createRtorrentRC {
-    inherit extraConfig;
-  }
+, initRc ? rtorrent-config.createRtorrentRC { }
 }:
 
 stdenv.mkDerivation (fa: {
@@ -67,8 +61,8 @@ stdenv.mkDerivation (fa: {
           fi
           if [[ ! -e $PYRO_CONFIG_DIR/color-schemes ]]; then
             mkdir -p "$PYRO_CONFIG_DIR/color-schemes"
-            for f in ${pyrocore}/lib/pyroscope/color-schemes/*; do
-              ln -sv "$f" "$PYRO_CONFIG_DIR/color-schemes/"
+            for f in ${pyrocore}/lib/pyroscope/color-schemes/* ${./color-schemes}/*; do
+              cp --no-preserve=mode -v "$f" "$PYRO_CONFIG_DIR/color-schemes/$(basename -- "$f")"
             done
             echo ${colorScheme} > "$PYRO_CONFIG_DIR/color-schemes/.current"
           fi
