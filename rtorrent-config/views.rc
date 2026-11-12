@@ -3,9 +3,10 @@
 # but are a matter of preference, so you may choose to disable them.
 
 # UI/VIEW: Bind 'hashing' also to the '#' key
-branch = (pyro.extended),\
+branch = (pyro.extended), \
     ((schedule, bind_hashing, 0, 0, \
-    ((ui.bind_key, "download_list", "#", "ui.current_view.set=hashing")) ))
+      ((ui.bind_key, "download_list", "#", "ui.current_view.set=hashing")) \
+    ))
 
 # UI/VIEW: Sort "seeding" by ratio
 view.sort_current = seeding, greater=d.ratio=
@@ -15,7 +16,7 @@ view.sort_current = incomplete, greater=d.custom=tm_loaded
 view.sort_new     = incomplete, greater=d.custom=tm_loaded
 
 # UI/VIEW: Show recently completed top-most in "main"
-branch = (pyro.extended),\
+branch = (pyro.extended), \
     ((view.sort_current, "main", "compare=-+,d.custom=tm_completed,d.custom=tm_loaded"))
 
 view.filter_on = main, event.download.finished, event.download.inserted_new
@@ -28,7 +29,8 @@ branch = (pyro.extended), false=, \
 branch = (pyro.extended),\
     ((view.sort_current, "active", "compare=----,d.is_open=,d.complete=,d.down.rate=,d.up.rate="))
 
-schedule = filter_active, 12, 20, ((do,\
-    ((view.filter, "active", "or={d.up.rate=,d.down.rate=,not=$d.complete=}")),\
-    ((view.sort, "active"))\
+schedule = filter_active, 12, 20, \
+    ((do, \
+      ((view.filter, "active", "or={d.up.rate=,d.down.rate=,not=$d.complete=}")), \
+      ((view.sort, "active")) \
     ))

@@ -4,15 +4,16 @@
 branch=(pyro.extended), ((network.history.depth.set, 112))
 branch=(pyro.extended), ((network.history.auto_scale.set, 0))
 
-method.insert = pmb._network.history.auto_scale.toggle, simple|private, \
-    "branch=(network.history.auto_scale), ((network.history.auto_scale.set, 0)), ((network.history.auto_scale.set, 1))"
+method.insert.simple = pmb._network.history.auto_scale.toggle, \
+    "branch=(network.history.auto_scale), \
+      ((network.history.auto_scale.set, 0)), \
+      ((network.history.auto_scale.set, 1))"
 
 method.insert.simple = pmb._network.history.auto_scale.ui_toggle, \
-    ((do,\
-    ((pmb._network.history.auto_scale.toggle)),\
-    ((network.history.refresh))))
+    ((do, \
+      ((pmb._network.history.auto_scale.toggle)), \
+      ((network.history.refresh)) \
+    ))
 
-branch=(pyro.extended), ((schedule, network_history_sampling, 1, 32, \
-    "network.history.sample="))
-branch=(pyro.extended), ((schedule, bind_auto_scale, 0, 0, \
-    "ui.bind_key = download_list, =, pmb._network.history.auto_scale.ui_toggle="))
+schedule = network_history_sampling, 1, 32, ((network.history.sample))
+schedule = bind_auto_scale, 0, 0, ((ui.bind_key, download_list, =, "pmb._network.history.auto_scale.ui_toggle="))

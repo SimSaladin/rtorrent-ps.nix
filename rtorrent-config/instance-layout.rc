@@ -1,10 +1,10 @@
 # Layout of paths in the filesystem                       vim:set ft=rtorrent:
 
 # Create instance directories if missing
-execute.throw = mkdir, -p, --, \
-    (cfg.session), \
-    (cfg.logs), \
-    (cat, (cfg.watch), "load"), \
+execute.throw = mkdir, -p, --,\
+    (cfg.session),\
+    (cfg.logs),\
+    (cat, (cfg.watch), "load"),\
     (cat, (cfg.watch), "start")
 
 # Set session paths, also ensure working directory is the download directory (kinda unnecessary probably)
@@ -16,13 +16,19 @@ system.cwd.set        = (directory.default)
 session.name.set = (cat, (system.hostname), ":", (system.pid))
 
 # Write the pidfile at startup.
-print = (cat, "Writing PID file ", (cfg.pidfile))
-execute.throw = sh, -xc, "echo \"$1\" >\"$2\"", -, (system.pid), (cfg.pidfile)
+branch = (not,(string.equals,"",(cfg.pidfile))),\
+    ((do,\
+      ((print, (cat, "Writing PID file ", (cfg.pidfile)))),\
+      ((execute.system, "echo \"$1\" >\"$2\"", (system.pid), (cfg.pidfile)))\
+    ))
 
 # Open the RPC socket
-network.scgi.open_local = (cfg.rpcsocket)
-schedule = scgi_permission, 0, 0,\
-  ((execute.nothrow, chmod, "g+w,o=", (cfg.rpcsocket)))
+branch = (not,(string.equals,"",(cfg.rpcsocket))),\
+    ((do,\
+      ((print, (cat, "Opening SCGI socket ", (cfg.rpcsocket)))),\
+      ((network.scgi.open_local, (cfg.rpcsocket))),\
+      ((schedule, scgi_permission, 0, 0, "execute.nothrow = chmod, \"g+w,o=\", (cfg.rpcsocket)"))\
+    ))
 
 ## A function for reporting major important values on startup and after.
 method.insert.simple = debug.print_current_config_values, \

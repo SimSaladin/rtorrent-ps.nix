@@ -6,42 +6,50 @@
 # Usage:
 #   system.env.default = <name>, <default>
 method.insert.simple = system.env.default, \
-    ((if, ((string.equals, ((system.env, ((argument.0)))), "")),\
-    ((cat, ((argument.1)))),\
-    ((cat, ((system.env, ((argument.0))))))\
+    ((if, ((string.equals, ((system.env, ((argument.0)))), "")), \
+      ((cat, ((argument.1)))), \
+      ((cat, ((system.env, ((argument.0)))))) \
     ))
+
+method.insert.simple = execute.system,\
+    ((execute.throw, sh, -c, --, ((argument.0)), -, \
+    ((argument.1)), ((argument.2)), ((argument.3))))
+
+method.insert.simple = execute.system.nothrow,\
+    ((execute.nothrow, sh, -c, --, ((argument.0)), -, \
+    ((argument.1)), ((argument.2)), ((argument.3))))
 
 # Like execute.capture, but takes a shell command to run instead.
 # Usage:
-#   execute.system_capture = <script>[, <pos-arg-1>[, <pos-arg-2>[, <pos-arg-3>]]]
+#   execute.system.capture = <script>[, <pos-arg-1>[, <pos-arg-2>[, <pos-arg-3>]]]
 # Example usage:
-#   execute.system_capture = "echo $HOME; ls -l ~/.config"
+#   execute.system.capture = "echo $HOME; ls -l ~/.config"
 # This variant also strips any trailing whitespace from standard output as
 # shells usually do by default.
-method.insert.simple = execute.capture_system, ((string.rstrip, \
-  ((execute.capture, bash, -ceuo, pipefail, --, ((argument.0)), -, \
-  ((argument.1)), ((argument.2)), ((argument.3))))))
+method.insert.simple = execute.system.capture, ((string.rstrip, \
+    ((execute.capture, sh, -c, --, ((argument.0)), -, \
+    ((argument.1)), ((argument.2)), ((argument.3))))))
 
 # Like execute.capture_nothrow but with the same changes as apply to
-# 'execute.capture_system' above.
-method.insert.simple = execute.capture_system_nothrow, ((string.rstrip, \
-  ((execute.capture_nothrow, bash, -ceuo, pipefail, --, ((argument.0)), -, \
-  ((argument.1)), ((argument.2)), ((argument.3))))))
+# 'execute.system.capture' above.
+method.insert.simple = execute.system.capture_nothrow, ((string.rstrip, \
+    ((execute.capture_nothrow, sh, -c, --, ((argument.0)), -, \
+    ((argument.1)), ((argument.2)), ((argument.3))))))
 
 # os.path.exists = <path> >> bool (0 or 1)
 #   Check if <<path>> exists.
 method.insert.simple = os.path.exists, \
-    ((string.equals, 0, ((execute.capture_system, "set +e; test -e \"$1\"; echo $?", ((argument.0))))))
+    ((string.equals,0,((execute.system.capture,"test -e \"$1\"; echo $?",((argument.0))))))
 
 # check if path is a readable file
 method.insert.simple = os.path.readable, \
-    ((string.equals, 0, ((execute.capture_system, "set +e; test -r \"$1\"; echo $?", ((argument.0))))))
+    ((string.equals,0,((execute.system.capture,"test -r \"$1\"; echo $?",((argument.0))))))
 
 # Attempt to import the argument when it's a file
-method.insert.simple = try_import_existing, \
-    "branch=(os.path.readable, (argument.0)), ((try_import, (argument.0)))"
+method.insert.simple = try_import.if_exists, \
+    "branch = (os.path.readable, (argument.0)), ((try_import, (argument.0)))"
 
 # Takes a path to a torrent file. If it exists, loads and starts it.
-method.insert = load.start_verbose_torrent, simple, \
-  "branch = (and, (string.endswith, (argument.0), \".torrent\"), (os.path.exists, (argument.0))), \
-            ((load.start_verbose, (argument.0)))"
+method.insert.simple = load.start_verbose.if_exists,\
+    "branch = (and, (string.endswith, (argument.0), \".torrent\"), (os.path.exists, (argument.0))),\
+              ((load.start_verbose, (argument.0)))"

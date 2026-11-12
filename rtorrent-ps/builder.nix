@@ -7,6 +7,8 @@
 , makeWrapper
 , lndir
 , coreutils
+, dnsutils
+, curl
 , lsof
 , rev
 , hash
@@ -14,16 +16,16 @@
 , rtorrent
 , rtorrent-magnet
 , rtorrent-config
-, RT_HOME ? "\"$HOME/.rtorrent\""
-, RT_SOCKET ? "\"$RT_HOME/.scgi_local\""
-, PYRO_CONFIG_DIR ? "${pyrocore}/lib/pyroscope"
+, RT_HOME ? "$HOME/.rtorrent"
+, RT_SOCKET ? "$RT_HOME/.scgi_local"
+, PYRO_CONFIG_DIR ? "$RT_HOME/pyroscope"
 , colorScheme ? "solarized-blue"
 , extraConfig ? ''
         ui.color.odd.set = "on 0"
         ui.color.even.set = ""
       ''
 , initRc ? rtorrent-config.createRtorrentRC {
-  inherit colorScheme extraConfig;
+  inherit extraConfig;
 }
 }:
 
@@ -41,9 +43,10 @@ stdenv.mkDerivation (fa: {
   RT_INITRC = toString initRc;
 
   makeWrapperArgs = lib.concatStringsSep " " [
-    "--prefix PATH : $out/bin"
-    "--run 'export RT_HOME=\${RT_HOME-${fa.RT_HOME}}'"
-    "--run 'export RT_SOCKET=\${RT_SOCKET-${fa.RT_SOCKET}}'"
+    "--prefix PATH : $out/bin:${dnsutils}/bin:${curl}/bin"
+    "--run 'export RT_HOME=\${RT_HOME-\"${fa.RT_HOME}\"}'"
+    "--run 'export RT_SOCKET=\${RT_SOCKET-\"${fa.RT_SOCKET}\"}'"
+    "--run 'export PYRO_CONFIG_DIR=\${PYRO_CONFIG_DIR:-\"${fa.PYRO_CONFIG_DIR}\"}'"
   ];
 
   passthru = {
@@ -53,7 +56,22 @@ stdenv.mkDerivation (fa: {
     startScript =
       writeShellApplication {
         name = fa.pname;
-        text = builtins.readFile ./start.sh;
+        text = ''
+          mkdir -p "$PYRO_CONFIG_DIR"
+          if [[ ! -e $PYRO_CONFIG_DIR/config.ini ]]; then
+            echo "Writing a default pyroscope config.ini" >&2
+            cp --no-preserve=mode ${pyrocore}/lib/pyroscope/config.ini "$PYRO_CONFIG_DIR/config.ini"
+          fi
+          if [[ ! -e $PYRO_CONFIG_DIR/color-schemes ]]; then
+            mkdir -p "$PYRO_CONFIG_DIR/color-schemes"
+            for f in ${pyrocore}/lib/pyroscope/color-schemes/*; do
+              ln -sv "$f" "$PYRO_CONFIG_DIR/color-schemes/"
+            done
+            echo ${colorScheme} > "$PYRO_CONFIG_DIR/color-schemes/.current"
+          fi
+
+          ${lib.fileContents ./start.sh}
+        '';
         runtimeInputs = [ coreutils lsof ];
         runtimeEnv = {
           RT_BIN = lib.getExe rtorrent;

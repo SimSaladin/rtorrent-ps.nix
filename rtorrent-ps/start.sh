@@ -26,7 +26,7 @@ export RT_HOME
 
 RT_SOCKET=${RT_SOCKET:-"$RT_HOME/.scgi_local"}
 RT_INITRC=${RT_INITRC:-"$RT_HOME/rtorrent.rc"}
-RT_OPTIONS=( -n -o "import=$RT_INITRC" "${RT_OPTIONS[@]}" ) # -D -I
+RT_OPTIONS=( -o "import=$RT_INITRC" "${RT_OPTIONS[@]}" ) # -D -I
 LimitFSIZE=${LimitFSIZE-unlimited}
 LimitNOFILE=${LimitNOFILE-500000}
 

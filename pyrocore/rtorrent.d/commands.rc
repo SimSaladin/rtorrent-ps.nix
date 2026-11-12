@@ -1,0 +1,33 @@
+### UI Helper Commands (Ctrl-X) #############################################
+#                                                              vim: ft=rtorrent
+
+# UI/CMD: Use rtcontrol filter (^X s=KEYWORD, ^X t=TRACKER, ^X f="FILTER")
+method.insert.simple = s,\
+    ((execute.nothrow,(cat,(pyro.bin_dir),rtcontrol),--detach,-qV,\
+     "[",((cat,"*",((argument.0)),"*")),OR,((cat,"custom_displayname=*",((argument.0)),"*")),"]"\
+    ))
+method.insert.simple = t,\
+    ((execute.nothrow,(cat,(pyro.bin_dir),rtcontrol),--detach,-qV,((cat,"alias=",((argument.0))))))
+method.insert.simple = f,\
+    ((execute.nothrow,(cat,(pyro.bin_dir),rtcontrol),--detach,-qV,((argument.0))))
+
+# UI/CMD: Housekeeping (delete item + data)
+method.insert.simple = purge,\
+    ((execute.nothrow,(cat,(pyro.bin_dir),rtcontrol),-q,--detach,--purge,--yes,--from-view,((d.hash)),//))
+method.insert.simple = cull,\
+    ((execute.nothrow,(cat,(pyro.bin_dir),rtcontrol),-q,--detach,--cull,--yes,--from-view,((d.hash)),//))
+
+# UI/CMD: Add, remove, and show tags
+method.insert.simple = tag.show,\
+    ((execute.nothrow,(cat,(pyro.bin_dir),rtcontrol),--detach,-qV,-otag_show,--from-view,((d.hash)),//,--flush))
+#method.insert = tag.show, simple|private,\
+#    "print=\"Tags: \",$d.custom=tags"
+
+method.insert.simple = tag.add,\
+    ((execute.nothrow,(cat,(pyro.bin_dir),rtcontrol),--detach,-qV,-otag_show,--flush,--yes,--from-view,((d.hash)),//,--tag,((argument.0))))
+
+method.insert.simple = tag.rm,\
+    ((execute.nothrow,(cat,(pyro.bin_dir),rtcontrol),--detach,-qV,-otag_show,--flush,--yes,--from-view,((d.hash)),//,--tag,((cat,-,((argument.0))))))
+
+# UI/Key: Ctrl-G shows the tags of the current item
+pyro.bind_key = tag_show, ^G, "tag.show="

@@ -1,5 +1,6 @@
 { lib
 , stdenv
+, makeWrapper
 , buildPythonPackage
 , python2
 , setuptools
@@ -42,7 +43,10 @@ lib.fix (finalPackage:
       #./patches/fix_prompt_toolkit_import.patch
     ];
 
-    nativeBuildInputs = [ installShellFiles ];
+    nativeBuildInputs = [
+      installShellFiles
+      makeWrapper
+    ];
 
     propagatedBuildInputs = [
       setuptools
@@ -77,8 +81,9 @@ lib.fix (finalPackage:
       # Copy config files to out/lib
       mkdir -p $out/lib/pyroscope
       cp -r --no-preserve=mode -t $out/lib/pyroscope \
-        $src/src/pyrocore/data/config/{color-schemes,rtorrent.d,templates,*.ini,*.py} \
-        build/lib/pyrocore/data
+        $src/src/pyrocore/data/config/{color-schemes,templates,*.ini,*.py} \
+        build/lib/pyrocore/data \
+        ${./.}/rtorrent.d
       substitute ${./config.tpl.ini} $out/lib/pyroscope/config.ini \
         --subst-var-by pyroscope $out/lib/pyroscope
       substitute ${./rtorrent-pyro.rc} $out/lib/pyroscope/rtorrent-pyro.rc \
@@ -105,9 +110,14 @@ lib.fix (finalPackage:
         ignoreCollisions = true;
       };
 
-      rtorrentConfigString = ''
-        ${lib.fileContents "${finalPackage}/lib/pyroscope/rtorrent.d/.import.rc"}
-      '';
+      rtorrentConfigString =
+        let
+          imports = lib.splitString "\n" (lib.fileContents "${finalPackage}/lib/pyroscope/rtorrent.d/.import.rc");
+        in
+        lib.concatMapStringsSep "\n" (x: ''
+          # print = "${lib.escape ["\""] x}"
+          ${x}
+        '') imports;
 
       rtorrentPyroRC = "${finalPackage}/lib/pyroscope/rtorrent-pyro.rc";
 

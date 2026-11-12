@@ -1,0 +1,34 @@
+# vim:ft=rtorrent
+
+# Methods for recognizing your public IPv4 address.
+method.insert.simple = myip.opendns.ipv4, ((execute.system.capture, "dig -4 +short A    myip.opendns.com @resolver2.opendns.com"))
+method.insert.simple = myip.opendns.ipv6, ((execute.system.capture, "dig -6 +short AAAA myip.opendns.com @resolver2.opendns.com"))
+method.insert.simple = myip.google.ipv4, ((execute.system.capture, "eval printf %s \"$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com)\""))
+method.insert.simple = myip.google.ipv6, ((execute.system.capture, "eval printf %s \"$(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com)\""))
+method.insert.simple = myip.icanhazip.ipv4, ((execute.system.capture, "curl -4fsSN https://icanhazip.com"))
+method.insert.simple = myip.icanhazip.ipv6, ((execute.system.capture, "curl -6fsSN https://icanhazip.com"))
+
+# Set (or update) the local (advertised) IP address.
+# - You can use one of the methods described above to achieve this.
+# - It is the IP address reported to the tracker that reports it to peers.
+# - This handles dynamic IP's as well, although that may not be much use if UPnP
+#   isn't available...
+# - Note that some form of port-forwarding is required in case of NAT.
+#   Firewalls must also allow traffic to the relevant ports.
+# - See also discussion an <https://github.com/rakshasa/rtorrent/issues/731>
+#schedule = local_address.ipv4, 0, 300, ((network.local_address.ipv4.set, ((myip.opendns.ipv4))))
+#schedule = local_address.ipv6, 0, 300, ((network.local_address.ipv6.set, ((myip.opendns.ipv6))))
+
+method.insert.simple = myip.update.ipv4,\
+  "branch=(or,\
+    (string.equals,(argument.0),\"\"),\
+    (string.equals,(argument.0),(network.local_address.ipv4))),\
+    ((false)),\
+    ((network.local_address.ipv4.set, (argument.0)))"
+
+method.insert.simple = myip.update.ipv6,\
+  "branch=(or,\
+    (string.equals,(argument.0),\"\"),\
+    (string.equals,(argument.0),(network.local_address.ipv6))),\
+    ((false)),\
+    ((network.local_address.ipv6.set, (argument.0)))"

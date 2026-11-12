@@ -16,6 +16,7 @@
 , zlib
 , openssl
 , xmlrpc_c
+, tinyxml-2
 , libxml2
 , systemd
 
@@ -23,6 +24,7 @@
 , owner ? "rakshasa"
 , rev ? "v${version}"
 , hash ? ""
+, patches ? []
 
 , libtorrent
 , rtorrentPSVersion
@@ -34,6 +36,8 @@
 , enableSystemd ? false
 , withAutoconfArchive ? !withAutoreconfHook
 , withAutoreconfHook ? false
+# better unicode support via tinyxml2
+, withTinyxml2 ? true
 }:
 
 let
@@ -63,6 +67,8 @@ stdenv.mkDerivation (finalAttrs: {
     inherit rev hash owner;
   };
 
+  inherit patches;
+
   enableParallelBuilding = true;
   doCheck = true;
 
@@ -81,10 +87,11 @@ stdenv.mkDerivation (finalAttrs: {
     ncurses
     openssl
     libxml2
-    xmlrpc_c
     zlib
     libtorrent
   ]
+  ++ lib.optional (!withTinyxml2) xmlrpc_c
+  ++ lib.optional withTinyxml2 tinyxml-2
   ++ lib.optional (!lib.versionAtLeast finalAttrs.finalPackage.version "0.16") curl-c-ares
   ++ lib.optional finalAttrs.withLua lua
   ++ lib.optional enableSystemd systemd;
@@ -140,12 +147,14 @@ stdenv.mkDerivation (finalAttrs: {
 
   configureFlags = [
     "--disable-dependency-tracking"
-    "--with-xmlrpc-c"
   ]
     ++ lib.optional enableShared "--enable-shared"
     ++ lib.optional enableStatic "--enable-static"
+    ++ lib.optional (!enableStatic) "--disable-static"
     ++ lib.optional enableDebug "--enable-debug"
     ++ lib.optional (!enableDebug) "--enable-debug=no"
+    ++ lib.optional (!withTinyxml2) "--with-xmlrpc-c"
+    ++ lib.optional withTinyxml2 "--with-xmlrpc-tinyxml2"
     ++ lib.optionals finalAttrs.withLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
     ++ lib.optional enableSystemd "--with-systemd";
 

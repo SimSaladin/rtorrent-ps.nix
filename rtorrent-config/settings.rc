@@ -1,54 +1,15 @@
 # vim: set ft=rtorrent:
 # General settings
 
-system.umask.set = 0027
-
-keys.layout.set = dvorak
-
-network.listen.port.range.set = 64333-64666
-network.listen.port.random.set = no
-
-pieces.memory.max.set = 1200M
-network.xmlrpc.size_limit.set = 16M
-
-throttle.global_up.max_rate.set_kb = 115000
-throttle.global_down.max_rate.set_kb = 115000
-
-throttle.min_peers.normal.set = 20
-throttle.max_peers.normal.set = 60
-
-throttle.min_peers.seed.set = 30
-throttle.max_peers.seed.set = 80
-
-trackers.numwant.set = 80
-protocol.encryption.set = handshake_prefer,stream_prefer
-
-catch = network.http.ssl_verify_peer.set=0
-catch = network.http.ssl_verify_host.set=0
-catch = network.http.dns_cache_timeout.set=25
-
-# Resource usage and processing modes                                     {{{1
-
-# File handle limits (keep sum around 950, unless you raise the system limits)
-#network.http.max_open.set = 64
-#network.max_open_files.set = 600
-network.max_open_sockets.set = 1000
-
-# Per item and global slot limits
-throttle.max_uploads.set = 100
-throttle.max_uploads.global.set = 250
-throttle.max_downloads.set = 50
-throttle.max_downloads.global.set = 250
-
-# No completion hashing, and use sane encoding
-pieces.hash.on_completion.set = no
 #encoding.add = utf8
 
-# Limit pre-load bandwidth (see rTorrent issue #443)
-# `0` (Off / Default) , `1` (Madvise) , `2` (Direct paging).
-#pieces.preload.type.set = 1
-#pieces.preload.min_size.set = 1
-#pieces.preload.min_rate.set = 1
+#system.umask.set = 0027
+
+#keys.layout.set = dvorak
+
+trackers.numwant.set = 80
+
+protocol.encryption.set = handshake_prefer,stream_prefer
 
 # Send and receive buffer size for sockets. Disabled by default (`0`),
 # i.e. using the OS defaults (`send_buffer_size`, `receive_buffer_size`).
@@ -62,3 +23,41 @@ network.send_buffer.size.set = 12M
 # be used for non-standard settings.
 # One of default | lowdelay | throughput | reliability | mincost or a hex value.
 network.tos.set = throughput
+
+network.listen.port.range.set = 64333-64666
+network.listen.port.random.set = no
+network.xmlrpc.size_limit.set = 16M
+
+catch = network.http.ssl_verify_peer.set=0
+catch = network.http.ssl_verify_host.set=0
+catch = network.http.dns_cache_timeout.set=25
+
+# Resource usage and processing modes                                     {{{1
+
+# File handle limits (keep sum around 950, unless you raise the system limits)
+#network.http.max_open.set = 64
+#network.max_open_files.set = 600
+network.max_open_sockets.set = 1000
+
+throttle.global_up.max_rate.set_kb = 115000
+throttle.global_down.max_rate.set_kb = 115000
+throttle.min_peers.normal.set = 20
+throttle.max_peers.normal.set = 60
+throttle.min_peers.seed.set = 30
+throttle.max_peers.seed.set = 80
+# Per item and global slot limits
+throttle.max_uploads.set = 100
+throttle.max_uploads.global.set = 250
+throttle.max_downloads.set = 50
+throttle.max_downloads.global.set = 250
+
+# No completion hashing, and use sane encoding
+pieces.hash.on_completion.set = no
+
+pieces.memory.max.set = 1200M
+
+# Limit pre-load bandwidth (see rTorrent issue #443)
+# `0` (Off / Default) , `1` (Madvise) , `2` (Direct paging).
+#pieces.preload.type.set = 1
+#pieces.preload.min_size.set = 1
+#pieces.preload.min_rate.set = 1

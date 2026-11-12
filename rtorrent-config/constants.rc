@@ -1,19 +1,22 @@
 # vim:set ft=rtorrent:
 
 # Root directory of this instance.
-method.insert = cfg.basedir, private|const|string, (cat, (system.env, RT_HOME), "/")
+method.insert = cfg.basedir,   string|private|const, (cat, (system.env, RT_HOME), "/")
 
 # CONFIG: Manifest constants (base layout)
 method.insert = cfg.rpcsocket, string|private|const, (system.env.default, "RT_SOCKET", (cat, (cfg.basedir), ".sgci_local"))
 method.insert = cfg.session,   string|private|const, (system.env.default, "RT_SESSION_PATH", (cat, (cfg.basedir), ".session"))
 method.insert = cfg.pidfile,   string|private|const, (system.env.default, "RT_PIDFILE", (cat, (cfg.session), "/rtorrent.pid"))
 method.insert = cfg.download,  string|private|const, (system.env.default, "RT_DOWNLOAD_PATH", (cat, (cfg.basedir), "work"))
-method.insert = cfg.watch,     string|private|const, (cat, (cfg.basedir), "watch/")
-method.insert = cfg.logs,      string|private|const, (cat, (cfg.basedir), "log/")
+method.insert = cfg.watch,     string|private|const, (system.env.default, "RT_WATCH_PATH", (cat, (cfg.basedir), "watch/"))
+method.insert = cfg.logs,      string|private|const, (system.env.default, "RT_LOGS_PATH", (cat, (cfg.basedir), "log/"))
 
 # Set "pyro.extended" to 1 to activate rTorrent-PS features!
-method.insert = pyro.extended, const|value, 1
+method.insert = pyro.extended, value|const, 1
 
 # Set "pyro.bin_dir" to the "bin" directory where you installed the pyrocore tools!
 # Make sure you end it with a "/"; if this is left empty, then the shell's path is searched.
-method.insert = pyro.bin_dir, const|string, ""
+method.insert = pyro.bin_dir,  string|const, ""
+
+# Set this to '0' to prevent logging of existing key bindings being replaced
+branch=(pyro.extended), ((ui.bind_key.verbose.set, 0))

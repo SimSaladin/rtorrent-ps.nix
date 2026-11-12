@@ -1,0 +1,84 @@
+### Fundamentals ############################################################
+#                                                              vim: ft=rtorrent
+
+# Log extension switch setting
+branch = (pyro.extended),\
+    ((print,"rTorrent-PS features active!")),\
+    ((print,"rTorrent-PS features NOT active!"))
+
+# COMMAND: Return startup time (can be used to calculate uptime)
+method.insert = system.startup_time, value|const, $system.time=
+#method.redirect = startup_time, system.startup_time
+
+# COMMAND: `do` fall-back?
+branch = (not, (system.has, "do=")), ((catch,\
+    ((print, "WARNING: Fall-back for 'do' command active (update rTorrent-PS)!")),\
+    ((method.redirect, do, catch))))
+
+# COMMAND: Return path to item data (never empty, unlike `d.base_path`);
+#          multi-file items return a path ending with a '/'.
+method.insert.simple = d.data_path,\
+    "if=(d.is_multi_file),\
+        (cat, (d.directory), /),\
+        (cat, (d.directory), /, (d.name))"
+
+# COMMAND: Return path to session file
+method.insert.simple = d.session_file, ((cat, ((session.path)), ((d.hash)), ".torrent"))
+
+# COMMAND: Get mtime of a path, return 2nd argument when path does not exist
+method.insert.simple = os.path.mtime, \
+    ((execute.capture, sh, -c, \
+                       "echo -n $(stat -c '%Y' \"$1\" 2>/dev/null || echo \"$2\")", \
+                       getmtime, ((argument.0)), ((argument.1)) \
+    ))
+
+# COMMAND: Fallback through completed / loaded / downloaded event timestamps, for view sorting
+#          (MUST be protected by the caller using a system.has=d.custom.if_z= check)
+method.insert.simple = pyro._view_sort_timestamp, \
+    "d.custom.if_z = tm_completed, (d.custom.if_z, tm_loaded, (d.custom, tm_downloaded))"
+
+# COMMAND: Start command for watches, with dynamic behaviour
+method.insert.value = cfg.watch.start, 1
+method.insert.simple = d.watch.start, "branch=cfg.watch.start=, ((d.start))"
+method.insert.simple = d.watch.startable, ((d.custom.set, watch_start, 1))
+method.set_key = event.download.inserted_new, ~watch_start, "branch=d.custom=watch_start,d.watch.start="
+
+# COMMAND: Nicer key binds (hide technical complications)
+method.insert.simple = pyro._bind_schedule,\
+    "schedule=(argument.0), 1, 0, (argument.1)"
+method.insert.simple = pyro._bind_key_command,\
+    "cat=\"ui.bind_key=download_list,\",$argument.0=,\",\\\"\",$argument.1=, \"\\\"\""
+method.insert.simple = pyro.bind_key,\
+    "branch=(pyro.extended),\
+        ((pyro._bind_schedule, (argument.0), (pyro._bind_key_command, (argument.1), (argument.2))))"
+
+# COMMAND: Safely toggle collapsed state of views
+method.insert.simple = pyro.view.collapsed.toggle,\
+    "branch=(pyro.extended), ((view.collapsed.toggle, (argument.0)))"
+method.insert.simple = pyro.collapsed_view.add,\
+    "view.add=(argument.0) ; pyro.view.collapsed.toggle=(argument.0)"
+
+# UI/VIEW: Bind "*" to toggle between collapsed and expanded display
+branch=(not, (system.has, canvas_v2)), \
+    ((pyro.bind_key, collapsed_view_toggle, *, "view.collapsed.toggle="))
+
+# UI/VIEW: Default view for filtering results (bound to '^' key in rT-PS)
+pyro.collapsed_view.add = rtcontrol
+view.filter = rtcontrol, ((false))
+pyro.bind_key = rtcontrol_view, ^, "ui.current_view.set=rtcontrol"
+
+# UI/Key: Press 'u' for uptime
+method.insert.simple = pyro._elapsed_time,\
+    "branch=(system.has, convert.time_delta=), \
+        \"convert.time_delta=$value=$argument.0=\", \
+        \"convert.elapsed_time=$value=$argument.0=\""
+method.insert.simple = pyro._print_uptime,\
+    "print=\"rTorrent \", $system.library_version=,\
+    /, $system.client_version=,\
+    \" started \", $convert.date=$system.startup_time=,\
+    \" \", $convert.time=$system.startup_time=,\
+    \", up \", $pyro._elapsed_time=$system.startup_time=,\
+    \" [PID=\", $system.pid=,],\
+    \" [CWD=\", $system.cwd=,]"
+
+pyro.bind_key = print_uptime, u, "pyro._print_uptime="

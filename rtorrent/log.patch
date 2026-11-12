@@ -1,0 +1,15 @@
+diff --git i/src/display/window_statusbar.cc w/src/display/window_statusbar.cc
+index fcab37ee..95cb3c49 100644
+--- i/src/display/window_statusbar.cc
++++ w/src/display/window_statusbar.cc
+@@ -33,8 +33,8 @@ WindowStatusbar::redraw() {
+ 
+   m_canvas->set_attr(0, 0, -1, RCOLOR_FOOTER);
+ 
+-  void ui_pyroscope_statusbar_redraw(Window* window, display::Canvas* canvas);
+-  ui_pyroscope_statusbar_redraw(this, m_canvas.get());
++  //void ui_pyroscope_statusbar_redraw(Window* window, display::Canvas* canvas);
++  //ui_pyroscope_statusbar_redraw(this, m_canvas.get());
+   m_lastTick = control->tick();
+ }
+ 

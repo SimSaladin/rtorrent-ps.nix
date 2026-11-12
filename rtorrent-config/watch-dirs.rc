@@ -8,4 +8,4 @@ directory.watch.added = (cat, (cfg.watch), "load"), load.verbose
 
 # Reload watch directory configuration automatically
 schedule = watch_user_watchdirs_config, 0, 600, \
-  ((try_import_existing, (cat, (cfg.basedir), "watch-dirs.rc")))
+  ((try_import.if_exists, (cat, (cfg.basedir), "watch-dirs.rc")))
