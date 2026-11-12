@@ -20,10 +20,14 @@ lib.makeExtensible (self': lib.recurseIntoAttrs {
 
   latest = self'.rtorrent_0_16_28;
 
+  debug = self'.latest.override {
+    enableDebug = true;
+  };
+
   rtorrent_0_16_28 = builder {
     version = "0.16.28";
-    rev = "8c51efdbda036a7abdb8e894c44968437b3df250";
-    hash = "sha256-k8jgTE+88kyM1FJjiVXcSS6XQU6Cr5D0J4R1JDqYXsM=";
+    rev = "fba11e77502ba835a2409b3eecf636f20eaa8ec5";
+    hash = "sha256-9DNvGF6waENAEf7NN90InKCoc0Naaikdf9aCRAlMsvM=";
     owner = "SimSaladin";
     libtorrent = libtorrentVersions.libtorrent_0_16_28;
     enableSystemd = true;
