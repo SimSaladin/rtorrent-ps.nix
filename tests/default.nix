@@ -1,6 +1,4 @@
-
 { self, pkgs }:
-
 {
   nixos-module = pkgs.testers.runNixOSTest {
     name = "rtorrent-ps";

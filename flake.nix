@@ -13,11 +13,10 @@
   };
 
   outputs = { self, flake-utils-plus, ... }@inputs: let
+    inherit (inputs.nixpkgs) lib;
     inherit (flake-utils-plus.lib) mkFlake defaultSystems flattenTree;
 
-    lib = inputs.nixpkgs.lib;
-
-    nixpkgs2111Config = {
+    nixpkgs2111-config = {
       allowBroken = true;
       permittedInsecurePackages = [
         "python2.7-urllib3-1.26.2"
@@ -28,7 +27,7 @@
       inherit self inputs;
       supportedSystems = lib.subtractLists [ "x86_64-darwin" ] defaultSystems;
 
-      debug = true;
+      #debug = true;
 
       channels.nixpkgs.overlaysBuilder = channels: [
         (_: _: { pkgs2111 = channels.nixpkgs2111; })
@@ -37,12 +36,12 @@
 
       # Python: downgrade to unsupported Python 2 shit to make things work.
       # Pin python packages to stable (python 2 support is very broken in unstable currently)
-      channels.nixpkgs2111.config = nixpkgs2111Config;
+      channels.nixpkgs2111.config = nixpkgs2111-config;
 
       outputsBuilder = channels:
         let
           pkgs = channels.nixpkgs;
-          system = pkgs.stdenv.hostPlatform.system;
+          inherit (pkgs.stdenv.hostPlatform) system;
         in
         {
           legacyPackages = {
@@ -64,7 +63,7 @@
         python2-available = _: prev: {
           pkgs2111 = import inputs.nixpkgs2111 {
             inherit (prev.stdenv.hostPlatform) system;
-            config = nixpkgs2111Config;
+            config = nixpkgs2111-config;
           };
         };
         pkgs-generic = final: prev: {
