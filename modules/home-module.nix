@@ -1,84 +1,46 @@
-# import args
+#
+# home-manager module for rtorrent-ps setup
+#
 _:
 
-# home-manager module
 { config, lib, pkgs, ... }:
 
 let
-  inherit (builtins) isNull;
-  inherit (lib) types mkIf mkOption optionalAttrs;
+  inherit (lib) types mkIf mkOption;
 
   programCfg = config.programs.rtorrent-ps;
   serviceCfg = config.services.rtorrent-ps;
 in
 {
+  imports = [
+    ./program-common-opts.nix
+    ./service-options.nix
+  ];
+
   options = {
     programs.rtorrent-ps = {
-      enable = lib.mkEnableOption "rTorrent-PS";
-
-      package = lib.mkPackageOption pkgs "rtorrent-ps" { };
-
-      finalPackage = mkOption {
-        type = types.package;
-        visible = false;
-        readOnly = true;
-        description = "The final rtorrent-ps package (read-only).";
-      };
-
-      baseDir = mkOption {
-        type = types.nullOr types.str;
-        default = "${config.home.homeDirectory}/.rtorrent";
-        description = ''
-          The rTorrent base directory to use.
-          Defaults to `~/.rtorrent` (when `null`).
-        '';
-      };
-
-      workDir = mkOption {
-        type = types.nullOr types.path;
-        default = null;
-        description = ''
-          Override RT_DOWNLOAD_PATH
-        '';
-      };
-
       settings = mkOption {
-        type = types.submodule (import ./rtorrent-options.nix { inherit lib; });
+        type = types.submodule [ ./rtorrent-options.nix ];
         default = { };
         description = ''
           Local rtorrent configuration that gets written to `{baseDir}/_rtlocal.rc`.
         '';
       };
     };
-
-    services.rtorrent-ps = lib.mkOption {
-      type = types.submodule [
-        (import ./service-options.nix { inherit pkgs lib; })
-        {
-          scgiLocal = "${programCfg.baseDir}/.scgi_local";
-          tmux.socketPath = "${programCfg.baseDir}/.tmux";
-        }
-      ];
-      default = { };
-    };
   };
 
   config = lib.mkMerge [
     (mkIf programCfg.enable {
+
+      programs.rtorrent-ps = {
+        baseDir = "${config.home.homeDirectory}/.rtorrent";
+      };
+
       home.packages = [ programCfg.finalPackage ];
 
       home.file."${builtins.replaceStrings ["${config.home.homeDirectory}/"] [""] programCfg.baseDir}/_rtlocal.rc" = {
-        enable = programCfg.settings.content != "";
-        text = programCfg.settings.content;
-      };
-
-      programs.rtorrent-ps = {
-        # could just set RT_HOME in the session env
-        finalPackage = programCfg.package.override (
-          optionalAttrs (!isNull programCfg.baseDir) { RT_HOME = programCfg.baseDir; } //
-          optionalAttrs (!isNull programCfg.workDir) { RT_DOWNLOAD_PATH = programCfg.workDir; } //
-          optionalAttrs (!isNull serviceCfg.scgiLocal && serviceCfg.enable) { RT_SOCKET = serviceCfg.scgiLocal; }
-        );
+        enable = programCfg.settings.generatedConfig != "";
+        text = programCfg.settings.generatedConfig;
       };
 
       xdg.desktopEntries.rtorrent-magnet = {
@@ -92,30 +54,40 @@ in
       xdg.mimeApps.defaultApplications."x-schema-handler/magnet" = [ "rtorrent-magnet.desktop" ];
     })
 
-
     (mkIf serviceCfg.enable {
-      home.packages = lib.optionals serviceCfg.tmux.enable [ serviceCfg._systemd.rtorrent-attach ];
+
+      services.rtorrent-ps = {
+        stateDir = "/run/user/${toString config.home.uid}/rtorrent-ps";
+        scgiLocal = "/run/user/${toString config.home.uid}/rtorrent-ps/scgi.sock";
+        tmux.socketPath = "/run/user/${toString config.home.uid}/rtorrent-ps/tmux.sock";
+      };
+
+      home.packages = lib.optionals serviceCfg.tmux.enable [ serviceCfg.nix-support.rtorrent-attach ];
 
       systemd.user.services.rtorrent-ps = {
         Unit = {
           Description = "RTorrent-PS";
           After = [ "network.target" ];
-          wants = [ "network.target" ];
-          #RequiresMountsFor = [ "/media/moore" ]; # TODO parameterize
+          Wants = [ "network.target" ];
+          X-Restart-Triggers = [ serviceCfg.configFile ];
         };
-        Install.WantedBy = [ "default.target" ];
-        Service = serviceCfg._systemd.serviceConfig // {
-          Environment = {
-            PATH = lib.makeSearchPath [
-              pkgs.bashInteractive
-              pkgs.util-linux
-              programCfg.finalPackage
-              pkgs.tmux
+        Service = lib.mkMerge [
+          (serviceCfg.nix-support.serviceConfig // {
+            Environment = [
+              "PATH=${lib.makeSearchPath "bin" serviceCfg.nix-support.servicePath}"
+              "RT_HOME=${serviceCfg.stateDir}"
+              "RT_SOCKET=${serviceCfg.scgiLocal}"
+              "RT_PIDFILE=%t/rtorrent-ps/rtorrent.pid"
             ];
-            RT_HOME = serviceCfg.stateDir;
-            RT_SOCKET = serviceCfg.scgiLocal;
-          };
-        };
+          })
+
+          (lib.mkIf serviceCfg.tmux.enable {
+            InaccessiblePaths = [ "/run/user/${toString config.home.uid}/bus" ];
+          })
+
+        ];
+
+        Install.WantedBy = [ "default.target" ];
       };
     })
   ];

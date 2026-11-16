@@ -10,6 +10,12 @@
     nixpkgs2111.url = "github:NixOS/nixpkgs/nixos-21.11";
 
     flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus";
+
+    # XXX for testing only
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, flake-utils-plus, ... }@inputs: let
@@ -52,7 +58,10 @@
             default = self.packages.${system}."rtorrent-ps/latest";
           };
 
-          checks = import ./tests { inherit self pkgs; };
+          checks = import ./tests {
+            inherit self pkgs;
+            inherit (inputs) home-manager;
+          };
         };
 
       overlays = {

@@ -1,3 +1,7 @@
+#
+# NixOS module for rtorrent-ps setup.
+# Setup as a system service and/or application available for all users.
+#
 _:
 
 { lib, pkgs, config, ... }:
@@ -6,12 +10,17 @@ let
   inherit (lib) types;
   programCfg = config.programs.rtorrent-ps;
   serviceCfg = config.services.rtorrent-ps;
+  inherit (serviceCfg) nix-support;
 in
 
 {
+  imports = [
+    ./program-common-opts.nix
+    ./service-options.nix
+  ];
+
   options = {
     programs.rtorrent-ps = {
-      enable = lib.mkEnableOption "rTorrent-PS";
 
       system = lib.mkOption {
         type = types.bool;
@@ -22,43 +31,45 @@ in
           (`~/.rtorrent/.scgi_local`).
         '';
       };
-
-      package = lib.mkPackageOption pkgs "rtorrent-ps" { };
-
-      finalPackage = lib.mkOption {
-        type = types.package;
-        visible = false;
-        readOnly = true;
-        description = "The final rtorrent-ps package (read-only).";
-      };
     };
 
-    services.rtorrent-ps = lib.mkOption {
-      type = types.submodule [
-        (import ./service-options.nix { inherit pkgs lib; })
-        {
-          scgiLocal = "/run/rtorrent-ps/scgi";
-          tmux.socketPath = "/run/rtorrent-ps/tmux";
-        }
-      ];
-      default = { };
+    services.rtorrent-ps = {
+
+          user = lib.mkOption {
+            type = types.singleLineStr;
+            default = "rtorrent-ps";
+            description = ''
+              Name of the user to run rtorrent-ps as.
+            '';
+          };
+          group = lib.mkOption {
+            type = types.singleLineStr;
+            default = "rtorrent-ps";
+            description = ''
+              Group to run rtorrent-ps as.
+            '';
+          };
+          createUser = lib.mkOption {
+            type = types.bool;
+            default = true;
+            description = ''
+              Whether to create the user.
+            '';
+          };
     };
   };
 
   config = lib.mkIf (programCfg.enable || serviceCfg.enable) {
 
+      services.rtorrent-ps = {
+        stateDir = "/var/lib/rtorrent-ps";
+        scgiLocal = "/run/rtorrent-ps/scgi";
+        tmux.socketPath = "/run/rtorrent-ps/tmux";
+      };
+
     environment.systemPackages =
       lib.optionals programCfg.enable [ programCfg.finalPackage ] ++
-      lib.optionals (serviceCfg.enable && serviceCfg.tmux.enable) [ serviceCfg._systemd.rtorrent-attach ]
-    ;
-
-    programs.rtorrent-ps = {
-      finalPackage = programCfg.package.override (
-        lib.optionalAttrs programCfg.system {
-          RT_SOCKET = serviceCfg.scgiLocal;
-        }
-      );
-    };
+      lib.optionals (serviceCfg.enable && serviceCfg.tmux.enable) [ nix-support.rtorrent-attach ];
 
     systemd.services = lib.mkIf serviceCfg.enable {
       rtorrent-ps = {
@@ -73,45 +84,12 @@ in
           programCfg.finalPackage
         ]
         ++ lib.optional serviceCfg.tmux.enable pkgs.tmux;
-        serviceConfig = serviceCfg._systemd.serviceConfig //
-          {
-            RuntimeDirectory = "rtorrent-ps";
+
+        serviceConfig = nix-support.serviceConfig // {
             User = serviceCfg.user;
             Group = serviceCfg.group;
-            ExitType = "cgroup";
-            Restart = "on-failure";
-            CapabilityBoundingSet = [ ''""'' ];
-            NoNewPrivileges = true;
-            PrivateTmp = true;
-            PrivateDevices = true;
-            ProtectSystem = "full";
             ProtectHome = true;
-            ProtectControlGroups = true;
-            ProtectKernelModules = true;
-            ProtectKernelTunables = true;
-            ProtectKernelLogs = true;
-            ProtectHostname = true;
-            ProtectProc = "invisible";
-            UMask = "0077";
             RemoveIPC = true;
-            ProtectClock = true;
-            RestrictNamespaces = true;
-            SystemCallArchitectures = "native";
-            RestrictAddressFamilies = [
-              "AF_UNIX"
-              "AF_INET"
-              "AF_INET6"
-              "AF_NETLINK"
-            ];
-            RestrictRealtime = true;
-            RestrictSUIDSGID = true;
-            MemoryDenyWriteExecute = true;
-            ProcSubset = "pid";
-            LockPersonality = true;
-            SystemCallFilter = [
-              "@system-service"
-              "~@privileged"
-            ];
           };
         environment = {
           RT_HOME = serviceCfg.stateDir;
