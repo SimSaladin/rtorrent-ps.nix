@@ -62,10 +62,12 @@ method.insert.simple = pyro._last_xfer_update,\
     "d.custom.set=last_xfer,$cat=$system.time= ; branch=argument.0=,d.save_resume="
 method.insert.simple = d.last_xfer.is_active,\
     "or={pyro._last_xfer_check_min_rate=$d.up.rate=,pyro._last_xfer_check_min_rate=$d.down.rate=}"
-method.insert.simple = d.timestamp.last_xfer, ((if, ((d.last_xfer.is_active)),\
-    ((cat,((system.time)),((d.custom,last_xfer))))))
+method.insert.list = d.timestamp.last_xfer, \
+  {(if, (d.last_xfer.is_active), \
+        ((cat,(system.time),(d.custom,last_xfer))) \
+  )}
 
-schedule = pyro_update_last_xfer, 33, 17,\
+schedule = pyro_update_last_xfer, 33, 17, \
     ((d.multicall2, active, "branch = (d.last_xfer.is_active), ((pyro._last_xfer_update))"))
 
 method.insert.simple = d.timestamp.last_xfer.print,\

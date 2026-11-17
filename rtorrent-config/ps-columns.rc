@@ -8,7 +8,7 @@
 
 # Provide dummy multi-methods for plain rTorrent
 branch=(not, (pyro.extended)), \
-    ((method.insert, ui.column.render, multi|rlookup|static))
+    {(method.insert, ui.column.render, multi|rlookup|static)}
 
 # Throttle name (see "_rtlocal.rc" for matching throttle definitions)
 method.set_key = ui.column.render, "800:?3:⋉  ", \
@@ -41,17 +41,19 @@ method.insert.value = pyro.eta.min_rate, 512
 
 # TODO: implement in C++ as d.eta.time and d.eta.seconds!
 #       (rate & ~(uint32_t)(512 - 1))
-method.insert.simple = d.eta.seconds, \
-    "branch = (d.down.rate), \
-      ((math.div, (math.sub, (d.size_bytes), (d.bytes_done)), (d.down.rate))), \
-      ((value, 0))"
+method.insert.simple = d.eta.seconds, ((do, {(\
+  branch, (d.down.rate), \
+    ((math.div, (math.sub, (d.size_bytes), (d.bytes_done)), (d.down.rate))), \
+    ((value, 0))\
+  )}))
 
 method.set_key = ui.column.render, "533:?6C21/1C28/1C21/2C28/2:⟲ ◥◤  ", \
-    "branch = (greater, (d.down.rate), (pyro.eta.min_rate)), \
+  {(branch, (greater, (d.down.rate), (pyro.eta.min_rate)), \
         ((convert.time_delta, (math.add, (system.time), (d.eta.seconds)))), \
-        ((cat, \"⋆ ⋆⋆ \"))"
+        ((cat, "⋆ ⋆⋆ ")))}
 
 method.set_key = event.view.show, ~eta_toggle, \
-    "branch = \"string.equals=$ui.current_view=, active, leeching\", \
-        ui.column.show=533, ui.column.hide=533"
+  {(branch, (string.equals, (ui.current_view), active, leeching), \
+    ((ui.column.show,533)), ((ui.column.hide,533)))}
+
 ui.column.hide = 533

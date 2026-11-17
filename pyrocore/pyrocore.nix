@@ -15,9 +15,11 @@
 , writeShellApplication
 , makeWrapperArgs ? [ ]
 , passthru ? { }
+,
 }:
 
-lib.fix (finalPackage:
+lib.fix (
+  finalPackage:
 
   buildPythonPackage {
     pname = "pyrocore";
@@ -33,7 +35,8 @@ lib.fix (finalPackage:
     makeWrapperArgs = [
       "--set-default PYRO_CONFIG_DIR $out/lib/pyroscope"
       "--prefix PATH : $out/bin"
-    ] ++ makeWrapperArgs;
+    ]
+    ++ makeWrapperArgs;
 
     patches = [
       ./patches/read_config_values_from_env.patch
@@ -101,7 +104,6 @@ lib.fix (finalPackage:
     '';
 
     passthru = rec {
-
       # Note: unlike the executables in pyrocore, here the python env (NIX_*
       # variables) is setup correctly so that if setting PYTHONPATH in environment
       # does not break the executables...
@@ -112,17 +114,20 @@ lib.fix (finalPackage:
 
       rtorrentConfigString =
         let
-          imports = lib.splitString "\n" (lib.fileContents "${finalPackage}/lib/pyroscope/rtorrent.d/.import.rc");
+          imports = lib.splitString "\n" (
+            lib.fileContents "${finalPackage}/lib/pyroscope/rtorrent.d/.import.rc"
+          );
         in
-        lib.concatMapStringsSep "\n" (x: ''
-          # print = "${lib.escape ["\""] x}"
-          ${x}
-        '') imports;
+        lib.concatMapStringsSep "\n" (x: "# print = \"${lib.escape [ "\"" ] x}\"\n" + x) imports;
 
-      rtorrentPyroRC = "${finalPackage}/lib/pyroscope/rtorrent-pyro.rc";
-
-      createImport = { src, env ? { } }:
-        "${runCommand "create-import" { inherit src env; } ''${lib.getExe create-import} $src $out''}/.import.rc";
+      createImport =
+        { src
+        , env ? { }
+        ,
+        }:
+        "${
+          runCommand "create-import" { inherit src env; } "${lib.getExe create-import} $src $out"
+        }/.import.rc";
 
       # Writes a $out/.import.rc which can be imported.
       #
@@ -155,6 +160,7 @@ lib.fix (finalPackage:
           pyroadmin -q --create-import "$DEST/*.rc"
         '';
       };
-    } // passthru;
+    }
+    // passthru;
   }
 )

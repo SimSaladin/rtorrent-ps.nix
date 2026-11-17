@@ -1,7 +1,11 @@
 #
 # Common module of Nix options for configuring rtorrent as a systemd service
 #
-{ pkgs, config, lib, ... }:
+{ pkgs
+, config
+, lib
+, ...
+}:
 
 let
   inherit (lib) types;
@@ -32,14 +36,16 @@ let
     tmuxRun = "${lib.getExe pkgs.tmux} -2uS ${cfg.tmux.socketPath} -f ${support.tmuxConfig}";
 
     # For allowing access to other users...
-    mkACLs = perms: lib.concatStringsSep "," (
-      lib.map (u: "u:${u}:${perms}") cfg.tmux.allowedUsers ++
-      lib.map (g: "g:${g}:${perms}") cfg.tmux.allowedGroups
-    );
+    mkACLs =
+      perms:
+      lib.concatStringsSep "," (
+        lib.map (u: "u:${u}:${perms}") cfg.tmux.allowedUsers
+        ++ lib.map (g: "g:${g}:${perms}") cfg.tmux.allowedGroups
+      );
     # For allowing access to other users...
     tmuxServerAccess = lib.concatStringsSep "\n" (
-      lib.map (u: "server-access -a ${u}") cfg.tmux.allowedUsers ++
-      lib.map (g: "server-access -ag ${g}") cfg.tmux.allowedGroups
+      lib.map (u: "server-access -a ${u}") cfg.tmux.allowedUsers
+      ++ lib.map (g: "server-access -ag ${g}") cfg.tmux.allowedGroups
     );
 
     # this is meant to be run by a tmux process that was started as the
@@ -55,9 +61,24 @@ let
       capture-pane -pJ -S -
       ${lib.optionalString (support.tmuxServerAccess != "") ''
         ${support.tmuxServerAccess}
-        run-shell -E '${pkgs.acl}/bin/setfacl -m #{q:1} #{q:2}' ${lib.escapeShellArgs [ (support.mkACLs "rw") cfg.tmux.socketPath ]}
-        run-shell -Ebd 1 '${pkgs.acl}/bin/setfacl -m #{q:1} #{q:2}' ${lib.escapeShellArgs [ (support.mkACLs "rw") cfg.scgiLocal ]}
-        run-shell -Ebd 1 '${pkgs.acl}/bin/setfacl -m #{q:1} #{q:2}' ${lib.escapeShellArgs [ (support.mkACLs "rx") cfg.stateDir ]}
+        run-shell -E '${pkgs.acl}/bin/setfacl -m #{q:1} #{q:2}' ${
+          lib.escapeShellArgs [
+            (support.mkACLs "rw")
+            cfg.tmux.socketPath
+          ]
+        }
+        run-shell -Ebd 1 '${pkgs.acl}/bin/setfacl -m #{q:1} #{q:2}' ${
+          lib.escapeShellArgs [
+            (support.mkACLs "rw")
+            cfg.scgiLocal
+          ]
+        }
+        run-shell -Ebd 1 '${pkgs.acl}/bin/setfacl -m #{q:1} #{q:2}' ${
+          lib.escapeShellArgs [
+            (support.mkACLs "rx")
+            cfg.stateDir
+          ]
+        }
       ''}
       display-message -p -d 1 "Service process launched in tmux window"
       run-shell -E '${lib.getExe' pkgs.systemdMinimal "systemd-notify"} --status="starting up..."'
@@ -159,7 +180,8 @@ let
         "~@privileged"
       ];
       UMask = "0077";
-    } //
+    }
+    //
 
     # Parts for tmux mode only
     lib.optionalAttrs cfg.tmux.enable {
@@ -288,37 +310,45 @@ in
     };
   };
 
-  config = {
-    services.rtorrent-ps = {
+  config = lib.mkMerge [
 
-      nix-support = support; # XXX
+    {
+      services.rtorrent-ps = {
+        nix-support = support; # XXX
+        arguments = lib.mkMerge [
+          # Ignore any unmanaged user rtorrent.rc if there happens to be one
+          (lib.mkBefore [ "-n" ])
+          # Set daemon mode on
+          (lib.optionals cfg.daemon [ "-o" "system.daemon.set=1" ])
+          # Enable ad-hoc systemd-notify READY=1 for running as a Type=notify service
+          (lib.optionals cfg.tmux.enable [
+            "-o"
+            "import=${support.sdNotifyRC}"
+          ])
+          # Append service config file if we have one
+          (lib.optionals (cfg.configFile != null) [
+            "-o"
+            "import=${cfg.configFile}"
+          ])
+        ];
+        configFile = lib.mkIf (cfg.settings.generatedConfig != "") (
+          pkgs.writeTextFile {
+            name = "rtorrent.rc";
+            text = cfg.settings.generatedConfig;
+          }
+        );
+        tmux.settings = ''
+          set -g exit-empty off
+          set -g aggressive-resize on
+          set-hook -g command-error {
+            run-shell "${support.sdServiceLog} echo #{hook}"
+          }
+          set-hook -g pane-died {
+            run-shell -E "${support.sdServiceLog} echo #{hook}/#{q:hook_pane}:; tmux capture-pane -pJ -t #{q:hook_pane} -S - | ${lib.getExe pkgs.gnused} -z 's/\n\\\s*\n/\n/g' | ${support.sdServiceLog}"
+          }
+        '';
+      };
+    }
 
-      arguments = lib.mkMerge [
-        # Ignore any unmanaged user rtorrent.rc if there happens to be one
-        (lib.mkBefore [ "-n" ])
-        # Set daemon mode on
-        (lib.optionals cfg.daemon [ "-o" "system.daemon.set=1" ])
-        # Enable ad-hoc systemd-notify READY=1 for running as a Type=notify service
-        (lib.optionals cfg.tmux.enable [ "-o" "import=${support.sdNotifyRC}" ])
-        # Append service config file if we have one
-        (lib.optionals (cfg.configFile != null) [ "-o" "import=${cfg.configFile}" ])
-      ];
-
-      configFile = lib.mkIf (cfg.settings.generatedConfig != "") (pkgs.writeTextFile {
-        name = "rtorrent.rc";
-        text = cfg.settings.generatedConfig;
-      });
-
-      tmux.settings = ''
-        set -g exit-empty off
-        set -g aggressive-resize on
-        set-hook -g command-error {
-          run-shell "${support.sdServiceLog} echo #{hook}"
-        }
-        set-hook -g pane-died {
-          run-shell -E "${support.sdServiceLog} echo #{hook}/#{q:hook_pane}:; tmux capture-pane -pJ -t #{q:hook_pane} -S - | ${lib.getExe pkgs.gnused} -z 's/\n\\\s*\n/\n/g' | ${support.sdServiceLog}"
-        }
-      '';
-    };
-  };
+  ];
 }

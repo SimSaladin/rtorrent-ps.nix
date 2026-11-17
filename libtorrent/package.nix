@@ -16,19 +16,22 @@
 , enableAligned ? false
 , enableStatic ? false
 , c-aresSupport ? true
+,
 }:
 
 let
-  getSrcVersion = src: lib.pipe (src + "/configure.ac") [
-    lib.fileContents
-    (lib.match ".*AC_INIT...libtorrent..,..([0-9.]+).*")
-    lib.head
-  ];
+  getSrcVersion =
+    src:
+    lib.pipe (src + "/configure.ac") [
+      lib.fileContents
+      (lib.match ".*AC_INIT...libtorrent..,..([0-9.]+).*")
+      lib.head
+    ];
 
 in
 
 # compiling with non-generic optimizations results in segfaults for some
-# reason.
+  # reason.
 assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
 
 stdenv.mkDerivation (finalAttrs: {
@@ -42,15 +45,27 @@ stdenv.mkDerivation (finalAttrs: {
     inherit owner rev hash;
   };
 
-  configureFlags = [ "--disable-dependency-tracking" ] ++
-    lib.optional withPosixFallocate "--with-posix-fallocate" ++
-    lib.optional enableAligned "--enable-aligned" ++
-    lib.optional enableStatic "--enable-static";
+  configureFlags = [
+    "--disable-dependency-tracking"
+  ]
+  ++ lib.optional withPosixFallocate "--with-posix-fallocate"
+  ++ lib.optional enableAligned "--enable-aligned"
+  ++ lib.optional enableStatic "--enable-static";
 
-  buildInputs = [ cppunit openssl libsigcxx_2_0 zlib ]
-    ++ lib.optional (lib.versionAtLeast finalAttrs.finalPackage.version "0.16") (if c-aresSupport then curl.override { c-aresSupport = true; } else curl);
+  buildInputs = [
+    cppunit
+    openssl
+    libsigcxx_2_0
+    zlib
+  ]
+  ++ lib.optional (lib.versionAtLeast finalAttrs.finalPackage.version "0.16") (
+    if c-aresSupport then curl.override { c-aresSupport = true; } else curl
+  );
 
-  nativeBuildInputs = [ pkg-config autoreconfHook ];
+  nativeBuildInputs = [
+    pkg-config
+    autoreconfHook
+  ];
 
   enableParallelBuilding = true;
 

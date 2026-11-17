@@ -19,13 +19,11 @@
 , tinyxml-2
 , libxml2
 , systemd
-
 , version ? null
 , owner ? "rakshasa"
 , rev ? "v${version}"
 , hash ? ""
-, patches ? []
-
+, patches ? [ ]
 , libtorrent
 , rtorrentPSVersion
 , files ? { }
@@ -36,8 +34,9 @@
 , enableSystemd ? false
 , withAutoconfArchive ? !withAutoreconfHook
 , withAutoreconfHook ? false
-# better unicode support via tinyxml2
-, withTinyxml2 ? true
+, # better unicode support via tinyxml2
+  withTinyxml2 ? true
+,
 }:
 
 let
@@ -56,9 +55,11 @@ stdenv.mkDerivation (finalAttrs: {
   pname = "rtorrent";
   version =
     let
-      version' = if isNull version
-        then libtorrent.version + lib.optionalString (rev != "v${version}") "+g${lib.substring 0 7 rev}"
-        else version;
+      version' =
+        if isNull version then
+          libtorrent.version + lib.optionalString (rev != "v${version}") "+g${lib.substring 0 7 rev}"
+        else
+          version;
     in
     version' + "+PS${rtorrentPSVersion}";
 
@@ -75,10 +76,16 @@ stdenv.mkDerivation (finalAttrs: {
   withLua = if isNull withLua then lib.versionAtLeast version "0.16" else withLua;
   doInstallCheck = lib.versionAtLeast version "0.16";
 
-  nativeBuildInputs = [ pkg-config installShellFiles ]
-    ++ lib.optional withAutoreconfHook autoreconfHook
-    ++ lib.optionals (!withAutoreconfHook) [ autoconf automake ]
-    ++ lib.optional withAutoconfArchive autoconf-archive;
+  nativeBuildInputs = [
+    pkg-config
+    installShellFiles
+  ]
+  ++ lib.optional withAutoreconfHook autoreconfHook
+  ++ lib.optionals (!withAutoreconfHook) [
+    autoconf
+    automake
+  ]
+  ++ lib.optional withAutoconfArchive autoconf-archive;
 
   buildInputs = [
     cppunit
@@ -100,8 +107,9 @@ stdenv.mkDerivation (finalAttrs: {
 
   env = {
     # TODO clarify why this is needed
-    RT_VERSION = lib.head (lib.match "([0-9.]+).*" (lib.versions.pad 3
-    finalAttrs.finalPackage.version));
+    RT_VERSION = lib.head (
+      lib.match "([0-9.]+).*" (lib.versions.pad 3 finalAttrs.finalPackage.version)
+    );
   };
 
   passthru = {
@@ -130,12 +138,12 @@ stdenv.mkDerivation (finalAttrs: {
     else
       :
       ${lib.optionalString (!withAutoreconfHook) ''
-      export ACLOCAL_PATH=$ACLOCAL_PATH:$PWD/scripts
-      aclocal --force
-      libtoolize --automake --copy --force
-      autoheader
-      automake --add-missing
-      autoconf
+        export ACLOCAL_PATH=$ACLOCAL_PATH:$PWD/scripts
+        aclocal --force
+        libtoolize --automake --copy --force
+        autoheader
+        automake --add-missing
+        autoconf
       ''}
     fi
   '';
@@ -148,20 +156,24 @@ stdenv.mkDerivation (finalAttrs: {
   configureFlags = [
     "--disable-dependency-tracking"
   ]
-    ++ lib.optional enableShared "--enable-shared"
-    ++ lib.optional enableStatic "--enable-static"
-    ++ lib.optional (!enableStatic) "--disable-static"
-    ++ lib.optional enableDebug "--enable-debug"
-    ++ lib.optional (!enableDebug) "--enable-debug=no"
-    ++ lib.optional (!withTinyxml2) "--with-xmlrpc-c"
-    ++ lib.optional withTinyxml2 "--with-xmlrpc-tinyxml2"
-    ++ lib.optionals finalAttrs.withLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
-    ++ lib.optional enableSystemd "--with-systemd";
+  ++ lib.optional enableShared "--enable-shared"
+  ++ lib.optional enableStatic "--enable-static"
+  ++ lib.optional (!enableStatic) "--disable-static"
+  ++ lib.optional enableDebug "--enable-debug"
+  ++ lib.optional (!enableDebug) "--enable-debug=no"
+  ++ lib.optional (!withTinyxml2) "--with-xmlrpc-c"
+  ++ lib.optional withTinyxml2 "--with-xmlrpc-tinyxml2"
+  ++ lib.optionals finalAttrs.withLua [
+    "--with-lua"
+    "LUA=${lua}/bin/lua"
+  ]
+  ++ lib.optional enableSystemd "--with-systemd";
 
   postInstall = ''
     installManPage doc/old/rtorrent.1
     mv doc/rtorrent.rc $out/share/rtorrent/rtorrent.rc
-  '' + lib.optionalString enableDebug ''
+  ''
+  + lib.optionalString enableDebug ''
     ln -s $src "$out/share/rtorrent-${finalAttrs.version}"
   '';
 

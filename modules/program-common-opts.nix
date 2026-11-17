@@ -1,4 +1,8 @@
-{ lib, pkgs, config, ... }:
+{ lib
+, pkgs
+, config
+, ...
+}:
 
 let
   inherit (lib) types;
@@ -44,9 +48,11 @@ in
   config.programs.rtorrent-ps = {
     # could just set RT_HOME in the session env
     finalPackage = programCfg.package.override (
-      lib.optionalAttrs (!isNull programCfg.baseDir) { RT_HOME = programCfg.baseDir; } //
-      lib.optionalAttrs (!isNull programCfg.workDir) { RT_DOWNLOAD_PATH = programCfg.workDir; } //
-      lib.optionalAttrs (!isNull serviceCfg.scgiLocal && serviceCfg.enable) { RT_SOCKET = serviceCfg.scgiLocal; }
+      lib.optionalAttrs (!isNull programCfg.baseDir) { RT_HOME = programCfg.baseDir; }
+      // lib.optionalAttrs (!isNull programCfg.workDir) { RT_DOWNLOAD_PATH = programCfg.workDir; }
+      // lib.optionalAttrs (!isNull serviceCfg.scgiLocal && serviceCfg.enable) {
+        RT_SOCKET = serviceCfg.scgiLocal;
+      }
     );
   };
 }

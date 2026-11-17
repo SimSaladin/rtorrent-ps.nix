@@ -2,9 +2,11 @@
 # NixOS module for rtorrent-ps setup.
 # Setup as a system service and/or application available for all users.
 #
-_:
-
-{ lib, pkgs, config, ... }:
+{ lib
+, pkgs
+, config
+, ...
+}:
 
 let
   inherit (lib) types;
@@ -35,41 +37,41 @@ in
 
     services.rtorrent-ps = {
 
-          user = lib.mkOption {
-            type = types.singleLineStr;
-            default = "rtorrent-ps";
-            description = ''
-              Name of the user to run rtorrent-ps as.
-            '';
-          };
-          group = lib.mkOption {
-            type = types.singleLineStr;
-            default = "rtorrent-ps";
-            description = ''
-              Group to run rtorrent-ps as.
-            '';
-          };
-          createUser = lib.mkOption {
-            type = types.bool;
-            default = true;
-            description = ''
-              Whether to create the user.
-            '';
-          };
+      user = lib.mkOption {
+        type = types.singleLineStr;
+        default = "rtorrent-ps";
+        description = ''
+          Name of the user to run rtorrent-ps as.
+        '';
+      };
+      group = lib.mkOption {
+        type = types.singleLineStr;
+        default = "rtorrent-ps";
+        description = ''
+          Group to run rtorrent-ps as.
+        '';
+      };
+      createUser = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Whether to create the user.
+        '';
+      };
     };
   };
 
   config = lib.mkIf (programCfg.enable || serviceCfg.enable) {
 
-      services.rtorrent-ps = {
-        stateDir = "/var/lib/rtorrent-ps";
-        scgiLocal = "/run/rtorrent-ps/scgi";
-        tmux.socketPath = "/run/rtorrent-ps/tmux";
-      };
+    services.rtorrent-ps = {
+      stateDir = "/var/lib/rtorrent-ps";
+      scgiLocal = "/run/rtorrent-ps/scgi";
+      tmux.socketPath = "/run/rtorrent-ps/tmux";
+    };
 
     environment.systemPackages =
-      lib.optionals programCfg.enable [ programCfg.finalPackage ] ++
-      lib.optionals (serviceCfg.enable && serviceCfg.tmux.enable) [ nix-support.rtorrent-attach ];
+      lib.optionals programCfg.enable [ programCfg.finalPackage ]
+      ++ lib.optionals (serviceCfg.enable && serviceCfg.tmux.enable) [ nix-support.rtorrent-attach ];
 
     systemd.services = lib.mkIf serviceCfg.enable {
       rtorrent-ps = {
@@ -86,11 +88,11 @@ in
         ++ lib.optional serviceCfg.tmux.enable pkgs.tmux;
 
         serviceConfig = nix-support.serviceConfig // {
-            User = serviceCfg.user;
-            Group = serviceCfg.group;
-            ProtectHome = true;
-            RemoveIPC = true;
-          };
+          User = serviceCfg.user;
+          Group = serviceCfg.group;
+          ProtectHome = true;
+          RemoveIPC = true;
+        };
         environment = {
           RT_HOME = serviceCfg.stateDir;
           RT_SOCKET = serviceCfg.scgiLocal;

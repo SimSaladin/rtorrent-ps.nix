@@ -1,12 +1,17 @@
-{ self, pkgs, lib ? pkgs.lib, home-manager, ... }:
+{ self
+, pkgs
+, lib ? pkgs.lib
+, home-manager
+, ...
+}:
 let
   common = {
     name = lib.mkDefault "rtorrent-ps";
     nodes.server = {
       imports = [
         self.nixosModules.default
-         home-manager.nixosModules.home-manager
-       ];
+        home-manager.nixosModules.home-manager
+      ];
       users.users.nixos = {
         uid = 2000;
         isNormalUser = true;
@@ -21,7 +26,7 @@ let
   };
 
   homeCommon = {
-    imports = [self.hmModules.default];
+    imports = [ self.hmModules.default ];
     home.stateVersion = "26.11";
   };
 
@@ -29,7 +34,7 @@ in
 {
   nixos-module = pkgs.testers.runNixOSTest {
     name = "rt-ps-nixos-tui";
-    imports = [common];
+    imports = [ common ];
     nodes.server = _: {
       programs.rtorrent-ps.enable = true;
       services.rtorrent-ps.enable = true;
@@ -49,7 +54,7 @@ in
 
   nixos-daemon-mode = pkgs.testers.runNixOSTest {
     name = "rt-ps-nixos-headless";
-    imports = [common];
+    imports = [ common ];
     nodes.server = _: {
       programs.rtorrent-ps.enable = true;
       services.rtorrent-ps = {
@@ -58,8 +63,8 @@ in
         settings = {
           set.network.listen.port = 1243;
           set.throttle.global_down = "1234M";
-          extraConfig = ''
-          '';
+          set.protocol.encryption = "prefer";
+          extraConfig = "";
           pyro.categories = {
             category1 = { };
             category2 = { };
@@ -85,10 +90,13 @@ in
     imports = [ common ];
     #enableDebugHook = true;
     #sshBackdoor.enable = true;
-    nodes.server = { config, pkgs, ... } : {
+    nodes.server = { config, pkgs, ... }: {
       systemd.services."getty@tty1" = {
         overrideStrategy = "asDropin";
-        serviceConfig.ExecStart = ["" "@${pkgs.util-linux}/sbin/agetty agetty --login-program ${config.services.getty.loginProgram} --autologin nixos --noclear --keep-baud %I 115200,38400,9600 $TERM"];
+        serviceConfig.ExecStart = [
+          ""
+          "@${pkgs.util-linux}/sbin/agetty agetty --login-program ${config.services.getty.loginProgram} --autologin nixos --noclear --keep-baud %I 115200,38400,9600 $TERM"
+        ];
       };
       home-manager.users.nixos = {
         imports = [ homeCommon ];

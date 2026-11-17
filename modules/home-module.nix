@@ -1,9 +1,7 @@
 #
 # home-manager module for rtorrent-ps setup
 #
-_:
-
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 
 let
   inherit (lib) types mkIf mkOption;
@@ -38,10 +36,13 @@ in
 
       home.packages = [ programCfg.finalPackage ];
 
-      home.file."${builtins.replaceStrings ["${config.home.homeDirectory}/"] [""] programCfg.baseDir}/_rtlocal.rc" = {
-        enable = programCfg.settings.generatedConfig != "";
-        text = programCfg.settings.generatedConfig;
-      };
+      home.file."${
+        builtins.replaceStrings [ "${config.home.homeDirectory}/" ] [ "" ] programCfg.baseDir
+      }/_rtlocal.rc" =
+        {
+          enable = programCfg.settings.generatedConfig != "";
+          text = programCfg.settings.generatedConfig;
+        };
 
       xdg.desktopEntries.rtorrent-magnet = {
         name = "rtorrent-magnet";
@@ -72,14 +73,17 @@ in
           X-Restart-Triggers = [ serviceCfg.configFile ];
         };
         Service = lib.mkMerge [
-          (serviceCfg.nix-support.serviceConfig // {
-            Environment = [
-              "PATH=${lib.makeSearchPath "bin" serviceCfg.nix-support.servicePath}"
-              "RT_HOME=${serviceCfg.stateDir}"
-              "RT_SOCKET=${serviceCfg.scgiLocal}"
-              "RT_PIDFILE=%t/rtorrent-ps/rtorrent.pid"
-            ];
-          })
+          (
+            serviceCfg.nix-support.serviceConfig
+            // {
+              Environment = [
+                "PATH=${lib.makeSearchPath "bin" serviceCfg.nix-support.servicePath}"
+                "RT_HOME=${serviceCfg.stateDir}"
+                "RT_SOCKET=${serviceCfg.scgiLocal}"
+                "RT_PIDFILE=%t/rtorrent-ps/rtorrent.pid"
+              ];
+            }
+          )
 
           (lib.mkIf serviceCfg.tmux.enable {
             InaccessiblePaths = [ "/run/user/${toString config.home.uid}/bus" ];

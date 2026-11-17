@@ -29,12 +29,12 @@ pyro.bind_key = category_view_next, >,\
 # HELPER: Add a category
 method.insert = pyro.category.list, multi|rlookup|static
 
-method.insert.simple = pyro._category.add_new,\
+method.insert.simple = pyro._category.add_new, \
     "view.add = (cat, category_, (argument.0)) ;\
      pyro.view.collapsed.toggle = (cat, category_, (argument.0)) ;\
      method.set_key = pyro.category.list, (argument.0), (cat, print=, (argument.0))"
 
-method.insert.simple = pyro.category.add,\
+method.insert.simple = pyro.category.add, \
     "branch = \"not = (method.has_key, pyro.category.list, (argument.0))\", \
         \"pyro._category.add_new = (argument.0)\""
 
@@ -44,7 +44,9 @@ method.insert.simple = pyro._in_category, "equal={d.custom1=,argument.0=}"
 
 # HELPER: Filter a category view
 method.insert.simple = pyro.category.update,\
-    ((view.filter, ((cat, category_, ((argument.0)))), ((pyro._in_category, ((argument.0))))))
+  ((view.filter, \
+    ((cat, category_, ((argument.0)))), \
+    ((pyro._in_category, ((argument.0))))))
 
 
 # HELPER: Categorized watches
@@ -72,39 +74,45 @@ method.insert.simple = pyro.category.update,\
 
 method.insert.value = pyro.category.separated, 0
 
-method.insert.simple = d.category.set,\
-    "branch = (method.has_key, pyro.category.list, (argument.0)),\
-        ((do,\
-            ((d.custom1.set, (argument.0))),\
-            ((pyro.category.update, (d.custom,category))),\
-            ((d.custom.set, category,(argument.0))),\
-            ((pyro.category.update, (argument.0)))\
-        )),\
-        ((print, (cat, \"Category '\", (argument.0), \"' does not exist\")))"
+method.insert.simple = d.category.set, \
+  ((branch, ((method.has_key, pyro.category.list, ((argument.0)))), \
+      {(do, \
+          ((d.custom1.set, ((argument.0)))), \
+          ((pyro.category.update, ((d.custom,category)))), \
+          ((d.custom.set, category,((argument.0)))), \
+          ((pyro.category.update, ((argument.0)))) \
+      )}, \
+      {(print, ((cat, "Category '", ((argument.0)), "' does not exist")))}))
 
-method.insert.simple = pyro._category.path, ((cat, ((directory.default)), /, ((argument.0))))
-method.insert.simple = pyro._category.check_set_dir,\
-    "branch = (pyro.category.separated),\
-        ((d.directory.set, (pyro._category.path, (argument.0))))"
+method.insert.simple = pyro._category.path, ((cat, \
+    ((directory.default)), /, ((argument.0))))
 
-method.insert.simple = load.category,\
-    "load.verbose =\
-        (cat,(cfg.watch),(argument.0),/*.torrent),\
-        (cat, d.category.set=, (argument.0)),\
-        (cat, pyro._category.check_set_dir=, (argument.0)),\
-        (cat, d.watch.startable=) ;\
-     pyro.category.update=(argument.0)"
-method.insert.simple = load.category.normal,\
-    "load.verbose =\
-        (cat,(cfg.watch),(argument.0),/*.torrent),\
-        (cat, d.category.set=, (argument.0)),\
-        (cat, pyro._category.check_set_dir=, (argument.0)) ;\
-     pyro.category.update=(argument.0)"
-method.insert.simple = load.category.start,\
-    "load.start_verbose =\
-        (cat, (cfg.watch), (argument.0), /*.torrent),\
-        (cat, d.category.set=, (argument.0)),\
-        (cat, pyro._category.check_set_dir=, (argument.0)) ;\
-     pyro.category.update = (argument.0)"
+method.insert.simple = pyro._category.check_set_dir, \
+  ((branch, ((pyro.category.separated)), \
+  {(d.directory.set, ((pyro._category.path, ((argument.0)))))}))
+
+method.insert.simple = load.category, ((do, \
+    ((load.verbose, \
+        ((cat, ((cfg.watch)), ((argument.0)), /*.torrent)),\
+        ((cat, d.category.set=, ((argument.0)))),\
+        ((cat, pyro._category.check_set_dir=, ((argument.0)))),\
+        ((cat, d.watch.startable=)))), \
+    ((pyro.category.update, ((argument.0))))))
+
+method.insert.simple = load.category.normal, ((do, \
+    ((load.verbose, \
+        ((cat,((cfg.watch)),((argument.0)),/*.torrent)), \
+        ((cat, d.category.set=, ((argument.0)))), \
+        ((cat, pyro._category.check_set_dir=, ((argument.0)))) \
+    )), \
+    ((pyro.category.update, ((argument.0))))))
+
+method.insert.simple = load.category.start, ((do, \
+    ((load.start_verbose, \
+        ((cat, ((cfg.watch)), ((argument.0)), /*.torrent)), \
+        ((cat, d.category.set=, ((argument.0)))),\
+        ((cat, pyro._category.check_set_dir=, ((argument.0)))) \
+    )), \
+    ((pyro.category.update, ((argument.0))))))
 
 # END categories

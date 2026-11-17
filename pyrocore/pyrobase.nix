@@ -2,12 +2,16 @@
 , buildPythonPackage
 , tempita
 , six
+,
 }:
 buildPythonPackage rec {
   pname = "pyrobase";
   version = "0.5.2";
 
-  propagatedBuildInputs = [ six tempita ];
+  propagatedBuildInputs = [
+    six
+    tempita
+  ];
 
   src = fetchzip {
     url = "https://pypi.io/packages/source/p/${pname}/${pname}-${version}.zip";

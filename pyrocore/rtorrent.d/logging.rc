@@ -5,15 +5,17 @@
 #
 #   echo >>~/.pyroscope/rtorrent.d/.rcignore "logging.rc.default"
 
-method.insert.simple = pyro._date_now,\
+method.insert.simple = pyro._date_now, \
     ((string.replace, ((convert.date, ((system.time_seconds)))), {/, .}))
 
 # Logging + UI: Add day break to log
-schedule = log_new_day, 00:00:05, 24:00:00, ((print, "New day: ", ((pyro._date_now)) ))
+schedule = log_new_day, 00:00:05, 24:00:00, \
+  ((print, "New day: ", ((pyro._date_now)) ))
 
 # Emit regular warning when ~/NOCRON exists
-schedule = log_nocron, 900, 1800, "branch = (value, (os.path.mtime, ~/NOCRON, 0)), \
-    ((print, \"WARNING: Cron jobs disabled by ~/NOCRON\"))"
+schedule = log_nocron, 10, 1800, \
+  ((branch, ((value, ((os.path.mtime, ~/NOCRON, 0)))), \
+    ((print, "WARNING: Cron jobs disabled by ~/NOCRON"))))
 
 # EVENTS: Logging (don't log "opened", or you get swamped at startup)
 method.insert.simple = pyro._log_on_event, \

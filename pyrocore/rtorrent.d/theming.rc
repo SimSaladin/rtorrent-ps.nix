@@ -16,12 +16,15 @@ pyro.bind_key = rotate_theme, ~,\
     "try_import=(execute.capture_nothrow, (cat,(pyro.bin_dir),python-pyrocore), -m, pyrocore.ui.theming, -qn)"
 
 # HELPER: This is used within theme files, currently just announces the switch
-method.insert = pyro.color_theme.name, private|simple,\
-    "print = (cat, \"Switched to '\", (argument.0), \"' color theme\")"
+method.insert.simple = pyro.color_theme.name, \
+    ((print, ((cat, "Switched to '", ((argument.0)), "' color theme"))))
 
 # HELPER: Load the currently active theme (on startup)
-method.insert = pyro._load_current_theme, private|simple,\
-    "try_import=(execute.capture_nothrow, (cat,(pyro.bin_dir),python-pyrocore), -m, pyrocore.ui.theming, -qc)"
+method.insert.simple = pyro._load_current_theme, \
+  ((try_import, \
+    ((execute.capture_nothrow, \
+      ((cat, ((pyro.bin_dir)), "python-pyrocore")), \
+      "-m", "pyrocore.ui.theming", "-qc"))))
 
 # Load @ startup
-branch=(pyro.extended), ((pyro._load_current_theme))
+branch=(pyro.extended), {(pyro._load_current_theme)}

@@ -10,6 +10,10 @@
     nixpkgs2111.url = "github:NixOS/nixpkgs/nixos-21.11";
 
     flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus";
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # XXX for testing only
     home-manager = {
@@ -18,17 +22,19 @@
     };
   };
 
-  outputs = { self, flake-utils-plus, ... }@inputs: let
-    inherit (inputs.nixpkgs) lib;
-    inherit (flake-utils-plus.lib) mkFlake defaultSystems flattenTree;
+  outputs =
+    { self, flake-utils-plus, ... }@inputs:
+    let
+      inherit (inputs.nixpkgs) lib;
+      inherit (flake-utils-plus.lib) mkFlake defaultSystems flattenTree;
 
-    nixpkgs2111-config = {
-      allowBroken = true;
-      permittedInsecurePackages = [
-        "python2.7-urllib3-1.26.2"
-      ];
-    };
-  in
+      nixpkgs2111-config = {
+        allowBroken = true;
+        permittedInsecurePackages = [
+          "python2.7-urllib3-1.26.2"
+        ];
+      };
+    in
     mkFlake {
       inherit self inputs;
       supportedSystems = lib.subtractLists [ "x86_64-darwin" ] defaultSystems;
@@ -44,10 +50,13 @@
       # Pin python packages to stable (python 2 support is very broken in unstable currently)
       channels.nixpkgs2111.config = nixpkgs2111-config;
 
-      outputsBuilder = channels:
+      outputsBuilder =
+        channels:
         let
           pkgs = channels.nixpkgs;
           inherit (pkgs.stdenv.hostPlatform) system;
+
+          inherit (self.checks.${system}.pre-commit-check) shellHook enabledPackages;
         in
         {
           legacyPackages = {
@@ -58,10 +67,38 @@
             default = self.packages.${system}."rtorrent-ps/latest";
           };
 
-          checks = import ./tests {
-            inherit self pkgs;
-            inherit (inputs) home-manager;
+          formatter =
+            let
+              pre-commit = self.checks.${system}.pre-commit-check;
+              inherit (pre-commit.config) package configFile;
+            in
+            pkgs.writeShellScriptBin "formatter" ''
+              ${lib.getExe package} run --all-files --config ${configFile}
+            '';
+
+          devShells.default = pkgs.mkShell {
+            inherit shellHook;
+            buildInputs = enabledPackages;
           };
+
+          checks =
+            import ./tests
+              {
+                inherit self pkgs;
+                inherit (inputs) home-manager;
+              }
+            // {
+              pre-commit-check = inputs.git-hooks.lib.${system}.run {
+                src = ./.;
+                hooks = {
+                  #nixfmt.enable = true;
+                  deadnix.enable = true;
+                  nixpkgs-fmt.enable = true;
+                  beautysh.enable = true;
+                  shellcheck.enable = true;
+                };
+              };
+            };
         };
 
       overlays = {
@@ -77,19 +114,22 @@
         };
         pkgs-generic = final: prev: {
           # C/C++: Force generic GCC to avoid segfaults with unstable features.
-          pkgsGeneric = let
-            isGenericSystem = sys:
-              (sys.isx86_64 && sys.gcc ? arch) -> sys.gcc.arch == "x86-64" || sys.gcc.arch == "generic";
+          pkgsGeneric =
+            let
+              isGenericSystem =
+                sys: (sys.isx86_64 && sys.gcc ? arch) -> sys.gcc.arch == "x86-64" || sys.gcc.arch == "generic";
 
-            makeGenericSystem = sys:
-              if sys.isx86_64 then lib.systems.elaborate sys.system else sys;
-          in
-            prev.pkgsGeneric or
-            (if isGenericSystem final.stdenv.hostPlatform then final else
-            import prev.path {
-              inherit (final) config overlays;
-              localSystem = makeGenericSystem final.stdenv.hostPlatform;
-            });
+              makeGenericSystem = sys: if sys.isx86_64 then lib.systems.elaborate sys.system else sys;
+            in
+              prev.pkgsGeneric or (
+                if isGenericSystem final.stdenv.hostPlatform then
+                  final
+                else
+                  import prev.path {
+                    inherit (final) config overlays;
+                    localSystem = makeGenericSystem final.stdenv.hostPlatform;
+                  }
+              );
         };
         default = lib.composeManyExtensions [
           self.overlays.python2-available
@@ -98,8 +138,8 @@
         ];
       };
 
-      nixosModules.default = import ./modules/nixos-module.nix { };
+      nixosModules.default = ./modules/nixos-module.nix;
 
-      hmModules.default = import ./modules/home-module.nix { };
+      hmModules.default = ./modules/home-module.nix;
     };
 }

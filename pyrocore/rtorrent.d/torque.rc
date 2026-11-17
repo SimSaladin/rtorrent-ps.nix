@@ -13,6 +13,7 @@ pyro.bind_key = pyrotorque_view, Q, "ui.current_view.set=pyrotorque"
 
 # TORQUE: Daemon watchdog
 method.insert.simple = pyro.watchdog,\
-    ((execute.nothrow, bash,-c,\
-      ((cat, "test ! -f ", ((argument.0)), "/run/pyrotorque || ",(pyro.bin_dir),"pyrotorque --cron ",((argument.1))," || true")) \
-    ))
+    ((execute.nothrow, bash, -c, \
+      ((cat, "test ! -f ", ((argument.0)), "/run/pyrotorque || ", \
+        (pyro.bin_dir),"pyrotorque --cron ",((argument.1))," || true" \
+    ))))

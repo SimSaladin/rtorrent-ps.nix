@@ -2,13 +2,9 @@
 # General settings
 
 #encoding.add = utf8
-
 #system.umask.set = 0027
-
 #keys.layout.set = dvorak
-
 trackers.numwant.set = 80
-
 protocol.encryption.set = handshake_prefer,stream_prefer
 
 # Send and receive buffer size for sockets. Disabled by default (`0`),
@@ -51,13 +47,7 @@ throttle.max_uploads.global.set = 250
 throttle.max_downloads.set = 50
 throttle.max_downloads.global.set = 250
 
-# No completion hashing, and use sane encoding
+# No completion hashing
 pieces.hash.on_completion.set = no
 
 pieces.memory.max.set = 1200M
-
-# Limit pre-load bandwidth (see rTorrent issue #443)
-# `0` (Off / Default) , `1` (Madvise) , `2` (Direct paging).
-#pieces.preload.type.set = 1
-#pieces.preload.min_size.set = 1
-#pieces.preload.min_rate.set = 1

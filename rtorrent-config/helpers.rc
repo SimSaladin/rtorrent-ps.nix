@@ -11,9 +11,9 @@ method.insert.simple = system.env.default, \
       ((cat, ((system.env, ((argument.0)))))) \
     ))
 
-method.insert.simple = execute.system,\
+method.insert.simple = execute.system, ((do, {(do, \
     ((execute.throw, sh, -c, --, ((argument.0)), -, \
-    ((argument.1)), ((argument.2)), ((argument.3))))
+    ((argument.1)), ((argument.2)), ((argument.3)))) )}))
 
 method.insert.simple = execute.system.nothrow,\
     ((execute.nothrow, sh, -c, --, ((argument.0)), -, \
@@ -46,10 +46,11 @@ method.insert.simple = os.path.readable, \
     ((string.equals,0,((execute.system.capture,"test -r \"$1\"; echo $?",((argument.0))))))
 
 # Attempt to import the argument when it's a file
-method.insert.simple = try_import.if_exists, \
-    "branch = (os.path.readable, (argument.0)), ((try_import, (argument.0)))"
+method.insert.simple = try_import.if_exists, ((do,\
+  {(branch, (os.path.readable, (argument.0)), ((try_import, (argument.0))))}))
 
 # Takes a path to a torrent file. If it exists, loads and starts it.
-method.insert.simple = load.start_verbose.if_exists,\
-    "branch = (and, (string.endswith, (argument.0), \".torrent\"), (os.path.exists, (argument.0))),\
-              ((load.start_verbose, (argument.0)))"
+method.insert.simple = load.start_verbose.if_exists, ((do, {(branch, \
+    (and, (string.endswith, (argument.0), ".torrent"), \
+      (os.path.exists, (argument.0))), \
+    ((load.start_verbose, (argument.0))) )}))
