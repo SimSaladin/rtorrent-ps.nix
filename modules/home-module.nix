@@ -55,6 +55,15 @@ in
       xdg.mimeApps.defaultApplications."x-schema-handler/magnet" = [ "rtorrent-magnet.desktop" ];
     })
 
+    (
+      # XXX why these needed when not even enabling the service??
+      mkIf (!serviceCfg.enable) {
+        services.rtorrent-ps = {
+          scgiLocal = "/run/user/${toString config.home.uid}/rtorrent-ps/scgi.sock";
+        };
+      }
+    )
+
     (mkIf serviceCfg.enable {
 
       services.rtorrent-ps = {

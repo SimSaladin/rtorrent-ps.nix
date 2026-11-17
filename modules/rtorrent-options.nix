@@ -290,12 +290,12 @@ in
 {
   options = {
     set = mkOption {
+
       type = types.submodule {
+
         freeformType = simpleNestedSettingsType;
         options = {
-
           network = {
-
             listen.port = lib.mkOption {
               type = types.raw; # XXX
               apply =
@@ -349,7 +349,6 @@ in
               type = types.int;
             };
           };
-
           ratio = {
             #enable =
             #ratio.min = setsPathOption ["set"] { type = types.int; };
@@ -431,9 +430,7 @@ in
                 peers during an announce request.
               '';
             };
-
             min_downloads = slotsOption { };
-
             min_uploads = slotsOption { };
           };
 
