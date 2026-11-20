@@ -78,7 +78,7 @@ in
         after = [ "network.target" ];
         wants = [ "network.target" ];
         requires = lib.optional serviceCfg.enableSocketActivation "rtorrent-ps.socket";
-        wantedBy = lib.optional (!serviceCfg.enableSocketActivation) [ "multi-user.target" ];
+        wantedBy = lib.optional (!serviceCfg.enableSocketActivation) "multi-user.target";
         restartTriggers = [ serviceCfg.configFile ];
 
         serviceConfig = nix-support.serviceConfig // {
