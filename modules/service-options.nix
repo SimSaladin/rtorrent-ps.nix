@@ -57,39 +57,23 @@ let
         -e RT_START_EXEC=1 \
         ${lib.getExe' rtorrent-ps "rtorrent-ps"} ${lib.escapeShellArgs cfg.arguments}
       set-window-option remain-on-exit failed
+      run-shell -E '${lib.getExe' pkgs.systemdMinimal "systemd-notify"} --status="starting up..."'
       list-windows -t ${cfg.tmux.session}
       capture-pane -pJ -S -
       ${lib.optionalString (support.tmuxServerAccess != "") ''
         ${support.tmuxServerAccess}
         run-shell -E '${pkgs.acl}/bin/setfacl -m #{q:1} #{q:2}' ${
-          lib.escapeShellArgs [
-            (support.mkACLs "rw")
-            cfg.tmux.socketPath
-          ]
+          lib.escapeShellArgs [ (support.mkACLs "rw") cfg.tmux.socketPath ]
         }
         run-shell -Ebd 1 '${pkgs.acl}/bin/setfacl -m #{q:1} #{q:2}' ${
-          lib.escapeShellArgs [
-            (support.mkACLs "rw")
-            cfg.scgiLocal
-          ]
+          lib.escapeShellArgs [ (support.mkACLs "rw") cfg.scgiLocal ]
         }
         run-shell -Ebd 1 '${pkgs.acl}/bin/setfacl -m #{q:1} #{q:2}' ${
-          lib.escapeShellArgs [
-            (support.mkACLs "rx")
-            cfg.stateDir
-          ]
+          lib.escapeShellArgs [ (support.mkACLs "rx") cfg.stateDir ]
         }
       ''}
       display-message -p -d 1 "Service process launched in tmux window"
-      run-shell -E '${lib.getExe' pkgs.systemdMinimal "systemd-notify"} --status="starting up..."'
       list-windows
-    '';
-
-    sdNotifyRC = pkgs.writeText "sd-notify.rtorrent.rc" ''
-      method.set_key = event.system.startup_done, sd-notify, \
-         ((execute.throw, ${lib.getExe' pkgs.systemdMinimal "systemd-notify"}, --ready, --status, "Startup finished", --pid, (system.pid)))
-      method.set_key = event.system.shutdown, sd-notify, \
-         ((execute.throw, ${lib.getExe' pkgs.systemdMinimal "systemd-notify"}, --stopping, --status, "System shutdown..."))
     '';
 
     # A convenience executable which can be used to attach the service
@@ -126,8 +110,6 @@ let
       disown %+
       sleep 1
       ${support.tmuxRun} -v -N source-file ${support.tmuxServiceStart}
-      ${lib.getExe' pkgs.systemdMinimal "systemd-notify"} --status="starting (tmux script finished)..."
-      sleep 10
     '';
 
     # The script to run as systemd service ExecStop= for the tmux mode.
@@ -148,7 +130,7 @@ let
       Restart = "on-failure";
       CapabilityBoundingSet = [ ''""'' ];
       NoNewPrivileges = true;
-      TimeoutStartSec = 25;
+      TimeoutStartSec = 30;
 
       # NOTE user unit does not work with this on
       #PrivateDevices = true;
@@ -219,6 +201,8 @@ in
 
     daemon = lib.mkEnableOption "Run in daemon mode (without curses UI)";
 
+    enableSocketActivation = lib.mkEnableOption "Enable scgi socket activation";
+
     arguments = lib.mkOption {
       type = types.listOf types.str;
       default = [ ];
@@ -232,6 +216,14 @@ in
       default = { };
       description = ''
         Additional rtorrent.rc settings.
+      '';
+    };
+
+    environment = lib.mkOption {
+      type = types.attrsOf types.str;
+      default = { };
+      description = ''
+        Environment variables to be set in the service.
       '';
     };
 
@@ -255,6 +247,22 @@ in
       default = null;
       description = ''
         Additional rtorrent.rc to load.
+      '';
+    };
+
+    allowedUsers = lib.mkOption {
+      type = types.listOf types.singleLineStr;
+      default = [ ];
+      description = ''
+        List of users that are allowed to access the local RPC.
+      '';
+    };
+
+    allowedGroups = lib.mkOption {
+      type = types.listOf types.singleLineStr;
+      default = [ ];
+      description = ''
+        List of groups that are allowed to access the local RPC.
       '';
     };
 
@@ -288,7 +296,7 @@ in
 
       allowedUsers = lib.mkOption {
         type = types.listOf types.singleLineStr;
-        default = [ ];
+        default = cfg.allowedUsers;
         description = ''
           List of users that are allowed to access the tmux server/session.
         '';
@@ -296,7 +304,7 @@ in
 
       allowedGroups = lib.mkOption {
         type = types.listOf types.singleLineStr;
-        default = [ ];
+        default = cfg.allowedGroups;
         description = ''
           List of groups that are allowed to access the tmux server/session.
         '';
@@ -313,23 +321,30 @@ in
   config = lib.mkMerge [
 
     {
+      assertions = [
+        {
+          assertion = cfg.enableSocketActivation -> cfg.daemon;
+          message = "socket activation may only be used in daemon mode";
+        }
+      ];
+
       services.rtorrent-ps = {
         nix-support = support; # XXX
+        environment = {
+          PATH = lib.makeSearchPath "bin" support.servicePath;
+          RT_HOME = cfg.stateDir;
+          RT_SOCKET = cfg.scgiLocal;
+          RT_PIDFILE = "%t/rtorrent-ps/rtorrent.pid";
+          ${if cfg.enableSocketActivation then "RT_SYSTEMD_RPC" else null} = "1";
+        };
         arguments = lib.mkMerge [
           # Ignore any unmanaged user rtorrent.rc if there happens to be one
           (lib.mkBefore [ "-n" ])
           # Set daemon mode on
-          (lib.optionals cfg.daemon [ "-o" "system.daemon.set=1" ])
-          # Enable ad-hoc systemd-notify READY=1 for running as a Type=notify service
-          (lib.optionals cfg.tmux.enable [
-            "-o"
-            "import=${support.sdNotifyRC}"
-          ])
+          (lib.optional cfg.daemon "-osystem.daemon.set=1")
+          (lib.optional cfg.enableSocketActivation "-onetwork.scgi.open_systemd=")
           # Append service config file if we have one
-          (lib.optionals (cfg.configFile != null) [
-            "-o"
-            "import=${cfg.configFile}"
-          ])
+          (lib.optional (cfg.configFile != null) (lib.mkAfter "-oimport=${cfg.configFile}"))
         ];
         configFile = lib.mkIf (cfg.settings.generatedConfig != "") (
           pkgs.writeTextFile {

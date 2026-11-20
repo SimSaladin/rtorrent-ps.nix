@@ -25,8 +25,6 @@ RT_HOME=$(pwd -P)
 export RT_HOME
 
 RT_SOCKET=${RT_SOCKET:-"$RT_HOME/.scgi_local"}
-RT_INITRC=${RT_INITRC:-"$RT_HOME/rtorrent.rc"}
-RT_OPTIONS=( -o "import=$RT_INITRC" "${RT_OPTIONS[@]}" ) # -D -I
 LimitFSIZE=${LimitFSIZE-unlimited}
 LimitNOFILE=${LimitNOFILE-500000}
 
@@ -46,7 +44,7 @@ if [[ ${TERM-} =~ ^(xterm|tmux|screen)$ ]]; then
 fi
 
 # Exit if socket in use or delete if obsolete.
-if [[ -e $RT_SOCKET ]]; then
+if [[ -e $RT_SOCKET && -z ${RT_SYSTEMD_RPC-} ]]; then
     if ! [[ -S $RT_SOCKET ]]; then
         fail "Socket file $RT_SOCKET exists, but it is not a socket!"
     fi
@@ -72,4 +70,5 @@ trap _at_exit TERM EXIT
 test -z "${TMUX-}" || tmux rename-window -t "$TMUX_PANE" "rTorrent-PS" || :
 
 # Note: not exec'ing so that the shell trap is run when rtorrent exits
-${RT_START_EXEC+exec} "${RT_BIN:-rtorrent}" "${RT_OPTIONS[@]}" "$@"
+${RT_START_EXEC+exec} "${RT_BIN:-rtorrent}" \
+    ${RT_INITRC+"-oimport=$RT_INITRC"} "$@"

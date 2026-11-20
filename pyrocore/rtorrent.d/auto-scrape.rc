@@ -35,11 +35,11 @@ method.insert.value = pyro.scrape_interval.idle,   43200
 
 
 # HELPER: Log a scraping event
-method.insert.simple = pyro._last_scrape.print,\
+method.insert.simple = pyro._last_scrape.print, \
     ((print,"Sending scrape for #",((d.hash))," [",((d.name)),"]"))
 
 # HELPER: Set current time in a custom field (tm_last_scrape) and save session
-method.insert = pyro._last_scrape.bump, simple|private,\
+method.insert = pyro._last_scrape.bump, simple|private, \
     "d.custom.set=tm_last_scrape, $cat=$system.time= ; d.save_resume="
 
 # COMMAND: Send the scrape request, set 'tm_last_scrape' timestamp, and save session
@@ -49,7 +49,7 @@ method.insert = d.tracker.bump_scrape, simple,\
 # HELPER: Check if the required time interval (arg.0) has passed,
 #         if yes then call 'd.tracker.bump_scrape'
 method.insert = pyro._scrape.send_after, simple|private,\
-    "branch={(elapsed.greater, $d.custom=tm_last_scrape, $argument.0=), d.tracker.bump_scrape=}"
+    "branch={ (elapsed.greater, $d.custom=tm_last_scrape, $argument.0=), d.tracker.bump_scrape=}"
 
 # HELPER: Check for non-existing or empty custom field,
 #         to be able to test its validity later

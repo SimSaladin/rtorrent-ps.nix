@@ -3,7 +3,6 @@
 # Setup as a system service and/or application available for all users.
 #
 { lib
-, pkgs
 , config
 , ...
 }:
@@ -76,16 +75,11 @@ in
     systemd.services = lib.mkIf serviceCfg.enable {
       rtorrent-ps = {
         description = "RTorrent-PS";
-        wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
         wants = [ "network.target" ];
+        requires = lib.optional serviceCfg.enableSocketActivation "rtorrent-ps.socket";
+        wantedBy = lib.optional (!serviceCfg.enableSocketActivation) [ "multi-user.target" ];
         restartTriggers = [ serviceCfg.configFile ];
-        path = [
-          pkgs.bashInteractive
-          pkgs.util-linux
-          programCfg.finalPackage
-        ]
-        ++ lib.optional serviceCfg.tmux.enable pkgs.tmux;
 
         serviceConfig = nix-support.serviceConfig // {
           User = serviceCfg.user;
@@ -93,11 +87,14 @@ in
           ProtectHome = true;
           RemoveIPC = true;
         };
-        environment = {
-          RT_HOME = serviceCfg.stateDir;
-          RT_SOCKET = serviceCfg.scgiLocal;
-          RT_PIDFILE = "%t/rtorrent-ps/rtorrent.pid";
-        };
+        environment = lib.mkForce serviceCfg.environment;
+      };
+    };
+
+    systemd.sockets = lib.mkIf (serviceCfg.enable && serviceCfg.enableSocketActivation) {
+      rtorrent-ps = {
+        listenStreams = [ serviceCfg.scgiLocal ];
+        wantedBy = [ "sockets.target" ];
       };
     };
 

@@ -66,13 +66,22 @@ in
 
     (mkIf serviceCfg.enable {
 
+      home.packages = lib.optional serviceCfg.tmux.enable serviceCfg.nix-support.rtorrent-attach;
+
       services.rtorrent-ps = {
         stateDir = "/run/user/${toString config.home.uid}/rtorrent-ps";
         scgiLocal = "/run/user/${toString config.home.uid}/rtorrent-ps/scgi.sock";
         tmux.socketPath = "/run/user/${toString config.home.uid}/rtorrent-ps/tmux.sock";
       };
 
-      home.packages = lib.optionals serviceCfg.tmux.enable [ serviceCfg.nix-support.rtorrent-attach ];
+      systemd.user.sockets = lib.mkIf serviceCfg.enableSocketActivation {
+        rtorrent-ps = {
+          Socket = {
+            ListenStreams = [ serviceCfg.scgiLocal ];
+          };
+          Install.WantedBy = [ "sockets.target" ];
+        };
+      };
 
       systemd.user.services.rtorrent-ps = {
         Unit = {
@@ -80,17 +89,13 @@ in
           After = [ "network.target" ];
           Wants = [ "network.target" ];
           X-Restart-Triggers = [ serviceCfg.configFile ];
+          Requires = lib.optional serviceCfg.enableSocketActivation "rtorrent-ps.socket";
         };
         Service = lib.mkMerge [
           (
             serviceCfg.nix-support.serviceConfig
-            // {
-              Environment = [
-                "PATH=${lib.makeSearchPath "bin" serviceCfg.nix-support.servicePath}"
-                "RT_HOME=${serviceCfg.stateDir}"
-                "RT_SOCKET=${serviceCfg.scgiLocal}"
-                "RT_PIDFILE=%t/rtorrent-ps/rtorrent.pid"
-              ];
+              // {
+              Environment = lib.mapAttrsToList (k: v: "${k}=${v}") serviceCfg.environment;
             }
           )
 
@@ -99,9 +104,11 @@ in
           })
 
         ];
-
+      }
+      // lib.optionalAttrs (!serviceCfg.enableSocketActivation) {
         Install.WantedBy = [ "default.target" ];
-      };
+      }
+      ;
     })
   ];
 }

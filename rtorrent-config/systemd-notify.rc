@@ -1,0 +1,16 @@
+# vim: ft=rtorrent:
+
+# Enable ad-hoc systemd-notify READY=1 for running as a Type=notify service
+# for Type=notify systemd service
+
+branch = (not, (string.equals, (system.env, "NOTIFY_SOCKET"), "")), \
+  ((do, \
+    {(method.set_key, event.system.startup_done, sd-notify, \
+      ((execute.throw, systemd-notify, --ready, \
+        --status, "Startup finished", --pid, (system.pid))) \
+    )}, \
+    {(method.set_key, event.system.shutdown, sd-notify, \
+      ((execute.throw, systemd-notify, --stopping, \
+        --status, "System shutdown...")) \
+    )} \
+  ))

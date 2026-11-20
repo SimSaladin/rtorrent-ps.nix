@@ -16,12 +16,10 @@ let
 
   # Interval for "schedule" start and step times. Example values:
   # 4242 singular number (seconds), or 00:12:01:12, e.g.
-  # formatted time [DD:]HH:MM:SS].
-  #
-  # TODO incomplete
+  # formatted time [DD:]HH:MM[:SS].
   intervalType = types.oneOf [
     types.int
-    (types.strMatching "[[:digit:]][[:digit:]](:[[:digit:]][[:digit:]]){3,4}")
+    (types.strMatching "[[:digit:]][[:digit:]](:[[:digit:]][[:digit:]]){1,3}")
   ];
 
   # A piece of rtorrent config code such that it can be supplied as a callback

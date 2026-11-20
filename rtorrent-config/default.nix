@@ -1,39 +1,13 @@
 { lib
 , writeTextFile
 , pyrocore
-,
 }:
 
 let
   inherit (builtins) isNull;
 
-  checkImports = dir: ''
-    # check all required imports exist and are readable
-    listImports () {
-      if [[ $# -gt 0 ]]; then
-        mapfile -t res < <(sed -n '/^import\s*=/{s/^import\s*=\s*"\?//; s/"\?\s*$// ;p}' "$@")
-        printf '%s\n' "$@"
-        listImports "''${res[@]}"
-      fi
-    }
-
-    mapfile -t imports < <(listImports ${dir})
-
-    for f in "''${imports[@]}"; do
-      if [[ -r $f ]]; then
-        echo "Imported: $f"
-      else
-        echo "error: cannot find imported file: $f" >&2
-        exit 1
-      fi
-    done
-  '';
-
   mkImports = lib.concatMapStringsSep "\n" (
-    x@{ name ? ""
-    , optional ? false
-    , ...
-    }:
+    x@{ name ? "", optional ? false, ... }:
     ''
       # ${name}
       ${if optional then "try_import.if_exists" else "import"} = ${getRcFile x}
@@ -65,6 +39,7 @@ let
       name = "constants";
       source = ./constants.rc;
     }
+    { source = ./systemd-notify.rc; }
     {
       name = "pyroscope";
       text = pyrocore.rtorrentConfigString;
@@ -104,11 +79,7 @@ let
   ];
 in
 {
-  createRtorrentRC =
-    { files ? [ ]
-    , extraConfig ? ""
-    ,
-    }:
+  createRtorrentRC = { files ? [ ], extraConfig ? "" }:
     writeTextFile {
       name = "rtorrent.rc";
       text = ''
@@ -117,6 +88,9 @@ in
         # Other additional user settings
         ${extraConfig}
       '';
-      checkPhase = checkImports "$out";
+      checkPhase = ''
+        source ${./helpers.sh}
+        checkImports "$out"
+      '';
     };
 }

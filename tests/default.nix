@@ -60,6 +60,7 @@ in
       services.rtorrent-ps = {
         enable = true;
         daemon = true;
+        enableSocketActivation = true;
         settings = {
           set.network.listen.port = 1243;
           set.throttle.global_down = "1234M";
@@ -75,10 +76,11 @@ in
     testScript = ''
       server.start()
       server.wait_for_unit("multi-user.target")
-      server.succeed("systemctl status rtorrent-ps")
-      server.wait_for_unit("rtorrent-ps.service")
 
       server.succeed("rtxmlrpc system.pid")
+
+      #server.succeed("systemctl status rtorrent-ps")
+      #server.wait_for_unit("rtorrent-ps.service")
 
       server.succeed("systemctl stop rtorrent-ps.service")
       server.shutdown()

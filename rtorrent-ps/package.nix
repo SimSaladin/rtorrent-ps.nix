@@ -3,15 +3,17 @@
 , stdenv
 , installShellFiles
 , writeShellApplication
-, pyrocore
 , makeWrapper
+
+, rev
+, hash
+
 , lndir
 , coreutils
 , dnsutils
 , curl
 , lsof
-, rev
-, hash
+, pyrocore
 , rtorrentPSVersion
 , rtorrent
 , rtorrent-magnet
@@ -22,7 +24,6 @@
 , PYRO_CONFIG_DIR ? "$RT_HOME/pyroscope"
 , colorScheme ? "solarized-blue"
 , initRc ? rtorrent-config.createRtorrentRC { }
-,
 }:
 
 let
@@ -87,9 +88,9 @@ stdenv.mkDerivation (fa: {
   makeWrapperArgs = lib.concatStringsSep " " (
     [
       "--prefix PATH : $out/bin:${dnsutils}/bin:${curl}/bin"
-      "--run 'export RT_HOME=\${RT_HOME-\"${fa.RT_HOME}\"}'"
-      "--run 'export RT_SOCKET=\${RT_SOCKET-\"${fa.RT_SOCKET}\"}'"
-      "--run 'export PYRO_CONFIG_DIR=\${PYRO_CONFIG_DIR:-\"${fa.PYRO_CONFIG_DIR}\"}'"
+      "--run 'export RT_HOME=\${RT_HOME-\"${RT_HOME}\"}'"
+      "--run 'export RT_SOCKET=\${RT_SOCKET-\"${RT_SOCKET}\"}'"
+      "--run 'export PYRO_CONFIG_DIR=\${PYRO_CONFIG_DIR:-\"${PYRO_CONFIG_DIR}\"}'"
     ]
     ++ lib.optional (!isNull RT_DOWNLOAD_PATH) "--set-default RT_DOWNLOAD_PATH ${RT_DOWNLOAD_PATH}"
   );
@@ -124,12 +125,6 @@ stdenv.mkDerivation (fa: {
       done
     done
   '';
-
-  inherit
-    PYRO_CONFIG_DIR
-    RT_HOME
-    RT_SOCKET
-    ;
 
   passthru = {
 
