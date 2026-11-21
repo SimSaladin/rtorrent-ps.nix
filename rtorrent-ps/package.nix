@@ -13,6 +13,8 @@
 , dnsutils
 , curl
 , lsof
+, gzip
+, findutils
 , pyrocore
 , rtorrentPSVersion
 , rtorrent
@@ -28,20 +30,27 @@
 
 let
   pyroPyEnv = pyrocore.passthru.pyEnv;
-
   rtorrentConfigString = ''
     # Load pyrocore settings
     ${pyrocore.passthru.rtorrentConfigString}
   '';
-
-  startScript = out: writeShellApplication {
+  binPath = [
+    coreutils
+    lsof
+    dnsutils
+    curl
+    gzip # needed by logrotate scripts
+    findutils
+    rtorrent
+  ];
+  startScript = writeShellApplication {
     name = "rtorrent-ps";
     text = ''
+      export PATH=@out@/bin:$PATH
       export RT_HOME=''${RT_HOME-"${RT_HOME}"}
       export RT_SOCKET=''${RT_SOCKET-"${RT_SOCKET}"}
-      export PYRO_CONFIG_DIR=''${PYRO_CONFIG_DIR:-"${PYRO_CONFIG_DIR}"}
+      export PYRO_CONFIG_DIR=''${PYRO_CONFIG_DIR-"${PYRO_CONFIG_DIR}"}
       ${lib.optionalString (!isNull RT_DOWNLOAD_PATH) ''export RT_DOWNLOAD_PATH=''${RT_DOWNLOAD_PATH:-"${RT_DOWNLOAD_PATH}"}''}
-      export PATH="${out}/bin:$PATH"
 
       mkdir -p "$PYRO_CONFIG_DIR"
       if [[ ! -e $PYRO_CONFIG_DIR/config.ini ]]; then
@@ -55,15 +64,9 @@ let
         done
         echo ${colorScheme} > "$PYRO_CONFIG_DIR/color-schemes/.current"
       fi
-
       ${lib.fileContents ./start.sh}
     '';
-    runtimeInputs = [
-      coreutils
-      lsof
-      dnsutils
-      curl
-    ];
+    runtimeInputs = binPath;
     runtimeEnv = {
       RT_BIN = lib.getExe rtorrent;
       RT_INITRC = toString initRc;
@@ -85,28 +88,17 @@ stdenv.mkDerivation (fa: {
     lndir
     makeWrapper
     installShellFiles
-    (pyroPyEnv.python.withPackages (
-      ps: with ps; [
-        sphinx
-        sphinx_rtd_theme
-      ]
-    ))
+    (pyroPyEnv.python.withPackages (ps: with ps; [ sphinx sphinx_rtd_theme ]))
   ];
 
-  makeWrapperArgs = lib.concatStringsSep " " (
-    [
-      "--prefix PATH : $out/bin:${dnsutils}/bin:${curl}/bin"
-      "--run 'export RT_HOME=\${RT_HOME-\"${RT_HOME}\"}'"
-      "--run 'export RT_SOCKET=\${RT_SOCKET-\"${RT_SOCKET}\"}'"
-      "--run 'export PYRO_CONFIG_DIR=\${PYRO_CONFIG_DIR:-\"${PYRO_CONFIG_DIR}\"}'"
-    ]
-    ++ lib.optional (!isNull RT_DOWNLOAD_PATH) "--set-default RT_DOWNLOAD_PATH ${RT_DOWNLOAD_PATH}"
-  );
+  makeWrapperArgs = lib.concatStringsSep " " ([
+    "--prefix PATH : ${lib.makeBinPath (["$out"] ++ binPath)}"
+    "--run 'export RT_HOME=\${RT_HOME-\"${RT_HOME}\"}; export RT_SOCKET=\${RT_SOCKET-\"${RT_SOCKET}\"}; export PYRO_CONFIG_DIR=\${PYRO_CONFIG_DIR:-\"${PYRO_CONFIG_DIR}\"}'"
+  ] ++ lib.optional (!isNull RT_DOWNLOAD_PATH) "--set-default RT_DOWNLOAD_PATH ${RT_DOWNLOAD_PATH}");
 
   postBuild = ''
     # Build documentation
     make -C docs html man
-
     # Create python-pyrocore: python interpreter with the appropriate packages available.
     # Also create wrappers for the pyrocore python scripts.
     makeWrapper ${pyroPyEnv.interpreter}      $out/bin/python-pyrocore ${fa.makeWrapperArgs}
@@ -115,8 +107,7 @@ stdenv.mkDerivation (fa: {
       baseName=$(basename "$exe")
       makeWrapper ${pyroPyEnv}/bin/"$baseName" $out/bin/"$baseName" ${fa.makeWrapperArgs}
     done
-
-    install -m0755 ${lib.getExe (startScript "@out@")} $out/bin/${fa.pname}
+    install -m0755 ${lib.getExe startScript} $out/bin/${fa.pname}
     substituteInPlace $out/bin/${fa.pname} --replace-fail @out@ ${lib.placeholder "out"}
   '';
 
@@ -137,12 +128,6 @@ stdenv.mkDerivation (fa: {
   '';
 
   passthru = {
-
-    inherit
-      rtorrentPSVersion
-      rtorrentConfigString
-      pyroPyEnv
-      ;
+    inherit rtorrentPSVersion rtorrentConfigString pyroPyEnv binPath;
   };
-
 })

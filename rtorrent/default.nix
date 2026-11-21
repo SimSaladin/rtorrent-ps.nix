@@ -5,15 +5,12 @@
 , lua5_4 ? pkgs.lua5_4
 , libtorrentVersions ? self.libtorrentVersions
 , rtorrentPSVersion ? self.rtorrent-ps.rtorrentPSVersion
-,
 }:
 
 lib.makeExtensible (
   self':
   lib.recurseIntoAttrs {
-
     latest = self'.rtorrent_0_16_28;
-
     debug = self'.latest.override {
       enableDebug = true;
     };

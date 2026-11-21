@@ -3,6 +3,7 @@
 , fetchFromGitHub
 , pkg-config
 , installShellFiles
+
 , libtool
 , autoconf
 , autoconf-archive
@@ -19,31 +20,26 @@
 , tinyxml-2
 , libxml2
 , systemd
+
 , version ? null
 , owner ? "rakshasa"
 , rev ? "v${version}"
 , hash ? ""
-, patches ? [ ]
+
 , libtorrent
 , rtorrentPSVersion
-, files ? { }
+, withAutoconfArchive ? !withAutoreconfHook
+, withAutoreconfHook ? false
 , enableDebug ? false
 , enableShared ? true
 , enableStatic ? false
-, withLua ? null
+, withLua ? lib.versionAtLeast version "0.16"
 , enableSystemd ? false
-, withAutoconfArchive ? !withAutoreconfHook
-, withAutoreconfHook ? false
 , # better unicode support via tinyxml2
   withTinyxml2 ? true
-,
+, patches ? [ ]
+, files ? { }
 }:
-
-let
-  # supposedly fixes freezes with TCP trackes.
-  # https://github.com/rakshasa/rtorrent/issues/180
-  curl-c-ares = curl.override { c-aresSupport = true; };
-in
 
 assert withLua -> lua != null;
 
@@ -51,41 +47,35 @@ assert withLua -> lua != null;
 # reason.
 assert stdenv.hostPlatform.isx86_64 -> stdenv.hostPlatform.gcc.arch or "x86-64" == "x86-64";
 
+let
+  # Supposedly fixes freezes with TCP trackers
+  # https://github.com/rakshasa/rtorrent/issues/180
+  curl-c-ares = curl.override { c-aresSupport = true; };
+in
+
 stdenv.mkDerivation (finalAttrs: {
   pname = "rtorrent";
-  version =
-    let
-      version' =
-        if isNull version then
-          libtorrent.version + lib.optionalString (rev != "v${version}") "+g${lib.substring 0 7 rev}"
-        else
-          version;
-    in
-    version' + "+PS${rtorrentPSVersion}";
-
+  version = (
+    if !isNull version then version else
+    libtorrent.version +
+      lib.optionalString (rev != "v${version}") "+g${lib.substring 0 7 rev}"
+  ) + "+PS${rtorrentPSVersion}";
   src = fetchFromGitHub {
     repo = "rtorrent";
     inherit rev hash owner;
   };
-
   inherit patches;
 
-  enableParallelBuilding = true;
-  doCheck = true;
-
-  withLua = if isNull withLua then lib.versionAtLeast version "0.16" else withLua;
-  doInstallCheck = lib.versionAtLeast version "0.16";
-
-  nativeBuildInputs = [
-    pkg-config
-    installShellFiles
-  ]
-  ++ lib.optional withAutoreconfHook autoreconfHook
-  ++ lib.optionals (!withAutoreconfHook) [
-    autoconf
-    automake
-  ]
-  ++ lib.optional withAutoconfArchive autoconf-archive;
+  configureFlags = [ "--disable-dependency-tracking" ]
+    ++ lib.optional enableShared "--enable-shared"
+    ++ lib.optional enableStatic "--enable-static"
+    ++ lib.optional (!enableStatic) "--disable-static"
+    ++ lib.optional enableDebug "--enable-debug"
+    ++ lib.optional (!enableDebug) "--enable-debug=no"
+    ++ lib.optional (!withTinyxml2) "--with-xmlrpc-c"
+    ++ lib.optional withTinyxml2 "--with-xmlrpc-tinyxml2"
+    ++ lib.optionals withLua [ "--with-lua" "LUA=${lua}/bin/lua" ]
+    ++ lib.optional enableSystemd "--with-systemd";
 
   buildInputs = [
     cppunit
@@ -99,9 +89,20 @@ stdenv.mkDerivation (finalAttrs: {
   ]
   ++ lib.optional (!withTinyxml2) xmlrpc_c
   ++ lib.optional withTinyxml2 tinyxml-2
+  ++ lib.optional withLua lua
   ++ lib.optional (!lib.versionAtLeast finalAttrs.finalPackage.version "0.16") curl-c-ares
-  ++ lib.optional finalAttrs.withLua lua
   ++ lib.optional enableSystemd systemd;
+
+  nativeBuildInputs = [
+    pkg-config
+    installShellFiles
+  ]
+  ++ lib.optional withAutoreconfHook autoreconfHook
+  ++ lib.optionals (!withAutoreconfHook) [
+    autoconf
+    automake
+  ]
+  ++ lib.optional withAutoconfArchive autoconf-archive;
 
   dontStrip = enableDebug;
 
@@ -112,24 +113,15 @@ stdenv.mkDerivation (finalAttrs: {
     );
   };
 
-  passthru = {
-    libtorrentVersion = libtorrent.version;
-    rtorrentVersion = finalAttrs.finalPackage.version;
-  };
-
   postUnpack = lib.concatMapAttrsStringSep "\n" (n: v: "cp ${v} $sourceRoot/src/${n}") files;
-
   postPatch = ''
     # Version handling
     RT_HEX_VERSION=$(printf "0x%02X%02X%02X" ''${RT_VERSION//./ })
-
     sed -i "/AC_INIT/aAC_DEFINE(RT_HEX_VERSION, $RT_HEX_VERSION, for CPP if checks)" configure.ac
     if ! grep "AC_DEFINE.*API_VERSION" configure.ac >/dev/null; then
       sed -i "s:\\(AC_DEFINE(HAVE_CONFIG_H.*\\):\1 AC_DEFINE(API_VERSION, 0, api version):" configure.ac
     fi
-
-    sed -i -e 's/rTorrent \" /rTorrent ${finalAttrs.version} " /' \
-      src/ui/download_list.cc
+    sed -i -e 's/rTorrent \" /rTorrent ${finalAttrs.version} " /' src/ui/download_list.cc
   '';
 
   preConfigure = ''
@@ -152,23 +144,9 @@ stdenv.mkDerivation (finalAttrs: {
     automake --add-missing
     autoconf
   '';
-
-  configureFlags = [
-    "--disable-dependency-tracking"
-  ]
-  ++ lib.optional enableShared "--enable-shared"
-  ++ lib.optional enableStatic "--enable-static"
-  ++ lib.optional (!enableStatic) "--disable-static"
-  ++ lib.optional enableDebug "--enable-debug"
-  ++ lib.optional (!enableDebug) "--enable-debug=no"
-  ++ lib.optional (!withTinyxml2) "--with-xmlrpc-c"
-  ++ lib.optional withTinyxml2 "--with-xmlrpc-tinyxml2"
-  ++ lib.optionals finalAttrs.withLua [
-    "--with-lua"
-    "LUA=${lua}/bin/lua"
-  ]
-  ++ lib.optional enableSystemd "--with-systemd";
-
+  postCheck = ''
+    src/rtorrent -h
+  '';
   postInstall = ''
     installManPage doc/old/rtorrent.1
     mv doc/rtorrent.rc $out/share/rtorrent/rtorrent.rc
@@ -177,9 +155,15 @@ stdenv.mkDerivation (finalAttrs: {
     ln -s $src "$out/share/rtorrent-${finalAttrs.version}"
   '';
 
-  postCheck = ''
-    src/rtorrent -h
-  '';
+  doCheck = true;
+  doInstallCheck = lib.versionAtLeast version "0.16";
+
+  passthru = {
+    libtorrentVersion = libtorrent.version;
+    rtorrentVersion = finalAttrs.finalPackage.version;
+  };
+
+  enableParallelBuilding = true;
 
   meta = {
     description = "Ncurses client for libtorrent, ideal for use with screen, tmux, or dtach";

@@ -4,56 +4,17 @@
 }:
 
 let
-  inherit (builtins) isNull;
-
-  mkImports = lib.concatMapStrings (
-    x@{ name ? "", optional ? false, ... }: ''
-      ${lib.optionalString (name != "") ''# ${name}
-      ''}${if optional then "try_import.if_exists" else "import"} = ${getRcFile x}
-    ''
-  );
-
-  getRcFile =
-    { name ? "rtorrent.rc"
-    , source ? null
-    , text ? null
-    , expr ? null
-    , ...
-    }:
-    if !isNull source then
-      ''"${source}"''
-    else if !isNull text then
-      ''"${builtins.toFile name text}"''
-    else if !isNull expr then
-      expr
-    else
-      lib.throw "At least one of [source, text, expr] must be defined and not null";
 
   defaultImports = [
-    {
-      name = "helpers";
-      source = ./helpers.rc;
-    }
-    {
-      name = "constants";
-      source = ./constants.rc;
-    }
+    { source = ./helpers.rc; name = "helpers"; }
+    { source = ./constants.rc; name = "constants"; }
     { source = ./systemd-notify.rc; }
-    {
-      name = "pyroscope";
-      text = pyrocore.rtorrentConfigString;
-    }
-    {
-      name = "instance-layout";
-      source = ./instance-layout.rc;
-    }
+    { text = pyrocore.rtorrentConfigString; name = "pyroscope"; }
+    { source = ./instance-layout.rc; name = "instance-layout"; }
     { source = ./disable-control-q.rc; }
     { source = ./logging.rc; }
     { source = ./ps-columns.rc; }
-    {
-      name = "general settings";
-      source = ./settings.rc;
-    }
+    { source = ./settings.rc; name = "general settings"; }
     { source = ./myip.rc; }
     { source = ./network-history.rc; }
     { source = ./watch-disk-space.rc; }
@@ -70,22 +31,31 @@ let
         schedule = pyro_watchdog, 30, 300, ((pyro.watchdog, (cfg.basedir)))
       '';
     }
-    {
-      name = "_rtlocal.rc";
-      expr = ''(cat, (cfg.basedir), "_rtlocal.rc")'';
-      optional = true;
-    }
+    { name = "_rtlocal.rc"; expr = ''(cat, (cfg.basedir), "_rtlocal.rc")''; optional = true; }
   ];
+
+  mkImports = lib.concatMapStrings (
+    x@{ name ? "", optional ? false, ... }: ''
+      ${lib.optionalString (name != "") ''# ${name}
+      ''}${if optional then "try_import.if_exists" else "import"} = ${getRcFile x}
+    ''
+  );
+
+  getRcFile = { source ? null, text ? null, expr ? null, name ? "rtorrent.rc", ... }:
+    if !builtins.isNull source then ''"${source}"''
+    else if !builtins.isNull text then ''"${builtins.toFile name text}"''
+    else if !builtins.isNull expr then expr
+    else lib.throw "At least one of [source, text, expr] must be defined and not null";
 in
 {
-  createRtorrentRC = { files ? [ ], extraConfig ? "" }:
+  createRtorrentRC = { files ? [ ], extraConfig ? null }:
+    let
+      finalImports = defaultImports ++ files ++
+        lib.optional (extraConfig != null) { text = extraConfig; name = "user extra config"; };
+    in
     writeTextFile {
       name = "rtorrent.rc";
-      text = ''
-        ${mkImports (defaultImports ++ files)}
-        # Other additional user settings
-        ${extraConfig}
-      '';
+      text = mkImports finalImports;
       checkPhase = ''
         source ${./helpers.sh}
         checkImports "$out"

@@ -1,22 +1,23 @@
 { lib
-, version ? null
-, rev ? "v${version}"
-, owner ? "rakshasa"
-, hash ? null
 , fetchFromGitHub
 , stdenv
 , pkg-config
 , autoreconfHook
+
 , cppunit
 , openssl
 , libsigcxx_2_0
 , zlib
 , curl
+
+, version ? null
+, rev ? "v${version}"
+, owner ? "rakshasa"
+, hash ? null
 , withPosixFallocate ? stdenv.hostPlatform.isLinux
 , enableAligned ? false
 , enableStatic ? false
 , c-aresSupport ? true
-,
 }:
 
 let
@@ -27,7 +28,6 @@ let
       (lib.match ".*AC_INIT...libtorrent..,..([0-9.]+).*")
       lib.head
     ];
-
 in
 
 # compiling with non-generic optimizations results in segfaults for some
@@ -39,19 +39,14 @@ stdenv.mkDerivation (finalAttrs: {
   version =
     (if isNull version then getSrcVersion finalAttrs.finalPackage.src else version)
     + lib.optionalString (version == null || rev != "v${version}") "+g${lib.substring 0 7 rev}";
-
   src = fetchFromGitHub {
     repo = "libtorrent";
     inherit owner rev hash;
   };
-
-  configureFlags = [
-    "--disable-dependency-tracking"
-  ]
-  ++ lib.optional withPosixFallocate "--with-posix-fallocate"
-  ++ lib.optional enableAligned "--enable-aligned"
-  ++ lib.optional enableStatic "--enable-static";
-
+  configureFlags = [ "--disable-dependency-tracking" ]
+    ++ lib.optional withPosixFallocate "--with-posix-fallocate"
+    ++ lib.optional enableAligned "--enable-aligned"
+    ++ lib.optional enableStatic "--enable-static";
   buildInputs = [
     cppunit
     openssl
@@ -61,23 +56,17 @@ stdenv.mkDerivation (finalAttrs: {
   ++ lib.optional (lib.versionAtLeast finalAttrs.finalPackage.version "0.16") (
     if c-aresSupport then curl.override { c-aresSupport = true; } else curl
   );
-
   nativeBuildInputs = [
     pkg-config
     autoreconfHook
   ];
-
-  enableParallelBuilding = true;
-
-  doCheck = lib.versionAtLeast finalAttrs.finalPackage.version "0.16";
-
-  doInstallCheck = lib.versionAtLeast finalAttrs.finalPackage.version "0.16";
-
   postAutoreconf = ''
     automake --add-missing
     autoconf
   '';
-
+  enableParallelBuilding = true;
+  doCheck = lib.versionAtLeast finalAttrs.finalPackage.version "0.16";
+  doInstallCheck = lib.versionAtLeast finalAttrs.finalPackage.version "0.16";
   meta = {
     description = "A BitTorrent library written in C++ for *nix, with focus on high performance and good code";
     homepage = "https://github.com/rakshasa/libtorrent";

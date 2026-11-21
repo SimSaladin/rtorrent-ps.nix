@@ -1,10 +1,5 @@
 ### UI/VIEW: Collapse all built-in views ####################################
 #                                                              vim: ft=rtorrent
-#
-# To disable this, use
-#
-#   echo >>~/.pyroscope/rtorrent.d/.rcignore "collapse-built-in-views.rc.default"
-#
 
 # PS 1.1+ has the built-in views collapsed by default!
 branch=(not, (system.has, "collapsed-views")), \

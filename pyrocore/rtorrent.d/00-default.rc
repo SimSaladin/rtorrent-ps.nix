@@ -27,22 +27,23 @@ method.insert.simple = d.session_file, ((cat, ((session.path)), ((d.hash)), ".to
 
 # COMMAND: Get mtime of a path, return 2nd argument when path does not exist
 method.insert.simple = os.path.mtime, \
-    ((execute.capture, sh, -c, \
-                       "echo -n $(stat -c '%Y' \"$1\" 2>/dev/null || echo \"$2\")", \
-                       getmtime, ((argument.0)), ((argument.1)) \
-    ))
+  ((execute.capture, sh, -c, \
+                     "echo -n $(stat -c '%Y' \"$1\" 2>/dev/null || echo \"$2\")", \
+                     getmtime, ((argument.0)), ((argument.1)) \
+  ))
 
 # COMMAND: Fallback through completed / loaded / downloaded event timestamps, for view sorting
 #          (MUST be protected by the caller using a system.has=d.custom.if_z= check)
 method.insert.simple = pyro._view_sort_timestamp, \
-    ((d.custom.if_z, tm_completed, ((d.custom.if_z, tm_loaded, ((d.custom, tm_downloaded))))))
+  ((d.custom.if_z, tm_completed, ((d.custom.if_z, tm_loaded, ((d.custom, tm_downloaded))))))
 
 # COMMAND: Start command for watches, with dynamic behaviour
 method.insert.value = cfg.watch.start, 1
 method.insert.simple = d.watch.start, \
   ((branch, ((cfg.watch.start)), {(d.start)}))
 method.insert.simple = d.watch.startable, ((d.custom.set, watch_start, 1))
-method.set_key = event.download.inserted_new, ~watch_start, {(branch, (d.custom, watch_start), ((d.watch.start)))}
+method.set_key = event.download.inserted_new, ~watch_start, \
+  {(branch, (d.custom, watch_start), ((d.watch.start)))}
 
 # COMMAND: Nicer key binds (hide technical complications)
 method.insert.simple = pyro._bind_schedule, \
@@ -64,7 +65,7 @@ method.insert.simple = pyro.collapsed_view.add, ((do, \
 
 # UI/VIEW: Bind "*" to toggle between collapsed and expanded display
 branch=(not, (system.has, canvas_v2)), \
-    {(pyro.bind_key, collapsed_view_toggle, *, "view.collapsed.toggle=")}
+  {(pyro.bind_key, collapsed_view_toggle, *, "view.collapsed.toggle=")}
 
 # UI/VIEW: Default view for filtering results (bound to '^' key in rT-PS)
 pyro.collapsed_view.add = rtcontrol
@@ -78,12 +79,12 @@ method.insert.simple = pyro._elapsed_time,\
         ((convert.elapsed_time, ((value, ((argument.0))))))))
 
 method.insert.simple = pyro._print_uptime, \
-    ((print, "rTorrent ", ((system.library_version)),\
-    /, ((system.client_version)),\
-    " started ", ((convert.date, ((system.startup_time)))),\
-    " ", ((convert.time, ((system.startup_time)))),\
-    ", up ", ((pyro._elapsed_time, ((system.startup_time)))),\
-    " [PID=", ((system.pid)),],\
-    " [CWD=", ((system.cwd)),]))
+    ((print, "rTorrent ", ((system.library_version)), \
+    /, ((system.client_version)), \
+    " started ", ((convert.date, ((system.startup_time)))), \
+    " ", ((convert.time, ((system.startup_time)))), \
+    ", up ", ((pyro._elapsed_time, ((system.startup_time)))), \
+    " [PID=", ((system.pid)), "]", \
+    " [CWD=", ((system.cwd)), "]"))
 
 pyro.bind_key = print_uptime, u, "pyro._print_uptime="

@@ -1,5 +1,4 @@
 { lib
-, stdenv
 , makeWrapper
 , buildPythonPackage
 , python2
@@ -11,11 +10,8 @@
 , pyrobase
 , installShellFiles
 , fetchFromGitHub
-, runCommand
-, writeShellApplication
 , makeWrapperArgs ? [ ]
 , passthru ? { }
-,
 }:
 
 lib.fix (
@@ -103,7 +99,7 @@ lib.fix (
       done
     '';
 
-    passthru = rec {
+    passthru = {
       # Note: unlike the executables in pyrocore, here the python env (NIX_*
       # variables) is setup correctly so that if setting PYTHONPATH in environment
       # does not break the executables...
@@ -119,47 +115,6 @@ lib.fix (
           );
         in
         lib.concatMapStringsSep "\n" (x: "# print = \"${lib.escape [ "\"" ] x}\"\n" + x) imports;
-
-      createImport =
-        { src
-        , env ? { }
-        ,
-        }:
-        "${
-          runCommand "create-import" { inherit src env; } "${lib.getExe create-import} $src $out"
-        }/.import.rc";
-
-      # Writes a $out/.import.rc which can be imported.
-      #
-      # The pyrocore import should be imported by some input file like so:
-      #
-      #   import = @rtorrentPyroImportRC@
-      #
-      create-import = writeShellApplication {
-        name = "pyrocore-create-import";
-        runtimeInputs = [ finalPackage ];
-        text = ''
-          export SRC=''${1?Source directory missing}
-          export DEST=''${2?Destination directory missing}
-          mkdir -p "$DEST"
-          ({
-            # shellcheck disable=SC1091
-            source ${stdenv}/setup
-
-            for inF in "$SRC"/*.rc{,.include}; do
-              outF=$DEST/$(basename "$inF")
-              substituteAll "$inF" "$outF"
-              if found=$(grep -o '\(@[A-Za-z][A-Za-z0-9_]*@\)' "$outF"); then
-                echo "error: placeholder '$found' was not substituted (file: '$inF')! Maybe you should define it?" >&2
-                exit 1
-              fi
-              # Since 0.16.27...
-              sed -i -e 's/schedule2/schedule/g' "$outF"
-            done
-          })
-          pyroadmin -q --create-import "$DEST/*.rc"
-        '';
-      };
     }
     // passthru;
   }

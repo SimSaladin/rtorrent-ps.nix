@@ -20,4 +20,4 @@ method.insert = pyro.extended, value|const, 1
 method.insert = pyro.bin_dir, string|const, (system.env, "PYRO_BIN_DIR")
 
 # Set this to '0' to prevent logging of existing key bindings being replaced
-branch=(pyro.extended), ((ui.bind_key.verbose.set, 0))
+branch = (pyro.extended), ((ui.bind_key.verbose.set, 0))
