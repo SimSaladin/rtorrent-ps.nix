@@ -17,7 +17,7 @@ method.insert = pyro.extended, value|const, 1
 
 # Set "pyro.bin_dir" to the "bin" directory where you installed the pyrocore tools!
 # Make sure you end it with a "/"; if this is left empty, then the shell's path is searched.
-method.insert = pyro.bin_dir,  string|const, ""
+method.insert = pyro.bin_dir, string|const, (system.env, "PYRO_BIN_DIR")
 
 # Set this to '0' to prevent logging of existing key bindings being replaced
 branch=(pyro.extended), ((ui.bind_key.verbose.set, 0))

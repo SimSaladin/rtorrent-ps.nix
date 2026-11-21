@@ -26,9 +26,9 @@ view.filter_on = main, event.download.finished, event.download.inserted_new
 #   Within each group, they're sorted by download and then upload speed.
 branch = (pyro.extended), false=, \
     {(view.sort_current, "active", "greater=d.up.rate=")}
-branch = (pyro.extended),\
+branch = (pyro.extended), \
     {(view.sort_current, "active", "compare=----,d.is_open=,d.complete=,d.down.rate=,d.up.rate=")}
 
 schedule = filter_active, 12, 20, ((do, \
-    ((view.filter, active, "or={d.up.rate=,d.down.rate=,not=$d.complete=}")), \
-    ((view.sort, active))))
+    {(view.filter, active, "or={d.up.rate=,d.down.rate=,not=$d.complete=}")}, \
+    {(view.sort, active)} ))

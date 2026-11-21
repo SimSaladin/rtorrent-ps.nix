@@ -23,13 +23,13 @@ method.insert.simple = myip.icanhazip.ipv6, ((execute.system.capture, "curl -6fs
 method.insert.simple = myip.update.ipv4, \
   ((do, {(branch, (or, \
     (string.equals, (argument.0), ""), \
-    (string.equals, (argument.0), (network.local_address.ipv4))),\
+    (string.equals, (argument.0), (network.local_address.ipv4))), \
   ((false)), \
   ((network.local_address.ipv4.set, (argument.0))))}))
 
 method.insert.simple = myip.update.ipv6, \
   ((do, {(branch, (or, \
     (string.equals, (argument.0), ""), \
-    (string.equals, (argument.0), (network.local_address.ipv6))),\
+    (string.equals, (argument.0), (network.local_address.ipv6))), \
   ((false)), \
   ((network.local_address.ipv6.set, (argument.0))))}))

@@ -6,11 +6,10 @@
 let
   inherit (builtins) isNull;
 
-  mkImports = lib.concatMapStringsSep "\n" (
-    x@{ name ? "", optional ? false, ... }:
-    ''
-      # ${name}
-      ${if optional then "try_import.if_exists" else "import"} = ${getRcFile x}
+  mkImports = lib.concatMapStrings (
+    x@{ name ? "", optional ? false, ... }: ''
+      ${lib.optionalString (name != "") ''# ${name}
+      ''}${if optional then "try_import.if_exists" else "import"} = ${getRcFile x}
     ''
   );
 
@@ -84,7 +83,6 @@ in
       name = "rtorrent.rc";
       text = ''
         ${mkImports (defaultImports ++ files)}
-
         # Other additional user settings
         ${extraConfig}
       '';

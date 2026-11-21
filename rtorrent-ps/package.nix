@@ -34,9 +34,15 @@ let
     ${pyrocore.passthru.rtorrentConfigString}
   '';
 
-  startScript = writeShellApplication {
+  startScript = out: writeShellApplication {
     name = "rtorrent-ps";
     text = ''
+      export RT_HOME=''${RT_HOME-"${RT_HOME}"}
+      export RT_SOCKET=''${RT_SOCKET-"${RT_SOCKET}"}
+      export PYRO_CONFIG_DIR=''${PYRO_CONFIG_DIR:-"${PYRO_CONFIG_DIR}"}
+      ${lib.optionalString (!isNull RT_DOWNLOAD_PATH) ''export RT_DOWNLOAD_PATH=''${RT_DOWNLOAD_PATH:-"${RT_DOWNLOAD_PATH}"}''}
+      export PATH="${out}/bin:$PATH"
+
       mkdir -p "$PYRO_CONFIG_DIR"
       if [[ ! -e $PYRO_CONFIG_DIR/config.ini ]]; then
         echo "Writing a default pyroscope config.ini" >&2
@@ -55,6 +61,8 @@ let
     runtimeInputs = [
       coreutils
       lsof
+      dnsutils
+      curl
     ];
     runtimeEnv = {
       RT_BIN = lib.getExe rtorrent;
@@ -103,11 +111,13 @@ stdenv.mkDerivation (fa: {
     # Also create wrappers for the pyrocore python scripts.
     makeWrapper ${pyroPyEnv.interpreter}      $out/bin/python-pyrocore ${fa.makeWrapperArgs}
     makeWrapper ${lib.getExe rtorrent-magnet} $out/bin/rtorrent-magnet ${fa.makeWrapperArgs}
-    makeWrapper ${lib.getExe startScript}     $out/bin/${fa.pname}     ${fa.makeWrapperArgs}
     for exe in ${pyrocore}/bin/*; do
       baseName=$(basename "$exe")
       makeWrapper ${pyroPyEnv}/bin/"$baseName" $out/bin/"$baseName" ${fa.makeWrapperArgs}
     done
+
+    install -m0755 ${lib.getExe (startScript "@out@")} $out/bin/${fa.pname}
+    substituteInPlace $out/bin/${fa.pname} --replace-fail @out@ ${lib.placeholder "out"}
   '';
 
   postInstall = ''
@@ -129,7 +139,6 @@ stdenv.mkDerivation (fa: {
   passthru = {
 
     inherit
-      startScript
       rtorrentPSVersion
       rtorrentConfigString
       pyroPyEnv

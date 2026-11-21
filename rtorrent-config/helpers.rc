@@ -11,11 +11,11 @@ method.insert.simple = system.env.default, \
       ((cat, ((system.env, ((argument.0)))))) \
     ))
 
-method.insert.simple = execute.system, ((do, {(do, \
+method.insert.simple = execute.system, \
     ((execute.throw, sh, -c, --, ((argument.0)), -, \
-    ((argument.1)), ((argument.2)), ((argument.3)))) )}))
+    ((argument.1)), ((argument.2)), ((argument.3))))
 
-method.insert.simple = execute.system.nothrow,\
+method.insert.simple = execute.system.nothrow, \
     ((execute.nothrow, sh, -c, --, ((argument.0)), -, \
     ((argument.1)), ((argument.2)), ((argument.3))))
 
@@ -39,18 +39,20 @@ method.insert.simple = execute.system.capture_nothrow, ((string.rstrip, \
 # os.path.exists = <path> >> bool (0 or 1)
 #   Check if <<path>> exists.
 method.insert.simple = os.path.exists, \
-    ((string.equals,0,((execute.system.capture,"test -e \"$1\"; echo $?",((argument.0))))))
+  ((string.equals, 0, ((execute.system.capture, "test -e \"$1\"; echo $?", ((argument.0))))))
 
 # check if path is a readable file
 method.insert.simple = os.path.readable, \
-    ((string.equals,0,((execute.system.capture,"test -r \"$1\"; echo $?",((argument.0))))))
+  ((string.equals, 0, ((execute.system.capture, "test -r \"$1\"; echo $?", ((argument.0))))))
 
 # Attempt to import the argument when it's a file
-method.insert.simple = try_import.if_exists, ((do,\
+method.insert.simple = try_import.if_exists, ((do, \
   {(branch, (os.path.readable, (argument.0)), ((try_import, (argument.0))))}))
 
 # Takes a path to a torrent file. If it exists, loads and starts it.
-method.insert.simple = load.start_verbose.if_exists, ((do, {(branch, \
+method.insert.simple = load.start_verbose.if_exists, ((do, \
+  {(branch, \
     (and, (string.endswith, (argument.0), ".torrent"), \
       (os.path.exists, (argument.0))), \
-    ((load.start_verbose, (argument.0))) )}))
+    ((load.start_verbose, (argument.0))) \
+  )}))

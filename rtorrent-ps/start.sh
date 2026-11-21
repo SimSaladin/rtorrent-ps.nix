@@ -55,9 +55,6 @@ if [[ -e $RT_SOCKET && -z ${RT_SYSTEMD_RPC-} ]]; then
     rm -v "$RT_SOCKET"
 fi
 
-# Make sure necessary directories exist
-mkdir -p "$RT_HOME"/work
-
 # Exit signal handler
 _at_exit() {
     stty sane

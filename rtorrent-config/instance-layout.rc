@@ -4,6 +4,7 @@
 execute.throw = mkdir, -p, --, \
     (cfg.session), \
     (cfg.logs), \
+    (cfg.download), \
     (cat, (cfg.watch), "load"), \
     (cat, (cfg.watch), "start")
 
