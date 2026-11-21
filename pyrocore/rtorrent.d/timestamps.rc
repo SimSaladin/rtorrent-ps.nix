@@ -30,8 +30,9 @@ method.set_key = event.download.resumed, !activations, ((pyro._activations.appen
 
 
 # EVENTS: Timestamp 'tm_downloaded' (time when meta (torrent) file was downloaded)
-method.insert.simple = pyro._tm_downloaded_init, \
-  "d.custom.set = tm_downloaded, (os.path.mtime, (d.tied_to_file), (cat, (system.time))) ; d.save_resume="
+method.insert.simple = pyro._tm_downloaded_init, ((do, \
+  {(d.custom.set, tm_downloaded, (os.path.mtime, (d.tied_to_file), (cat, (system.time))))}, \
+  {(d.save_resume)}))
 method.insert.simple = d.timestamp.downloaded, \
   ((d.custom, tm_downloaded))
 method.set_key = event.download.inserted_new, set_downloaded_date, \
@@ -61,20 +62,22 @@ method.insert.simple = d.timestamp.last_active.print, \
 method.insert.value = pyro.last_xfer.min_rate, 5000
 
 method.insert.simple = pyro._last_xfer_check_min_rate, \
-  "greater = argument.0=, pyro.last_xfer.min_rate="
-method.insert.simple = pyro._last_xfer_update, \
-  "d.custom.set=last_xfer,$cat=$system.time= ; branch=argument.0=,d.save_resume="
+  ((greater, ((argument.0)), ((pyro.last_xfer.min_rate))))
+method.insert.simple = pyro._last_xfer_update, ((do, \
+  {(d.custom.set, last_xfer, (cat, (system.time)))}, \
+  {(branch, (argument.0), ((d.save_resume)))} ))
 method.insert.simple = d.last_xfer.is_active, \
-  "or={pyro._last_xfer_check_min_rate=$d.up.rate=,pyro._last_xfer_check_min_rate=$d.down.rate=}"
-method.insert.list = d.timestamp.last_xfer, \
-  {(if, (d.last_xfer.is_active), \
-        ((cat,(system.time),(d.custom,last_xfer))) )}
+  ((or, {(pyro._last_xfer_check_min_rate, (d.up.rate))}, \
+        {(pyro._last_xfer_check_min_rate, (d.down.rate))} ))
+
+method.insert.simple = d.timestamp.last_xfer, \
+  ((if, ((d.last_xfer.is_active)), ((system.time)), ((d.custom, last_xfer))))
 
 schedule = pyro_update_last_xfer, 33, 17, \
   ((d.multicall2, active, "branch = (d.last_xfer.is_active), ((pyro._last_xfer_update))"))
 
 method.insert.simple = d.timestamp.last_xfer.print, \
   ((print, ((cat, { \
-        ((convert.date,((d.timestamp.last_xfer)))), " ", \
-        ((convert.time,((d.timestamp.last_xfer)))) \
+        ((convert.date, ((d.timestamp.last_xfer)))), " ", \
+        ((convert.time, ((d.timestamp.last_xfer)))) \
   }))))
