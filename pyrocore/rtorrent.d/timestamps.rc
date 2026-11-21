@@ -67,8 +67,8 @@ method.insert.simple = pyro._last_xfer_update, ((do, \
   {(d.custom.set, last_xfer, (cat, (system.time)))}, \
   {(branch, (argument.0), ((d.save_resume)))} ))
 method.insert.simple = d.last_xfer.is_active, \
-  ((or, {(pyro._last_xfer_check_min_rate, (d.up.rate))}, \
-        {(pyro._last_xfer_check_min_rate, (d.down.rate))} ))
+  ((or, ((pyro._last_xfer_check_min_rate, (d.up.rate))), \
+        ((pyro._last_xfer_check_min_rate, (d.down.rate))) ))
 
 method.insert.simple = d.timestamp.last_xfer, \
   ((if, ((d.last_xfer.is_active)), ((system.time)), ((d.custom, last_xfer))))

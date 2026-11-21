@@ -38,6 +38,7 @@ let
     x@{ name ? "", optional ? false, ... }: ''
       ${lib.optionalString (name != "") ''# ${name}
       ''}${if optional then "try_import.if_exists" else "import"} = ${getRcFile x}
+      print = "Done loading config ${toString (x.source or x.name or "unk")}"
     ''
   );
 
