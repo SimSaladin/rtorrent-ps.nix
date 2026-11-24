@@ -62,9 +62,10 @@ in
         daemon = true;
         enableSocketActivation = true;
         settings = {
-          set.network.listen.port = 1243;
-          set.throttle.global_down = "1234M";
-          set.protocol.encryption = "prefer";
+          network.http.dns_cache_timeout = -1;
+          network.listen.port = 1243;
+          throttle.global_down = "1234M";
+          protocol.encryption = "prefer";
           extraConfig = "";
           pyro.categories = {
             category1 = { };

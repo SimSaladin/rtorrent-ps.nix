@@ -152,11 +152,11 @@ let
           bool
           int
           str
-          (attrsOf inner)
+          (lazyAttrsOf inner)
         ];
       nest = base nest;
     in
-    attrsOf nest
+    lazyAttrsOf nest
     // {
       inherit (base raw) description; # To avoid infinite recursion
     };
@@ -165,25 +165,11 @@ let
     path:
     attrs@{ type, ... }:
     let
-      setOptionType =
-        path: attrs:
-        types.submodule {
-          options = lib.setAttrByPath path (
-            lib.mkOption
-              {
-                type =
-                  with types;
-                  oneOf [
-                    bool
-                    int
-                    str
-                  ];
-              }
-            // attrs
-          );
-        };
+      setOptionType = types.submodule {
+        options = lib.setAttrByPath path (lib.mkOption args);
+      };
       args = {
-        type = types.nullOr type;
+        type = types.uniq (types.nullOr type);
         description = "Alternative path ${toString path}";
       }
       // lib.removeAttrs attrs [ "type" ];
@@ -192,7 +178,7 @@ let
       mkOption args
     else
       mkOption {
-        type = with types; nullOr (coercedTo args.type (lib.setAttrByPath path) (setOptionType path args));
+        type = with types; nullOr (coercedTo args.type (lib.setAttrByPath path) setOptionType);
         inherit (args) description;
       };
 
@@ -286,273 +272,249 @@ let
   };
 in
 {
+  freeformType = simpleNestedSettingsType;
   options = {
-    set = mkOption {
+    network = {
+      listen.port = lib.mkOption {
+        type = types.raw; # XXX
+        apply =
+          as:
+          if as.range or null != null then
+            setValue [ "range" "set" ] as.range
+          else if as.random or null != null then
+            setValue [ "random" "set" ] as.random
+          else if as.set or null != null then
+            setValue [ "set" ] as.set
+          else
+            setValue [ "set" ] as;
+        description = ''
+          Network listening port. Many possible values:
 
-      type = types.submodule {
+            (1) Set exactly port:
+                network.listen.port.set = <PORT>
 
-        freeformType = simpleNestedSettingsType;
-        options = {
-          network = {
-            listen.port = lib.mkOption {
-              type = types.raw; # XXX
-              apply =
-                as:
-                if as.range or null != null then
-                  setValue [ "range" "set" ] as.range
-                else if as.random or null != null then
-                  setValue [ "random" "set" ] as.random
-                else if as.set or null != null then
-                  setValue [ "set" ] as.set
-                else
-                  setValue [ "set" ] as;
-              description = ''
-                Network listening port. Many possible values:
+            (2) Specify a range to pick the port from:
+                network.listen.port.range.set = <RANGE>
 
-                  (1) Set exactly port:
-                      network.listen.port.set = <PORT>
-
-                  (2) Specify a range to pick the port from:
-                      network.listen.port.range.set = <RANGE>
-
-                  (3) Tell rTorrent to assign a random port:
-                      network.listen.port.random.set = <BOOL>
-              '';
-            };
-
-            send_buffer.size = setsPathOption [ "set" ] {
-              type = sizeType;
-              description = ''
-                Too low value for send buffer size may cause lower
-                throughput on higher latency connections.
-              '';
-            };
-
-            receive_buffer.size = setsPathOption [ "set" ] {
-              type = sizeType;
-              description = ''
-                Too low value for receive buffer size can cause lower
-                throughput on higher latency connections.
-              '';
-            };
-
-            prefer.ipv6 = setsPathOption [ "set" ] {
-              type = types.bool;
-              description = ''
-                Prefer IPv6 connections.
-              '';
-            };
-
-            max_open_sockets = setsPathOption [ "set" ] {
-              type = types.int;
-            };
-          };
-          ratio = {
-            #enable =
-            #ratio.min = setsPathOption ["set"] { type = types.int; };
-            #ratio.max = setsPathOption ["set"] { type = types.int; };
-          };
-
-          throttle = {
-            global_up = setsPathOption [ "max_rate" "set_kb" ] {
-              type = rateType;
-              description = ''
-                Set the global upload rate (throttle).
-
-                throttle.FOO.BAR.set = INT
-                throttle.FOO.BAR.set_kb = STR
-              '';
-            };
-            global_down = setsPathOption [ "max_rate" "set_kb" ] {
-              type = rateType;
-              description = ''
-                Set the global download rate (throttle).
-
-                throttle.FOO.BAR.set = INT
-                throttle.FOO.BAR.set_kb = STR
-              '';
-            };
-
-            max_downloads.global = slotsOption {
-              description = ''
-                Maximum number of global simultaneous downloads.
-              '';
-            };
-
-            max_uploads.global = slotsOption {
-              description = ''
-                Maximum number of global simultaneous uploads.
-              '';
-            };
-
-            max_downloads.set = setsPathOption [ ] {
-              type = types.ints.positive;
-              description = ''
-                Maximum number of simultaneous downloads per torrent.
-              '';
-            };
-
-            max_uploads.set = setsPathOption [ ] {
-              type = types.ints.positive;
-              description = ''
-                Maximum number of simultaneous uploads per torrent.
-              '';
-            };
-            max_peers.seed = slotsOption {
-              description = ''
-                Maximum number of peers to connect to per torrent while
-                seeding.
-              '';
-            };
-            max_peers.normal = slotsOption {
-              description = ''
-                Maximum number of peers to connect to per torrent while
-                downloading.
-              '';
-            };
-            min_peers.seed = slotsOption {
-              description = ''
-                Minimum number of peers to connect to per torrent while
-                seeding.
-
-                Note: the min peers values are responsible for asking more
-                peers during an announce request.
-              '';
-            };
-            min_peers.normal = slotsOption {
-              description = ''
-                Minimum number of peers to connect to per torrent while
-                downloading.
-
-                Note: the min peers values are responsible for asking more
-                peers during an announce request.
-              '';
-            };
-            min_downloads = slotsOption { };
-            min_uploads = slotsOption { };
-          };
-
-          trackers = {
-            numwant = setsPathOption [ "set" ] {
-              type = types.ints.positive;
-            };
-          };
-
-          system = {
-            file.allocate = setsPathOption [ "set" ] {
-              type = types.bool;
-            };
-            umask = setsPathOption [ "set" ] {
-              type = types.str;
-            };
-            sockets.files.min_alloc = setsPathOption [ "set" ] {
-              type = types.ints.positive;
-            };
-          };
-
-          keys.layout = setsPathOption [ "set" ] {
-            type = types.enum [
-              "qwerty"
-              "azerty"
-              "qwertz"
-              "dvorak"
-            ];
-            description = ''
-              Set keymap according to a layout. Available options: qwerty|azerty|qwertz|dvorak
-            '';
-          };
-
-          protocol.pex = setsPathOption [ "set" ] {
-            type = types.bool;
-          };
-
-          # "handshake_require stream_prefer" ];
-          protocol.encryption = setsPathOption [ "set" ] {
-            type =
-              let
-                base = [
-                  "deny"
-                  "allow"
-                  "prefer"
-                  "require"
-                ];
-              in
-              types.enum (
-                base
-                ++ lib.map (x: "handshake_${x.handshake},stream_${x.stream}") (
-                  lib.cartesianProduct {
-                    handshake = base;
-                    stream = base;
-                  }
-                )
-              );
-          };
-
-          pieces = {
-            memory.max = setsPathOption [ "set" ] {
-              type = sizeType;
-              description = ''
-                Limits the amount of memory address space used to mapping file chunks.-
-
-                You may want to increase this for performance gain when there
-                is a lot of chunks.
-
-                Default is 1 GB.
-              '';
-            };
-            preload = {
-              type = setsPathOption [ "set" ] {
-                type = types.enum [
-                  0
-                  1
-                  2
-                ];
-                description = ''
-                  0 = off
-
-                  1 = Madvise
-
-                  2 = Direct paging: shuold only be used when madvise is not
-                    available...
-
-                  pieces.preload.min_size.set = 262144
-                  pieces.preload.min_rate.set = 5120
-                '';
-              };
-              min_rate = setsPathOption [ "set" ] {
-                type = rateType;
-              };
-              min_size = setsPathOption [ "set" ] {
-                type = sizeType;
-              };
-            };
-          };
-        };
+            (3) Tell rTorrent to assign a random port:
+                network.listen.port.random.set = <BOOL>
+        '';
       };
-      default = { };
+
+      send_buffer.size = setsPathOption [ "set" ] {
+        type = sizeType;
+        description = ''
+          Too low value for send buffer size may cause lower
+          throughput on higher latency connections.
+        '';
+      };
+
+      receive_buffer.size = setsPathOption [ "set" ] {
+        type = sizeType;
+        description = ''
+          Too low value for receive buffer size can cause lower
+          throughput on higher latency connections.
+        '';
+      };
+
+      prefer.ipv6 = setsPathOption [ "set" ] {
+        type = types.bool;
+        description = ''
+          Prefer IPv6 connections.
+        '';
+      };
+
+      max_open_sockets = setsPathOption [ "set" ] {
+        type = types.int;
+      };
+
+      http.dns_cache_timeout = setsPathOption [ "set" ] {
+        type = types.int;
+      };
+    };
+    ratio = {
+      #enable =
+      #ratio.min = setsPathOption ["set"] { type = types.int; };
+      #ratio.max = setsPathOption ["set"] { type = types.int; };
+    };
+
+    throttle = {
+      global_up = setsPathOption [ "max_rate" "set_kb" ] {
+        type = rateType;
+        description = ''
+          Set the global upload rate (throttle).
+
+          throttle.FOO.BAR.set = INT
+          throttle.FOO.BAR.set_kb = STR
+        '';
+      };
+      global_down = setsPathOption [ "max_rate" "set_kb" ] {
+        type = rateType;
+        description = ''
+          Set the global download rate (throttle).
+
+          throttle.FOO.BAR.set = INT
+          throttle.FOO.BAR.set_kb = STR
+        '';
+      };
+
+      max_downloads.global = slotsOption {
+        description = ''
+          Maximum number of global simultaneous downloads.
+        '';
+      };
+
+      max_uploads.global = slotsOption {
+        description = ''
+          Maximum number of global simultaneous uploads.
+        '';
+      };
+
+      max_downloads.set = setsPathOption [ ] {
+        type = types.ints.positive;
+        description = ''
+          Maximum number of simultaneous downloads per torrent.
+        '';
+      };
+
+      max_uploads.set = setsPathOption [ ] {
+        type = types.ints.positive;
+        description = ''
+          Maximum number of simultaneous uploads per torrent.
+        '';
+      };
+      max_peers.seed = slotsOption {
+        description = ''
+          Maximum number of peers to connect to per torrent while
+          seeding.
+        '';
+      };
+      max_peers.normal = slotsOption {
+        description = ''
+          Maximum number of peers to connect to per torrent while
+          downloading.
+        '';
+      };
+      min_peers.seed = slotsOption {
+        description = ''
+          Minimum number of peers to connect to per torrent while
+          seeding.
+
+          Note: the min peers values are responsible for asking more
+          peers during an announce request.
+        '';
+      };
+      min_peers.normal = slotsOption {
+        description = ''
+          Minimum number of peers to connect to per torrent while
+          downloading.
+
+          Note: the min peers values are responsible for asking more
+          peers during an announce request.
+        '';
+      };
+      min_downloads = slotsOption { };
+      min_uploads = slotsOption { };
+    };
+
+    trackers = {
+      numwant = setsPathOption [ "set" ] {
+        type = types.ints.positive;
+      };
+    };
+
+    system = {
+      file.allocate = setsPathOption [ "set" ] {
+        type = types.bool;
+      };
+      umask = setsPathOption [ "set" ] {
+        type = types.str;
+      };
+      sockets.files.min_alloc = setsPathOption [ "set" ] {
+        type = types.ints.positive;
+      };
+    };
+
+    keys.layout = setsPathOption [ "set" ] {
+      type = types.enum [
+        "qwerty"
+        "azerty"
+        "qwertz"
+        "dvorak"
+      ];
       description = ''
-        Freeform settings for simple options:
-
-          ```
-          {
-            foo.bar = 42;
-            some.other.setting = "Hello";
-          }
-          ```
-
-        Becomes
-
-          ```
-          foo.bar.set = 42
-          some.other.setting.set = "Hello"
-          ```
-
-        Simple "foo.set = value" options.
+        Set keymap according to a layout. Available options: qwerty|azerty|qwertz|dvorak
       '';
     };
 
+    protocol.pex = setsPathOption [ "set" ] {
+      type = types.bool;
+    };
+
+    # "handshake_require stream_prefer" ];
+    protocol.encryption = setsPathOption [ "set" ] {
+      type =
+        let
+          base = [
+            "deny"
+            "allow"
+            "prefer"
+            "require"
+          ];
+        in
+        types.enum (
+          base
+          ++ lib.map (x: "handshake_${x.handshake},stream_${x.stream}") (
+            lib.cartesianProduct {
+              handshake = base;
+              stream = base;
+            }
+          )
+        );
+    };
+
+    pieces = {
+      memory.max = setsPathOption [ "set" ] {
+        type = sizeType;
+        description = ''
+          Limits the amount of memory address space used to mapping file chunks.-
+
+          You may want to increase this for performance gain when there
+          is a lot of chunks.
+
+          Default is 1 GB.
+        '';
+      };
+      preload = {
+        type = setsPathOption [ "set" ] {
+          type = types.enum [
+            0
+            1
+            2
+          ];
+          description = ''
+            0 = off
+
+            1 = Madvise
+
+            2 = Direct paging: shuold only be used when madvise is not
+              available...
+
+            pieces.preload.min_size.set = 262144
+            pieces.preload.min_rate.set = 5120
+          '';
+        };
+        min_rate = setsPathOption [ "set" ] {
+          type = rateType;
+        };
+        min_size = setsPathOption [ "set" ] {
+          type = sizeType;
+        };
+      };
+    };
+
     trackerAliases = mkOption {
-      type = types.attrsOf types.str;
+      type = types.lazyAttrsOf types.str;
       default = { };
       description = ''
         Tracker aliases. Value is alias for the key.
@@ -560,7 +522,7 @@ in
     };
 
     pyro.categories = mkOption {
-      type = types.attrsOf types.raw;
+      type = types.lazyAttrsOf types.raw;
       default = { };
       description = ''
         Categories, often decided by which tracker a torrent came from. The empty
@@ -568,7 +530,7 @@ in
       '';
     };
 
-    dht.nodes = mkOption {
+    dhtBootstrapNodes = mkOption {
       type = types.listOf types.str;
       default = [ ];
       description = ''
@@ -576,8 +538,8 @@ in
       '';
     };
 
-    directory.watch = mkOption {
-      type = types.attrsOf watchDirectoryType;
+    directoryWatches = mkOption {
+      type = types.lazyAttrsOf watchDirectoryType;
       default = { };
       description = ''
         Directory watches to create.
@@ -585,7 +547,7 @@ in
     };
 
     methods = mkOption {
-      type = types.attrsOf methodType;
+      type = types.lazyAttrsOf methodType;
       default = { };
       description = ''
         Custom methods to define.
@@ -593,7 +555,7 @@ in
     };
 
     schedules = mkOption {
-      type = types.attrsOf scheduleType;
+      type = types.lazyAttrsOf scheduleType;
       default = { };
       description = ''
         Scheduled actions to define.
@@ -618,37 +580,35 @@ in
   };
 
   config = {
-    set = {
-      #network.listen.port = lib.mkDefault { range = "61000-62000"; };
-      network.http.dns_cache_timeout.set = 25;
-      network.prefer.ipv6.set = true;
-      protocol.pex = true;
-      system = {
-        file.allocate = true;
-        files = {
-          advise_random.set = true;
-          advise_random.hashing.set = true;
-          session.fdatasync.set = true;
-        };
-        umask = "0027";
+    #network.listen.port = lib.mkDefault { range = "61000-62000"; };
+    network.http.dns_cache_timeout = lib.mkDefault 25;
+    network.prefer.ipv6.set = lib.mkDefault true;
+    protocol.pex = lib.mkDefault true;
+    system = {
+      file.allocate = lib.mkDefault true;
+      files = {
+        advise_random.set = lib.mkDefault true;
+        advise_random.hashing.set = lib.mkDefault true;
+        session.fdatasync.set = lib.mkDefault true;
       };
-      trackers.numwant = 80;
-      throttle = {
-        min_peers.normal = 20;
-        max_peers.normal = 60;
-        min_peers.seed = 30;
-        max_peers.seed = 80;
-        max_uploads.set = 100;
-        max_uploads.global = 250;
-        max_downloads.set = 50;
-        max_downloads.global = 250;
-      };
-
-      keys.layout = "dvorak";
-      ui.input.history.size.set = 2000;
-      ui.focus.page_size.set = 20;
-      #ui.keymap.style.set  = "vi";
+      umask = lib.mkDefault "0027";
     };
+    trackers.numwant = lib.mkDefault 80;
+    throttle = {
+      min_peers.normal = lib.mkDefault 20;
+      max_peers.normal = lib.mkDefault 60;
+      min_peers.seed = lib.mkDefault 30;
+      max_peers.seed = lib.mkDefault 80;
+      max_uploads.set = lib.mkDefault 100;
+      max_uploads.global = lib.mkDefault 250;
+      max_downloads.set = lib.mkDefault 50;
+      max_downloads.global = lib.mkDefault 250;
+    };
+
+    keys.layout = lib.mkDefault "dvorak";
+    ui.input.history.size.set = lib.mkDefault 2000;
+    ui.focus.page_size.set = lib.mkDefault 20;
+    #ui.keymap.style.set  = "vi";
 
     methods = { };
 
@@ -675,7 +635,7 @@ in
       "bt4.t-ru.org" = "RuTracker";
     };
 
-    directory.watch = {
+    directoryWatches = {
       "~/Downloads" = {
         type = "added";
         expr = "load.start_verbose.if_exists";
@@ -684,7 +644,8 @@ in
 
     generatedConfig = ''
       ### Settings ###
-      ${fmtNestedSettings config.set}
+      ${fmtNestedSettings (lib.removeAttrs config ["_module" "generatedConfig" "pyro"
+      "methods" "schedules" "directoryWatches" "trackerAliases" "extraConfig" "dhtBootstrapNodes"])}
 
       ### Categories ###
       ${lib.concatMapAttrsStringSep "\n" (k: _: "pyro.category.add = \"${k}\"") config.pyro.categories}
@@ -697,7 +658,7 @@ in
       ### DHT Nodes ###
       ${lib.concatMapStringsSep "\n" (
         addr: ''schedule = "dht_node:${addr}", 5, 0, ((dht.add_node, "${addr}"))''
-      ) config.dht.nodes}
+      ) config.dhtBootstrapNodes}
 
       ### Methods ###
       ${lib.concatMapAttrsStringSep "\n" (_: fmtMethod) config.methods}
@@ -706,7 +667,7 @@ in
       ${lib.concatMapAttrsStringSep "\n" (_: fmtSchedule) config.schedules}
 
       ### Watch directories
-      ${lib.concatMapAttrsStringSep "\n" (_: fmtDirectoryWatch) config.directory.watch}
+      ${lib.concatMapAttrsStringSep "\n" (_: fmtDirectoryWatch) config.directoryWatches}
 
       ### Additional settings
       ${config.extraConfig}

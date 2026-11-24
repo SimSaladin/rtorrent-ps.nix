@@ -32,4 +32,4 @@ branch = (system.has, "ui.column.hide="), \
 branch = (and, (system.has, "string.equals="), (system.has, "ui.column.hide=")), \
   {(method.set_key, event.view.show, ~last_xfer_toggle, \
     {(branch, (string.equals, (ui.current_view), last_xfer, started, seeding, leeching), \
-      ((ui.column.show,962)), ((ui.column.hide,962)) )})}
+      ((ui.column.show, 962)), ((ui.column.hide, 962)) )})}

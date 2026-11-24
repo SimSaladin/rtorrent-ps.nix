@@ -36,24 +36,28 @@ method.insert.value = pyro.scrape_interval.idle,   43200
 
 # HELPER: Log a scraping event
 method.insert.simple = pyro._last_scrape.print, \
-    ((print,"Sending scrape for #",((d.hash))," [",((d.name)),"]"))
+  ((print, "Sending scrape for #", ((d.hash)), " [", ((d.name)), "]"))
 
 # HELPER: Set current time in a custom field (tm_last_scrape) and save session
-method.insert = pyro._last_scrape.bump, simple|private, \
-    "d.custom.set=tm_last_scrape, $cat=$system.time= ; d.save_resume="
+method.insert.simple = pyro._last_scrape.bump, ((do, \
+  {(d.custom.set, tm_last_scrape, (cat, (system.time)))}, \
+  {(d.save_resume)} ))
 
 # COMMAND: Send the scrape request, set 'tm_last_scrape' timestamp, and save session
-method.insert = d.tracker.bump_scrape, simple,\
-    "d.tracker.send_scrape=0 ; pyro._last_scrape.bump= ; branch=pyro.scrape_verbose=,pyro._last_scrape.print="
+method.insert.simple = d.tracker.bump_scrape, ((do, \
+  {(d.tracker.send_scrape, 0)}, \
+  {(pyro._last_scrape.bump)}, \
+  {(branch, (pyro.scrape_verbose), ((pyro._last_scrape.print)))} \
+  ))
 
 # HELPER: Check if the required time interval (arg.0) has passed,
 #         if yes then call 'd.tracker.bump_scrape'
-method.insert = pyro._scrape.send_after, simple|private,\
+method.insert = pyro._scrape.send_after, simple|private, \
     "branch={ (elapsed.greater, $d.custom=tm_last_scrape, $argument.0=), d.tracker.bump_scrape=}"
 
 # HELPER: Check for non-existing or empty custom field,
 #         to be able to test its validity later
-method.insert = pyro._last_scrape.poll, simple|private,\
+method.insert = pyro._last_scrape.poll, simple|private, \
     "branch={d.custom=tm_last_scrape, pyro._scrape.send_after=$argument.0=, d.tracker.bump_scrape=}"
 
 # SCHEDULE: Check for elapsed intervals every 5 minutes, and update scrape info
@@ -73,7 +77,7 @@ pyro.bind_key = manual_scrape, &, "d.tracker.bump_scrape= ; branch=pyro.scrape_v
 # Scrape a little after completion (on average after 30 sec)
 pyro.collapsed_view.add = scheduled_scrape_once
 view.filter = scheduled_scrape_once, ((false))
-method.insert = pyro._add_to_scheduled_scrape_once, simple|private,\
+method.insert = pyro._add_to_scheduled_scrape_once, simple|private, \
     "d.views.push_back_unique = scheduled_scrape_once ; \
      view.set_visible = scheduled_scrape_once"
 method.set_key = event.download.finished, !add_to_scheduled_scrape_once, \
