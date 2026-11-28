@@ -607,7 +607,7 @@ in
 
     keys.layout = lib.mkDefault "dvorak";
     ui.input.history.size.set = lib.mkDefault 2000;
-    ui.focus.page_size.set = lib.mkDefault 20;
+    ui.focus.page_size.set = lib.mkDefault 0;
     #ui.keymap.style.set  = "vi";
 
     methods = { };

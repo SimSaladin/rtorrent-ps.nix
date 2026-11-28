@@ -43,15 +43,32 @@ method.insert  = pyro.log_rotate, multi|rlookup|static
 method.set_key = pyro.log_rotate, !stamp, \
   ((pyro.log_stamp.current.set, ((pyro.date_iso.log_stamp))))
 
-method.set_key = pyro.log_rotate, ~main, {(do, \
-  ((log.open_file, main, ((pyro.logfile_path, rtorrent)))), \
-  ((log.messages, main)), \
-  ((log.add_output, errors, main)), \
-  ((log.add_output, events, main)), \
-  ((log.add_output, system, main)), \
-  ((log.add_output, session_events, main)), \
-  ((log.add_output, dht, main)), \
-  ((log.add_output, ui_events, main)) )}
+method.set_key = pyro.log_rotate, ~messages, {(do, \
+  ((log.open_file, messages, ((pyro.logfile_path, messages)))), \
+  ((log.messages, messages)) \
+  )}
+
+method.set_key = pyro.log_rotate, system, {(do, \
+  ((log.open_file, system, ((pyro.logfile_path, system)))), \
+  ((log.add_output, system, system)) \
+  )}
+
+method.set_key = pyro.log_rotate, events, {(do, \
+  ((log.open_file, events, ((pyro.logfile_path, events)))), \
+  ((log.add_output, events, events)), \
+  ((log.add_output, session_events, events)), \
+  ((log.add_output, ui_events, events)) \
+  )}
+
+method.set_key = pyro.log_rotate, errors, {(do, \
+  ((log.open_file, errors, ((pyro.logfile_path, errors)))), \
+  ((log.add_output, errors, errors)) \
+  )}
+
+method.set_key = pyro.log_rotate, dht, {(do, \
+  ((log.open_file, dht, ((pyro.logfile_path, dht)))), \
+  ((log.add_output, dht, dht)) \
+  )}
 
 method.set_key = pyro.log_rotate, execute, \
   ((log.execute, ((pyro.logfile_path, execute))))
