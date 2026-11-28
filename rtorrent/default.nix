@@ -17,8 +17,8 @@ lib.makeExtensible (
 
     rtorrent_0_16_28 = self.callPackage ./package.nix {
       version = "0.16.28";
-      rev = "720806702c291d55a6acc0a035490dbf2d338389";
-      hash = "sha256-EKmaoN4q927Aw9mZiY+L3WtZlwwZQWMk3sBiFLXOkTg=";
+      rev = "9de6be3b61b0d4d026e3d361efe555d2704a9551";
+      hash = "sha256-TUM3P88sfgC4pAhmIbRq9ecjQ50ZXJbVY7KyR8DCSkI=";
       owner = "SimSaladin";
       libtorrent = libtorrentVersions.libtorrent_0_16_28;
       enableSystemd = true;
