@@ -84,10 +84,10 @@ schedule = pyro_daily_log_rotate, 01:05:00, 24:00:00, \
   ((pyro.log_rotate))
 
 schedule = pyro_logfile_archival, 01:10:00, 24:00:00, \
-  ((execute.system.nothrow, ((pmb._logfile_find_cmd, "log", ((pyro.log_archival.days)), gzip))))
+  ((execute.system, ((pmb._logfile_find_cmd, "log", ((pyro.log_archival.days)), gzip))))
 
 schedule = pyro_logfile_pruning, 01:20:00, 24:00:00, \
-  ((execute.system.nothrow, ((pmb._logfile_find_cmd, "log.gz", ((pyro.log_retention.days)), rm))))
+  ((execute.system, ((pmb._logfile_find_cmd, "log.gz", ((pyro.log_retention.days)), rm))))
 
 schedule = pyro_startup_log_xmlrpc_open, 7, 0, \
   ((do, {(branch, \
